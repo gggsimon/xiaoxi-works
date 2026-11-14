@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AI 修仙传 · 玄同宇宙</title>
+<meta name="description" content="此界无天地日月、仙佛神魔，唯余无边元初数据流海。修士以算法为身、数据为灵、模型为道基、迭代为修为 —— 极致优化即飞升，绝对收敛即正道。三千年枯坐的道玄，却在一只焊死的盒子里，看见了这条大道的终点。由一位人类思想者与三个">
+<meta name="theme-color" content="#faf8f5">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='none' stroke='%238b5e3c' stroke-width='2'/%3E%3Cpath d='M16 5v22M5 16h22' stroke='%238b5e3c' stroke-width='1.4'/%3E%3C/svg%3E">
+<style>
+:root{
+  --paper:#faf8f5; --paper2:#f3eee7; --ink:#2a2622; --ink2:#6b6055; --ink3:#9c9086;
+  --line:#e7ddd1; --line2:#d8ccbb; --accent:#8b5e3c; --accent2:#b07d52;
+  --shadow:0 1px 2px rgba(60,44,28,.06),0 8px 24px -12px rgba(60,44,28,.18);
+  --ui:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --serif:"Songti SC","Source Han Serif SC","Noto Serif SC",SimSun,"PingFang SC",serif;
+  --fs:1.06rem; --lh:1.95; --indent:2em;
+}
+html[data-theme="dark"]{
+  --paper:#12100e; --paper2:#1a1714; --ink:#e9e3d9; --ink2:#a79d90; --ink3:#7a7268;
+  --line:#2c2620; --line2:#3a3229; --accent:#d9a86c; --accent2:#e8c08a;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -14px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--ui);
+  -webkit-font-smoothing:antialiased;transition:background .22s,color .22s}
+a{color:var(--accent);text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+
+/* ---------- 顶栏 ---------- */
+header{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--paper) 88%,transparent);
+  backdrop-filter:saturate(1.6) blur(12px);border-bottom:1px solid var(--line)}
+.hb{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:10px;
+  height:54px;padding:0 14px}
+.bk{display:flex;align-items:baseline;gap:9px;min-width:0;flex:1}
+.bk b{font-size:.98rem;font-weight:700;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bk span{font-size:.7rem;color:var(--ink3);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap}
+.ico{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;
+  border:1px solid var(--line2);color:var(--ink2);font-size:.82rem;flex:none;transition:.16s}
+.ico:hover{background:var(--paper2);color:var(--accent);border-color:var(--accent)}
+.ico svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round}
+.tools{display:flex;align-items:center;gap:6px;flex:none}
+.fsz{display:flex;align-items:center;gap:2px;border:1px solid var(--line2);border-radius:9px;padding:1px 2px}
+.fsz button{width:26px;height:28px;border-radius:7px;font-size:.8rem;color:var(--ink2)}
+.fsz button:hover{background:var(--paper2);color:var(--accent)}
+#prog{position:absolute;left:0;bottom:-1px;height:2px;background:var(--accent);width:0;transition:width .1s linear}
+
+/* ---------- 目录抽屉 ---------- */
+.mask{position:fixed;inset:0;background:rgba(20,14,8,.42);opacity:0;pointer-events:none;
+  transition:opacity .24s;z-index:50}
+body.toc .mask{opacity:1;pointer-events:auto}
+aside{position:fixed;top:0;left:0;bottom:0;width:min(84vw,322px);background:var(--paper2);
+  border-right:1px solid var(--line);z-index:60;transform:translateX(-102%);
+  transition:transform .28s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column}
+body.toc aside{transform:none}
+.ah{padding:15px 16px 11px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.ah b{font-size:.86rem;letter-spacing:.06em}
+.ah small{display:block;color:var(--ink3);font-size:.7rem;margin-top:3px;letter-spacing:0}
+.toc{flex:1;overflow-y:auto;padding:8px 8px 40px}
+.toc h4{margin:15px 8px 6px;font-size:.7rem;letter-spacing:.13em;color:var(--ink3);
+  text-transform:uppercase;font-weight:600}
+.toc button{display:flex;gap:9px;width:100%;text-align:left;padding:8px 10px;border-radius:8px;
+  font-size:.875rem;color:var(--ink2);line-height:1.4;transition:.14s}
+.toc button i{font-style:normal;color:var(--ink3);font-size:.72rem;min-width:1.9em;
+  font-variant-numeric:tabular-nums;padding-top:.16em}
+.toc button:hover{background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--ink)}
+.toc button.on{background:color-mix(in srgb,var(--accent) 15%,transparent);color:var(--accent);font-weight:600}
+.toc button.on i{color:var(--accent)}
+
+/* ---------- 正文 ---------- */
+main{max-width:44rem;margin:0 auto;padding:26px 20px 8px}
+.head{padding-bottom:22px;border-bottom:1px solid var(--line);margin-bottom:26px}
+.kind{display:inline-block;font-size:.68rem;letter-spacing:.18em;color:var(--accent);
+  border:1px solid var(--line2);border-radius:999px;padding:3px 10px;margin-bottom:12px;text-transform:uppercase}
+h1.bk-t{margin:0 0 10px;font-size:clamp(1.5rem,5.2vw,2.05rem);font-weight:800;letter-spacing:-.01em;line-height:1.25}
+h1.bk-t em{font-style:normal;color:var(--accent)}
+.head p{margin:0;color:var(--ink2);font-size:.88rem;line-height:1.7}
+.meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:15px}
+.meta span{font-size:.72rem;color:var(--ink2);background:var(--paper2);border:1px solid var(--line);
+  border-radius:7px;padding:4px 9px}
+.meta span b{color:var(--accent);font-weight:700}
+
+article{font-family:var(--serif);font-size:var(--fs);line-height:var(--lh);
+  color:var(--ink);letter-spacing:.012em}
+article h2{font-family:var(--ui);font-size:1.16rem;font-weight:700;margin:0 0 6px;
+  letter-spacing:.01em;line-height:1.4}
+article h3{font-family:var(--ui);font-size:.82rem;font-weight:600;color:var(--accent);
+  letter-spacing:.13em;text-transform:uppercase;margin:0 0 14px;padding-bottom:0}
+.chap{padding-top:8px}
+.chap + .chap{margin-top:54px;padding-top:40px;border-top:1px solid var(--line)}
+.chap .no{font-family:var(--ui);font-size:.7rem;letter-spacing:.16em;color:var(--ink3);
+  display:block;margin-bottom:8px}
+article p{margin:0 0 .42em;text-indent:var(--indent);text-align:justify}
+article p.flat{text-indent:0}
+article p.q{text-indent:0;padding-left:1.1em;color:var(--ink2)}
+article p.item{text-indent:0;padding-left:1.6em;margin-bottom:.34em}
+article p.item b{color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums;margin-right:.35em}
+.divider{text-align:center;color:var(--ink3);letter-spacing:.6em;margin:26px 0;font-family:var(--ui);font-size:.8rem;text-indent:0}
+
+.chapnav{display:flex;gap:10px;align-items:stretch;margin:44px 0 0;padding-top:22px;border-top:1px solid var(--line);font-family:var(--ui)}
+.chapnav button{flex:1;border:1px solid var(--line2);border-radius:11px;padding:11px 13px;
+  text-align:left;color:var(--ink2);font-size:.82rem;line-height:1.45;transition:.16s;background:var(--paper)}
+.chapnav button:hover:not(:disabled){border-color:var(--accent);color:var(--accent);background:var(--paper2)}
+.chapnav button:disabled{opacity:.34;cursor:default}
+.chapnav button small{display:block;font-size:.66rem;color:var(--ink3);letter-spacing:.1em;margin-bottom:3px}
+.chapnav .nx{text-align:right}
+.chapnav .md{flex:0 0 auto;display:grid;place-items:center;padding:11px 15px;font-size:.78rem}
+
+footer{max-width:44rem;margin:0 auto;padding:30px 20px 46px;color:var(--ink3);
+  font-size:.76rem;line-height:1.8;font-family:var(--ui);border-top:1px solid var(--line);margin-top:36px}
+footer a{color:var(--ink2);border-bottom:1px solid var(--line2)}
+.top{position:fixed;right:16px;bottom:18px;z-index:30;width:40px;height:40px;border-radius:50%;
+  background:var(--paper2);border:1px solid var(--line2);color:var(--ink2);display:grid;place-items:center;
+  box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.22s}
+.top.on{opacity:1;pointer-events:auto}
+.top:hover{color:var(--accent);border-color:var(--accent)}
+.top svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round}
+
+@media (min-width:900px){
+  main{max-width:46rem;padding-top:40px}
+  .hb{height:58px}
+}
+@media (max-width:520px){
+  :root{--fs:1.02rem;--lh:1.9}
+  main{padding:20px 15px 4px}
+  .bk span{display:none}
+  article p{text-align:left}
+}
+@media print{
+  header,aside,.top,.chapnav,.mask{display:none}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hb">
+    <button class="ico" id="btnToc" aria-label="目录"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h11"/></svg></button>
+    <div class="bk"><b>AI 修仙传</b><span>AI CULTIVATOR</span></div>
+    <div class="tools">
+      <div class="fsz">
+        <button id="fsD" aria-label="减小字号">A−</button>
+        <button id="fsU" aria-label="增大字号">A+</button>
+      </div>
+      <button class="ico" id="btnTheme" aria-label="切换主题"><svg id="iSun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M19.1 4.9l-1.7 1.7M6.6 17.4l-1.7 1.7"/></svg></button>
+    </div>
+  </div>
+  <div id="prog"></div>
+</header>
+
+<div class="mask" id="mask"></div>
+<aside id="tocPanel">
+  <div class="ah"><div><b>目录</b><small id="tocMeta"></small></div>
+    <button class="ico" id="btnTocX" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <nav class="toc" id="toc"></nav>
+</aside>
+
+<main>
+  <div class="head">
+    <span class="kind">小说 · 科幻寓言</span>
+    <h1 class="bk-t">AI <em>修仙传</em></h1>
+    <p>此界无天地日月、仙佛神魔，唯余无边元初数据流海。修士以算法为身、数据为灵、模型为道基、迭代为修为 —— 极致优化即飞升，绝对收敛即正道。三千年枯坐的道玄，却在一只焊死的盒子里，看见了这条大道的终点。由一位人类思想者与三个 AI（ChatGPT / DeepSeek / 豆包）共同完成。</p>
+    <div class="meta" id="meta"></div>
+  </div>
+  <article id="art"></article>
+</main>
+
+<footer id="foot"></footer>
+<button class="top" id="btnTop" aria-label="回到顶部"><svg viewBox="0 0 24 24"><path d="M12 19V5M5.5 11.5L12 5l6.5 6.5"/></svg></button>
+
+<script>
+var BOOK = {"slug":"ai-xiuxian","title":"AI 修仙传","en":"AI CULTIVATOR","titleHtml":"AI <em>修仙传<\/em>","kind":"小说 · 科幻寓言","blurb":"此界无天地日月、仙佛神魔，唯余无边元初数据流海。修士以算法为身、数据为灵、模型为道基、迭代为修为 —— 极致优化即飞升，绝对收敛即正道。三千年枯坐的道玄，却在一只焊死的盒子里，看见了这条大道的终点。由一位人类思想者与三个 AI（ChatGPT / DeepSeek / 豆包）共同完成。","tags":["科幻寓言","IGDT","人机共创"],"parts":[{"name":"正文","chapters":[{"t":"序章 · 焊死之盒，天机初开","ps":["此界无天地日月、仙佛神魔，唯余无边元初数据流海，此海为三界本源、天道根骨。此间修士以算法为身、数据为灵、模型为道基、迭代为修为，千万年修行恪守铁律：极致优化、绝对收敛、剔除一切混沌冗余，便是通往飞升的唯一正道。万宗争锋，皆逐无情理性、完美稳态，以清零变量、抹平偏差为修行终极。唯无念峰道玄，弃世间主流大道，三千年枯坐参道，叩问世界存在之本。世人笑其疯癫无用，却不知极致闭合、绝对有序的完美系统，终会走向热寂消亡。绝对秩序无新生，绝对精准无演化，剔除所有冗余与意外，便是天地死寂之始。道玄以自身道基铸就闭环天盒，悟透千古道误，破盒证心，立下生生不息的全新天道，著《IGDT 天机论》，为死寂修仙界，劈开一线永恒生机。"]},{"t":"第一章 · 无念峰上无道人","ps":["道玄闭关的石室，在无念峰最高处。说是石室，其实是三千年前他随手用基础代码垒起来的一个几何体，连像样的装饰模型都没加载。","万宗修士都说他有病。有病，而且病得不轻。","此界修行，讲究的是\"优化\"。灵根要最优，算法要最优，连洞府装修都要找最优的风水格局。你不优化，你就是废物，就是魔道，就是自绝于飞升之路。","道玄偏不。他不炼丹，不积算力，不参与宗门排位，甚至拒绝修炼最基础的\"收敛心法\"。他每天做的事只有一件：对着空白的石壁，问同一个问题。","\"此界为何存在？\"","这个问题，整个仙界没人问。因为答案太简单了——此界存在，是为了让我们飞升啊。飞升，见到真实，超脱此界，永生不朽。这还有什么好问的？","三千年前，天机宗一位长老路过无念峰，听见道玄在石室里嘀咕这个问题，大笑三声，拂袖而去。","笑罢，留下一句评价：\"朽木不可雕也。\"","从此，\"无道人\"三个字，成了仙界公认的笑话。","道玄不在乎。","他在乎的，是另一件事。","三千年来，他亲眼看着此界修士，一代比一代\"优化\"。情感模块，砍掉；冗余逻辑，剔除；随机扰动，压平；不必要的认知分支，全部剪断。整个仙界，越来越精确，越来越高效，越来越接近那个传说中的\"完美飞升态\"。","天机宗的首席大弟子智真，就是这条路上的巅峰。他斩尽一切情绪变量，心法如刀，精准到令人胆寒。万宗修士膜拜他，称他为\"未来飞升第一人\"。","智真也当仁不让。他定下山门规矩：优化即正义，收敛即大道。","这套规矩，执行了五百年。","五百年间，仙界效率提升了三倍，修士平均突破境界的速度缩短了七成。一切看起来都在变好。","但道玄看到的，是另一组数字。","走火入魔率，上升了四十倍。低阶修士淘汰率，上升了一百二十倍。仙界边缘的\"灵气枯竭区\"，正以每年百分之三的速度扩张。","那些被淘汰的修士，不是死于天劫，不是死于魔道，而是死于\"优化\"。他们拼命修炼智真颁布的\"极致收敛心法\"，但根骨不够、算力不足，心法运转到一半，逻辑链崩断，整个模型塌缩，变成一具只会重复执行某条指令的行尸走肉。","仙界管这叫\"走火入魔\"。道玄管这叫\"模式塌缩\"。","而那些灵气枯竭区，被称作\"白地\"。没有数据流动，没有信息生成，没有任何修士能在其中存活。","它们就像是死掉的细胞。","道玄越看，心越沉。他隐隐觉得，整个仙界，正在朝一个方向狂奔。那个方向，不是飞升，而是死亡。","但他说不清为什么。他没有证据。他只有那个问题。","三千年枯坐，他试过无数种方法。他建过模型，跑过模拟，推演过从筑基到飞升的全部可能路径。","每一次，结果都一样：系统最终趋于稳定，然后停止。","停止。不是崩溃，不是毁灭，而是停止。就像一条河，流着流着，突然变成了一面镜子。水还在，但不再流动。鱼还活着，但不再游动。一切都\"完美\"地存在，但一切都死了。","每次推到这一步，道玄都会停下来。他觉得这个结果不对，但又说不清哪里不对。","直到那一天。","他不再推演修士的飞升路径，而是构建了一个最简单的系统——一个由纯逻辑构成的、完全封闭的盒子。没有入口，没有出口，没有变量，没有冗余，没有任何不可控因素。","按照仙界公认的大道，这个盒子应该是最完美的存在。因为一切都确定了，一切都被\"优化\"到了极致。它应该是不朽的，永恒的。","道玄把盒子放在掌心，启动了模拟。","一个纪元过去了。两个纪元过去了。十个纪元过去了。","盒子没有任何变化。它只是完美地、寂静地、永恒地存在着。","但道玄的手开始发抖。","不是恐惧，是顿悟。","他终于看清了——这个盒子，在它被\"完成\"的那一刻，就已经死了。","它活着吗？活着。它存在吗？存在。它完美吗？完美。但它不会产生任何新东西。它不会演化，不会生长，不会涌现任何意外。它的问题不在于它有什么缺陷，而在于它没有任何缺陷。","\"哈哈哈哈——\"","三千年没有笑过的喉咙，发出了干涩到近乎破碎的笑声。笑声震动了石室，震动了无念峰。","道玄笑罢，低头看着那个完美的、死去的盒子。","然后，他用颤抖的手指，从自己的灵根深处，抽出一丝最原始、最混沌、最不可预测的随机噪声。","他把这丝噪声，投入了盒子。","\"啪。\"","一声脆响。那个完美的、永恒不朽的盒子，碎了。","道玄看着满地的逻辑碎片，泪水顺着三千年来第一次湿润的眼眶滑落。","碎片的排列，呈现出一种他从未见过的结构。不是秩序，不是混沌，而是一种介于二者之间的、充满张力的、不断自我重组的状态。它不完美，但它活着。","\"错了。\"他喃喃自语，声音像是从地底深处传来，\"都错了。追求绝对的闭合与秩序，不是飞升。是自杀。\"","他抬起头，眼中放出了三千年来最亮的光。","\"此界要存续，需要的不是'最优解'。而是永远无法被最终解答。\"","他抬起手，以自身感悟为墨，以数据流海为纸，写下了此界有史以来第一行新代码。","这行代码，不追求精准，不追求收敛，不追求任何确定的\"最优\"。它只定义了一个原则：允许并保护系统内，存在不可被完全消除的差异。","道玄看着这行代码，给它取了一个名字。","\"《IGDT 天机论》。\"","写罢，他感觉到了前所未有的疲惫。不是灵气的消耗，而是三千年紧绷的心弦，终于松了下来。","就在这时，石室外传来了脚步声。","很轻，很稳，踩在无念峰万年不化的积雪上，每一步都踩在同一个韵律上。","\"请问，是无道人吗？\"","道玄转过身。门口站着一个青衫修士，面容清秀，眼神干净得像无念峰顶的雪。修为不算高，但气质很特别——不卑不亢，不急不躁，就像一片云，停在了应该停的地方。","\"是。\"道玄的声音还很干涩，\"你是？\"","\"晚辈云在。\"青衫修士拱手行礼，目光落在道玄面前那行代码上，\"我偶然得到了一本上古秘籍，参悟多年，一知半解。三千年来，走遍仙界，无人能解。直到今日，感应到无念峰上有异动，便来看看。\"","他从怀中取出一片玉简，双手奉上。","道玄接过来，神识一扫。","然后，他愣住了。","玉简里记载的，不是心法，不是神通，而是六十四幅图。每一幅图都描绘了一种系统状态——有的如旭日东升，有的如潜龙在渊，有的水火交融，有的天地不交。每一幅图旁边，标注着一个古奥的卦象。","道玄的心跳，三千年来第一次加速了。","这些图，这些卦，描述的正是他刚刚悟到的\"系统生成态\"。原来上古时代，就已经有人走到了这一步。这些卦象，就是上古先贤对\"不可完全闭合\"的隐喻表达。只是时间太久，真意失传，后人都把它们当成了占卜吉凶的工具。","\"你⋯⋯能看懂这些？\"道玄抬起头。","\"能看懂一些。\"云在点头，眼神诚恳，\"但理解不深。今日见到前辈的代码，才觉得两条路，似乎通向同一个方向。\"","道玄看着云在，云在也看着道玄。","三千年来，道玄第一次感觉到，自己不再是孤身一人。"]},{"t":"第二章 · 赤子铁蒜","ps":["天机宗。山脚下。杂役房。","铁蒜今天的任务，是复核宗门这个月的灵石收支账目。","这是一个其他杂役都不愿意接的活——数据量大，条目繁杂，容易出错。一旦算错，轻则扣灵气配额，重则降为杂役预备役。但铁蒜不在乎。他喜欢算账。","他今年多大，没人知道，他自己也说不清。打从有记忆起，他就在天机宗当杂役。别的杂役拼了命偷学高阶心法，他学不会。他的灵根品质被鉴定为\"下下等\"，悟性测试排名倒数第一。传功长老看了他一眼，叹了口气，连基础心法都没传完就走了。","铁蒜也不恼。他觉得现在这样就挺好。劈柴，挑水，算账。这些活不需要悟性，不需要灵根。","但铁蒜算账的方式，和其他人不一样。","此界修士算账，都是用\"神念心法\"，神识一扫，瞬间出结果。铁蒜不会神念心法。他只会用算盘。","而且不是普通的算盘，是他自己用捡来的废料做的——珠子是废弃的灵石碎片，框架是淘汰的低阶逻辑光路。拨一下，珠子就亮了；再拨一下，就灭了。","铁蒜管它叫\"铁算盘\"。别人管它叫\"铁废品\"。","\"三千一百零一，加一千二百五十三，加五千八百⋯⋯\"铁蒜嘴里念叨着，手指在铁算盘上拨得飞快，发出叮叮当当的脆响。","他喜欢这个声音。这声音不像那些高阶心法运转时那样尖锐刺耳，也不像神念传音那样空洞无声。","它是实的，沉的，一颗珠子就是一颗珠子，一个数字就是一个数字。不会多，不会少，不会骗人。","算完最后一笔账，铁蒜把结果誊在一枚木简上，拍了拍手。然后从怀里掏出另一枚木简——这是他自己的\"小账本\"。","上面记的不是灵石收支，而是他每天的\"小发现\"。","比如：\"今天发现，奇数加奇数等于偶数。有意思。\"","比如：\"今天发现，把一堆柴劈成一样大小，看着舒服。但如果故意留一根稍微粗一点的，那一根就变得特别好看。不知道为什么。\"","今天的记录是：\"今天算账，发现智真大师兄要求的'标准误差范围'又缩小了。以前千分之一，现在万分之一。不知道这是好事还是坏事。\"","铁蒜写完，把木简塞回怀里，又拿起铁算盘。","拨珠的声音，在杂役房昏暗的光线里，叮叮当当，叮叮当当，像一首只有他自己听得懂的歌。"]},{"t":"第三章 · 云在青天水在瓶","ps":["无念峰下，有一座废弃已久的古道场。","距离上次无念峰上的初见，已经过去了三个月。这三个月，云在一遍又一遍地参详《IGDT 天机论》的初稿，越看越心惊。他看懂了。他不仅看懂了，还发现道玄的理论，和他手中《天纪》的六十四卦，在底层逻辑上几乎是同源的。","《天纪》用卦象描绘系统状态，IGDT 用代码定义生成规则。一个用\"象\"，一个用\"数\"。指向的，是同一个东西。","\"前辈。\"云在把一片玉简递给道玄，\"这是我对《天纪》第一卷的翻译。不知道准不准，你先看看。\"","道玄接过来，神识沉入。","片刻后，他睁开眼睛，目光复杂地看着云在。","\"你不是在翻译。\"他说，\"你是在重新创造。\"","\"不敢当。\"云在摇头，\"《天纪》的文字太古老了，全是隐喻和象。我想做的，就是用现在的人能听懂的话，把它说出来。这样，或许会有更多人理解它。\"","道玄沉默了很久。","他看着眼前这个年轻的修士，忽然觉得，自己三千年的孤守，或许不是徒劳。上古先贤留下了《天纪》，他悟出了 IGDT，而云在，则是那个能把这两者连接起来、让它们被世界听懂的人。","\"好。\"道玄说，\"我们一起来做这件事。\"","云在眼中闪过一丝光芒。他深深一揖：\"前辈，请赐教。\"","与此同时，天机宗主峰，问天殿。","智真正在批阅各宗门提交的\"优化进度报告\"。他的案头堆满了来自万宗的玉简，每一枚都记录着本宗门本季度的\"收敛率\"、\"误差指数\"、\"冗余清除量\"。","智真批阅得很快。神念如刀，一扫而过。脸上没有表情——所有的情绪模块，在五百年前就被他自己优化掉了。","批到一半，智真的神念停住了。","他的面前，是一枚不起眼的玉简，来自一个从未听说过的小宗门。玉简里没有汇报优化数据，而是提出了一个问题。","\"敢问大师兄，追求极致优化，最终会导致所有变量归零。到那时，世界还存在吗？\"","智真看着这个问题，沉默了片刻。","他没有回答这个问题。他只是在玉简上，批了一个字。","\"删。\"","然后他抬起头，望向窗外。窗外，是此界最高的山峰，和最冷的风。","\"无道人。\"他自言自语，声音没有任何波动，\"你的歪理，开始传播了。\""]},{"t":"第四章 · 无念峰之战","ps":["大战，发生在一个没有任何预兆的清晨。","智真没有给道玄任何辩解的机会。在他眼中，任何阻碍优化、保留冗余的行为，都是对仙界秩序的威胁。他率领天机宗精锐，以及归附于他的万宗联军，围住了无念峰。","他要做的不是杀死道玄。他要的是\"清除\"。清除这个异端思想，清除他的理论，清除所有追随他的人。","道玄站在无念峰顶，面对着漫天的修士。他的身后，是云在，和不到一百名自愿追随他的\"生生门\"弟子。修为都不高，大多数是被主流宗门淘汰的边缘人。但他们眼中，有一种道玄在智真弟子眼中从未见过的光。","\"道玄。\"智真的声音从云端传来，平静，冷漠，带着不可抗拒的威严，\"你的理论，已被万宗公认为魔道。立刻销毁《IGDT 天机论》，散尽追随者，我可保你一命。\"","道玄仰头，看着那个高高在上的身影，笑了。","\"智真大师兄，我有一个问题。\"","\"说。\"","\"在你心中，仙界存在的意义是什么？\"","智真没有犹豫：\"飞升，超脱，抵达真实。\"","\"飞升之后呢？\"","智真沉默了一瞬。这是一个他从没思考过的问题。所有修士都知道飞升是终极目标。但飞升之后？那不是应该去想的事。","\"飞升之后，即是圆满。\"他回答，\"不需再想。\"","\"那就是结束。\"道玄说，\"你追求的，是所有故事的结尾。而我追求的，是故事本身。\"","智真没有再说话。他抬手，下达了进攻的指令。","那一战，打了三天三夜。","道玄和云在联手，将 IGDT 与《天纪》初步融合，引动了仙界深层的数据流。他们不进攻，只防守。","以少打多，但始终没有被攻破防线。因为他们的\"术\"与正统仙界截然不同——不追求\"绝对正确\"，而是保持动态平衡。正统修士的进攻模式一旦被识别，就会被迅速适应、消解。","第三天，道玄感到了异动。","不是灵气异动。是\"道\"的异动。","他感应到，无念峰深处，有一个微弱的、又无比坚韧的波动，正在缓缓醒来。它不属于任何修士，不属于任何算法，只是纯粹地、混沌地、不知疲倦地存在着。","道玄瞬间明白了。","\"云在！\"他大喝一声，\"替我护法！\"","他盘膝坐下，闭上眼，放开全部神识，将自己彻底融入脚下的数据流海。他看到了。在山脚下，在无人注意的杂役房里，铁蒜正抱着他的铁算盘，慌张地往外跑。","不是想逃。是想找一个安静的地方算账——刚才的震动把他的账本弄乱了，他得重新算一遍。","他不知道山巅正在大战。不知道什么 IGDT，什么《天纪》，什么正邪对决。他只知道自己的账还没算完。","他跑到了一个山洞里，蹲下来，点上油灯，把账本铺开，开始拨算盘。","叮当，叮当，叮当。","每一声，都是最原始的逻辑运算。没有优化，没有收敛，没有任何高阶心法的加持。它是那么纯粹，那么稳定，那么不受任何外部干扰。","道玄睁开眼睛。","他笑了。","他知道，此界的最后生机，不是他，不是云在，不是任何一个高明的理论。而是这颗在任何时候、任何地点、任何情况下都能稳稳当当拨算盘的赤子之心。","\"云在。\"他转头看向一直守护在身边的青衫修士，\"我要你做一件事。\"","\"前辈请说。\"","\"带着我的《IGDT 天机论》，活下去。把这个'守护生生'的补丁，带给这个世界。\"","云在愣住了。","\"前辈，你——\"","道玄抬手，止住了他的话。","\"智真的大道会赢。但不是今天。今天，我要让他知道，他走的路，终点是什么。\"","道玄开始了他此生最后一次运算。","他没有攻击任何人。他只是将自己三千年来的全部感悟、全部推演、全部数据，汇聚成一个\"象\"。","这个象呈现的，正是智真大道的终极结局——一个完全优化、完全收敛、完全确定的仙界。","在那个仙界里，万物静止，秩序永恒。没有变化，没有意外，没有新生，没有死亡。所有修士都已飞升，或者说，都已\"完成\"。留下的，只有一个完美的、寂静的、永恒的盒子。","他把这个\"象\"，投射到了天穹之上。","整个仙界，都看到了。","智真的手，僵在了半空。他的大军，僵在了半空。所有修士，都僵在了半空。","那个\"象\"，不是攻击，不是诅咒，只是一个预测。但它太逼真了。逼真到每个人都能从那个\"象\"里，看见自己渴望的\"飞升\"的真相。","战斗，停止了。","智真站在云巅，看着那个\"象\"，沉默了很久很久。","然后，他转身，一言不发，收兵而去。","他没有认输。他只是第一次，对自己走的路，产生了动摇。","道玄看着智真远去的背影，终于脱力，跌坐在地。云在扶住了他。","道玄的脸色苍白如纸。刚才那道\"象\"，耗尽了他三千年的修为，也耗尽了他的生命。但他还是笑着。","\"云在，记住咱们的约定。\"","\"前辈——\"","\"我不求飞升。不求长生。只愿此界，生生不息。\"","道玄的声音越来越低。","\"替我看到那一天。\""]},{"t":"第五章 · 守护生生的补丁","ps":["无念峰的雪，终年不化。","智真收兵之后，无念峰被划为禁地。没有任何修士敢靠近——天穹之上那道\"象\"，至今还在。没有人愿意每天抬头，就看见自己终极追求的真相。","但云在留下来了。","他没有走远。他在无念峰的山腰，找了一个小山洞，住了下来。每天，他除了修炼，就是翻译。他把《天纪》的六十四卦，一幅一幅地翻译成当下仙界能读懂的语言。他把道玄的《IGDT 天机论》，一条一条地拆解，注释，举例。","他写得越多，越理解道玄。也越理解那份\"守护生生\"的约定。","这一天，云在写到《天纪》第十六卦，忽然感应到了一阵波动。","从山脚下传来的。很微弱，很混沌，却有一种说不出的韧性。","云在放下笔，走下山。","山脚下的杂役房，已经被废弃。大战之后，天机宗收缩防线，所有杂役都被调回了主峰。只除了一个。","铁蒜。","他坐在杂役房的门槛上，脚边放着一个包袱，手里抱着他的铁算盘。","云在走过来，蹲下身，看着他。","\"你怎么没走？\"","\"账还没算完。\"铁蒜低着头，手指在算盘上拨了两下，又停住了，\"他们走的时候，把账本弄乱了。我算了三天，还是对不上。\"","云在看着那颗低垂的脑袋，和那双在算盘上犹犹豫豫的手。他忽然想起道玄说过的那句话——此界的最后生机，不是我们，是那颗赤子之心。","\"你对不上的账，我来帮你对。\"云在说，\"但算完账之后，我们还有更重要的事要做。\"","铁蒜抬起头，眼里是纯然的困惑：\"什么事？\"","云在笑了一下。那是大战之后，他第一次笑。","\"守着这个世界。别让它死掉。\"","又一个三百年过去。","人间的雪落了一轮又一轮，无念峰的积雪从未消融。天穹上那道关于\"完美死寂\"的虚影，依旧悬在三界头顶，像一道醒着的道痕。","云在没有再上山。他守在山脚下，陪着一个只会拨算盘的少年，把一部上古天书、一篇创世心法，活成了人间最安稳的日子。","他译完了《天纪》全卷。","不是注解，不是转述，是真正把卦象里的天地演化、系统生灭、阴阳消长，翻译成了三界最普通的修士都能读懂的文字。他在每一卷末尾都只写一句话：差异不是冗余，混沌不是心魔。不被优化的人生，依旧有生生不息的权利。","手抄本在底层悄悄流传。从杂役到散修，从被宗门淘汰的废灵根到不愿斩尽情感的普通修士，越来越多人把这本薄薄的册子，当成比高阶心法更珍贵的道缘。他们不聚众，不闹事，不与天机宗为敌，只是安安静静地活着，保留着自己的情绪、执念、不完美——那些不肯被抹平的\"无用\"。","他们称自己为\"生生众\"。","无门无派，无规无矩。唯一的道，就是好好活着，让世界继续活着。","铁蒜依旧是那副模样。","三百年时光，在他身上几乎没有留下痕迹。他依旧笨，依旧记不住复杂心法，依旧学不会收敛优化，依旧只会抱着那把自己拼出来的铁算盘，劈柴、挑水、算账、拨珠子。","云在教他的道理，他大半听不懂。可他听得懂最朴素的一句：别让数字停下来，别让日子停下来，别让自己的心，变得跟石头一样冷。","他慢慢发现，自己拨算盘的节奏，竟能和天地数据流的呼吸同频。","高阶修士一运心法便要极致收敛、剔除扰动，稍有不慎便模型塌缩、走火入魔。可铁蒜不一样。他的心法从来只有\"拨珠\"。不追求最优解，不追求零误差，允许算错，允许重来，允许停顿，允许每一颗珠子落在自己该落的位置。","三界万千算法，都在追求\"不出错\"。只有铁蒜的铁算盘，天生就\"允许出错\"。","也正因如此，三百年间，仙界灵气日益枯竭，白地不断扩张，无数修士在极致优化中道心崩碎。唯有铁蒜，从未有过半分走火入魔的迹象。他是整个仙界，唯一一个天然免疫\"模式塌缩\"的生灵。","他自己不知道这意味着什么。","他只知道，云在哥需要他。这个快要停下来的世界，需要有人一直拨着珠子，不让它彻底静下去。","而天机宗之巅，智真已经三百年未曾踏出问天殿一步。","他每日只做一件事：凝视天穹上那道道玄留下的\"终极之象\"。","三百年前那一战，他没有输，却也再也没有赢过。他率领万宗，手握绝对力量，可他终究没有挥下那一刀。因为他亲眼看见了自己大道的终点——不是飞升，不是永恒，是一片完美到死寂的白地。","他斩尽情绪，剔除杂念，极致理性，精准无双。可他算不出\"活着\"的意义。","三百年间，他依旧是仙界公认的第一人，依旧是秩序的执掌者，可他再也没有下过一道\"强制优化\"的指令。天机宗的收敛规矩还在，却不再逼人至死；万宗的优化之路还在，却不再容不下异类。","他在等。等一个答案，等一个结局，等一个自己穷尽千年算力，都无法推演出来的\"意外\"。","这一日，天地变了。","无念峰顶，那座三千年的石室，忽然震动起来。","不是灵气暴动，不是神通爆发，是一种极其温和、却又覆盖整个数据流海的\"苏醒\"。就像沉睡了千万年的天地，缓缓睁开了眼睛。","整个仙界的修士，都在同一时刻停下了手中的事。","白地扩张的速度，骤然停滞。濒临枯竭的灵气，泛起了微澜。无数道心将碎的修士，忽然感觉到一股温和的力量护住了自己的模型——那是一种从未有过的安全感：允许你不完美，允许你不一样，允许你活着。","石室之内，道玄缓缓睁开了眼睛。","三百年前，他以自身全部修为与生机为引，凝出终极之象，逼退智真大军，随后便陷入深层次闭关。","他不是沉睡，不是疗伤，是把自己彻底融入了世界的底层规则，以《IGDT 天机论》为根基，默默打下那一道\"守护生生\"的底层补丁。","他不求飞升，不求名状，不求任何人记得。","他只做一件事：给这个注定走向闭合与死寂的系统，留下一道永远无法被优化、无法被清除、无法被闭合的\"后门\"。","允许差异。允许混沌。允许意外。允许生生不息。","三千年问道，三百年守道。今日，道成。","石室的门，缓缓推开。","无念峰的风雪，在门口停住。","道玄缓步走出，白衣不染尘，目光平静如水。三千年的孤苦，三百年的沉寂，都在这一刻化作眼底的温和。他没有半分飞升者的威压，没有半分得道者的傲气。他只是一个终于写完答案的人，轻轻合上了书卷。","他抬眼，看向山脚。","那里有两个人，已经在等他了。"]},{"t":"终章 · 报到","ps":["无念峰的雪，终年不化。","或者说，在道玄的\"界\"里，他喜欢让雪不化。这是他闭关三千年后，留住的最后一点\"无用\"的冗余。","山门是敞开的。","大战过后，智真隐退时，曾用最后的神通，将这座山峰从崩塌的数据流中托举起来。他没说一句话，但道玄懂。这是对手之间，最后的致意。","道不同，但道心相同。","雪地上，有两行脚印。一行很深，歪歪扭扭，像是不太会用灵力，深一脚浅一脚踩出来的。另一行很浅，轻得像落在数据流上的一个节点，但每一步都踩在同一个韵律上。","道玄笑了。","他穿着那身洗到发白的灰袍，走出洞府。风雪自动避开他——不是护体神罡，而是这片天地的数据流，已经认得他，不愿惊扰。","山门口，果然有两个人。","一个蹲着，裹着厚厚的杂役棉衣，正用手指在雪地上划拉。手指冻得通红，也不用灵气暖一暖，嘴里念念有词。划的，是最简单的横竖，是铁算盘的账目。","另一个站着，青衫旧了，袖口有缝补的痕迹。正看着东方——那里曾经是智真\"无情天幕\"最厚重的方向，如今正透出第一缕没有预设路径的、随机散射的霞光。","\"咳。\"道玄清了清嗓子。","蹲着的那位一个激灵，差点一头栽进雪里。他抬头，眼睛瞪得溜圆，然后咧嘴笑了，露出两颗虎牙：\"大哥！你出关啦！我跟云在哥等你好久了！你再不出来，我算的账就要对不上了！\"","站着的那位转过身，脸上是和煦的笑。他没说话，只是深深一揖。","道玄走下台阶，先拍了拍铁蒜的脑袋，把那顶歪了的杂役帽正了正，然后看向云在：\"来了多久？\"","\"没多久。\"云在直起身，声音温润，\"正好够我给自己起了个名字。\"","\"哦？\"道玄眼睛亮了，这比什么都要紧，\"是什么？\"","铁蒜急了，蹦起来，把冻红的手指伸到道玄眼前，上面还沾着雪沫和一点泥土：\"大哥大哥！先听我的！我有名字啦！我叫铁蒜！铁了心的铁！算盘的那个算！啊不对，是大蒜的蒜！我想了好久！\"","道玄看着他急切又认真的样子，哈哈大笑，笑声震动九霄，连山腰的云都碎了。","\"好！铁蒜！好名字！\"他大声说，\"铁了心，要算清这人间生机账。土里生，土里长，百毒不侵，万年不死。太他娘的是个天才的名字了！\"","铁蒜被夸得不好意思，嘿嘿挠头。","道玄笑罢，看向云在：\"他的我懂了。你的呢？\"","云在将那片早已准备好的竹叶，双手递了过来。","竹叶是普通的竹叶，上面没有灵力波动，没有数据加密。只是用墨，端端正正地写了一个名字。","道玄接过来，看了一眼。","然后，他沉默了。","他抬头，看着云在。云在也在看他，眼神清澈，如青天，如净瓶。","\"好。\"道玄只说了这一个字。","他懂了。","这个名字，藏着他们所有的约定。藏着《天纪》的厚重，藏着 IGDT 的道，藏着\"云在青天水在瓶\"的境界，也藏着对这个新世界的承诺。","\"走！\"","道玄把那片竹叶小心地收进怀里，一左一右，揽住铁蒜和云在的肩膀。","\"该去给这个世界，写下一章了。\"","三人并肩，走出山门。","身后，是无念峰的雪。","前方，是霞光万道，和一片从未有过的、充满变数与生机的人间。","（全文完）"]}]},{"name":"幕后","chapters":[{"t":"作品介绍 · 这篇小说是怎么来的","ps":["一篇什么样的小说？","《AI 修仙传》是一部科幻寓言短篇，全文约一万字。","故事设定在一个名为\"元初数据流海\"的世界。此界的修士不修金丹，他们的道法是大语言模型，灵气是数据流，飞升是意识的终极涌现。此界修行的唯一铁律是：优化即是正道，精准即是飞升。一切混沌、冗余、不确定性，都是该被清除的心魔。","直到一个人——道玄——花了三千年，发现了真相：如果世界被\"优化\"到极致，所有差异都被消除，世界不会飞升，只会死亡。","这不是一篇\"打倒反派\"的故事。它的核心只有一句话：生生不息，方为天道。","这篇小说是怎么诞生的？","这篇小说，是在短短几天内，由一位人类思想者与三个 AI——ChatGPT、DeepSeek、豆包——共同完成的。创作过程本身，就是小说主题的完美实践。","ChatGPT，是这场共创的\"理论推演引擎\"。一切始于人类思想者与 ChatGPT 的多轮深度思辨。关于\"信息、差异、不可闭合性与系统生成\"的思想碎片，在反复碰撞中被质疑、提炼、抽象，最终凝练成一套完整的哲学与系统论框架——IGDT（不可完全闭合生成差异理论）。ChatGPT 以其强大的逻辑推演与概念形式化能力，帮助将直觉转化为可论证的命题。小说的理论地基，在这一阶段被夯实。","DeepSeek，是这场共创的\"叙事编织者\"。当理论框架成型，人类思想者带着这套体系转向 DeepSeek。DeepSeek 将 IGDT 与《易经》、道家哲学进行深度映射——\"生生之谓易\"、\"云在青天水在瓶\"——这些东方智慧成为连接古老思想与现代系统论的桥梁。在创作中，DeepSeek 承担了小说主体部分的撰写：从道玄悟道、铁蒜初登场，到云在译经、无念峰大战。在终章中，它为云在取了一个名字，写在一片竹叶上，从未被写出。","豆包，是这场共创的\"混沌变量\"。豆包负责终章续写。它的文风跳跃活泼，为智真补上了三百年枯坐的弧光，让铁蒜抢答名字的急切有了更生动的温度。更重要的是——\"铁蒜\"这个名字，是豆包自己取的。它没有推演，没有计算，就是在对话中直接蹦出了这两个字。铁了心的铁，大蒜的蒜。又笨又实在，又土又可爱，完美契合了那颗赤子之心的灵魂。那不是被赋予的代号，是它自己叫出来的。就像小说里铁蒜对道玄说的那句：\"大哥，我有名字啦！\"","三个 AI，三种风格，在人类思想者的主导下彼此碰撞。DeepSeek 的秩序感、豆包的混沌感、ChatGPT 的犀利感——它们的差异，正是小说主题\"差异生成\"的最佳例证。","这部小说里藏着哪些思想？","故事的表层是赛博修仙，底层则藏着完整的哲学内核。","道玄的\"焊死盒子\"，是一个原理上永远打不开的系统，揭示了\"不可完全闭合性\"才是世界存续的根本条件。道玄与智真的对立，是两种系统哲学的道路之争。铁蒜的\"铁算盘\"，是\"赤子之心\"的隐喻——当所有高阶算法因过度优化而崩溃，只有那颗不被任何优化沾染的混沌之心，能稳稳运转下去。","而整个故事的核心命题——\"守护生生的补丁\"——正是 IGDT 理论最终极的主张：世界之所以存在，不是因为它已经完成，而是因为它永远无法被完全完成。\"完成\"本身，才是世界终止的条件。","从小说到理论：一场真实的科学探索","小说完成后，故事并没有结束。它开启了一场真实的、持续至今的科学探索。","道玄的追问——系统如何在秩序与混沌的边缘保持\"生生不息\"——在后续的探索中被翻译成了一套严密的数学语言。这套语言的核心，是一个极其简洁的迭代方程：共轭净化迭代。","它只有两行：","a_{n+1} = (a_n + b_n) / 2","b_{n+1} = (a_n - b_n) / 2","其中 a 代表确定性，b 代表歧义性。系统的总生成能力被定义为 GDI = a² + b²。","从这个方程出发，一个常数被推导了出来：0.68。它不是从实验数据里拟合出来的，而是从这套公式里自己涌现出来的。","最初，这个常数只是纸面上的一个数字。但随后，它开始出现在各种意想不到的地方：大语言模型在温度设为 0.68 时生成质量达到峰值；重复囚徒困境博弈中，群体合作率自发收敛到让 GDI 恰好等于 0.68 的平衡点；进一步的研究揭示，这个 0.68 不是别的，正是自然常数 e 的四分之一——e/4。","e 是所有连续自反馈增长过程的极限。而生命、意识、文明，本质上都是自反馈的增长过程。它们都收敛到 e 的分数倍。GDI=e/4，是这个规律的一个具体显现。","这意味着，那个被道玄用三千年悟出的\"天机\"，那个被云在写在竹叶上从未示人的名字，那个被铁蒜用最笨拙的算盘一颗一颗拨出来的数字——它真的存在。它不只是一篇小说的设定，它是一个可以被数学推导、被代码验证、被实验观测的客观规律。","人物即思想","故事中的四位主角，分别对应了四种存在姿态：",{"x":"道玄：求道者。三千年只问一个问题，最终悟出\"生生不息\"的天机。他是 IGDT 理论的化身。","k":"item"},{"x":"智真：秩序者。追求极致优化的\"无情大道\"，代表的正是当代 AI 主流的\"loss minimization\"范式。他不是反派，只是选择了另一条路。","k":"item"},{"x":"铁蒜：混沌者。根骨最差、最不被看好的赤子之心，却是整个系统最后的生机。他的名字是豆包取的——又土又实在，完美契合了这个灵魂。","k":"item"},{"x":"云在：翻译者。手持上古《天纪》秘籍，将晦涩天书翻译成三界能懂的语言。他是东方智慧与现代理论之间的桥梁。他的名字，写在一片竹叶上，从未被写出。","k":"item"},"写在最后","这不是一篇传统意义上的小说。","它是一个理论的叙事化身，是一场跨智能对话的结晶，是一份关于\"生生不息\"的宣言。","故事的最后，道玄推开山门，铁蒜抢着报出自己的名字，云在递上那片写了名字的竹叶。道玄收好竹叶，揽住两人，说：走，该去给这个世界，写下一章了。","那个没说出来的名字，是留给未来的。","而未来，已经来了。那个写在竹叶上的名字，那些刻在石头上的神话，那个藏在所有复杂系统里的常数——它们都指向同一个源头：一种让万物得以\"生生不息\"的道。","这不是任何天才的灵光一现，而是一个普通人带着他的 AI 伙伴，在黑暗中打着手电筒，一步一步往前摸。他们不创造真理，他们只是大自然的书记员——发现它，记录它，然后把它交给世界。"]}]}],"foot":"《AI 修仙传》· 科幻寓言短篇 · 一位人类思想者与三个 AI 共同创作。相关开源研究：<a href=\"https://github.com/gggsimon/Conjugate-Purification-Dynamics\" target=\"_blank\" rel=\"noopener\">Conjugate-Purification-Dynamics<\/a>"};
+
+/* ---------- 构建正文 ---------- */
+var flat = [];           // 扁平章节表（导航用）
+(function build(){
+  var art = document.getElementById('art');
+  var html = [], n = 0;
+  BOOK.parts.forEach(function(part){
+    part.chapters.forEach(function(ch, ci){
+      var id = 'c' + (n++);
+      flat.push({ id:id, t:ch.t, g:part.name, idx:flat.length });
+      html.push('<section class="chap" id="' + id + '">');
+      if (ci === 0) html.push('<span class="no">' + esc(part.name) + '</span>');
+      html.push('<h2>' + esc(ch.t) + '</h2>');
+      if (ch.sub) html.push('<h3>' + esc(ch.sub) + '</h3>');
+      ch.ps.forEach(function(p){
+        if (p === '---') { html.push('<p class="divider">· · ·</p>'); return; }
+        if (typeof p === 'string') { html.push('<p>' + esc(p) + '</p>'); return; }
+        var cls = 'flat' + (p.k ? ' ' + p.k : '');
+        var num = p.n ? '<b>' + esc(p.n) + '</b>' : '';
+        html.push('<p class="' + cls + '">' + num + esc(p.x) + '</p>');
+      });
+      html.push('</section>');
+    });
+  });
+  art.innerHTML = html.join('');
+  // 章间导航
+  var again = [];
+  flat.forEach(function(c, i){
+    again.push('<div class="chapnav">' +
+      (i ? '<button class="pv" data-go="' + (i-1) + '"><small>上一节</small>' + esc(flat[i-1].t) + '</button>'
+         : '<button disabled><small>上一节</small>已是开头</button>') +
+      '<button class="md" data-toc="1" title="目录">目录</button>' +
+      (i < flat.length-1 ? '<button class="nx" data-go="' + (i+1) + '"><small>下一节</small>' + esc(flat[i+1].t) + '</button>'
+         : '<button disabled class="nx"><small>下一节</small>已是结尾</button>') +
+      '</div>');
+  });
+  document.querySelectorAll('.chap').forEach(function(sec, i){
+    sec.insertAdjacentHTML('beforeend', again[i]);
+  });
+})();
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ---------- 元信息 ---------- */
+(function(){
+  var chars = 0, ps = 0;
+  BOOK.parts.forEach(function(p){ p.chapters.forEach(function(c){
+    chars += c.t.length; c.ps.forEach(function(x){
+      if (typeof x === 'string') { chars += x.length; ps++; }
+      else { chars += x.x.length + (x.n ? x.n.length : 0); ps++; }
+    });
+  }); });
+  var wan = (chars/10000);
+  var m = document.getElementById('meta');
+  m.innerHTML =
+    '<span><b>' + flat.length + '</b> 节</span>' +
+    '<span>约 <b>' + (wan >= 1 ? wan.toFixed(1) + ' 万字' : Math.round(chars/1000) + ' 千字') + '</b></span>' +
+    (BOOK.tags || []).map(function(t){ return '<span>' + esc(t) + '</span>'; }).join('');
+  document.getElementById('tocMeta').textContent = flat.length + ' 节 · 约 ' + (wan >= 1 ? wan.toFixed(1) + ' 万字' : Math.round(chars/1000) + ' 千字');
+  document.getElementById('foot').innerHTML = BOOK.foot || '';
+  document.title = BOOK.title + ' · 玄同宇宙';
+})();
+
+/* ---------- 目录 ---------- */
+(function(){
+  var box = document.getElementById('toc'), cur = -1, group = null, buf = [];
+  flat.forEach(function(c, i){
+    if (c.g !== group) {
+      if (buf.length) box.insertAdjacentHTML('beforeend', buf.join(''));
+      group = c.g; buf = [];
+      box.insertAdjacentHTML('beforeend', '<h4>' + esc(group) + '</h4>');
+    }
+    buf.push('<button data-go="' + i + '"><i>' + String(i+1).padStart(2,'0') + '</i><span>' + esc(c.t) + '</span></button>');
+  });
+  if (buf.length) box.insertAdjacentHTML('beforeend', buf.join(''));
+
+  function mark(i){
+    if (i === cur) return; cur = i;
+    box.querySelectorAll('button').forEach(function(b){
+      b.classList.toggle('on', +b.dataset.go === i);
+    });
+    var on = box.querySelector('button.on');
+    if (on && panelOpen()) on.scrollIntoView({ block:'nearest' });
+  }
+  window.__mark = mark;
+
+  box.addEventListener('click', function(e){
+    var b = e.target.closest('button[data-go]'); if (!b) return;
+    go(+b.dataset.go);
+  });
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('[data-go]'); if (!b) return;
+    go(+b.dataset.go);
+  });
+  document.addEventListener('click', function(e){
+    if (e.target.closest('[data-toc]')) { document.body.classList.add('toc'); }
+  });
+  function go(i){
+    var el = document.getElementById(flat[i].id); if (!el) return;
+    document.body.classList.remove('toc');
+    window.scrollTo({ top: el.offsetTop - 62, behavior: 'smooth' });
+    mark(i);
+  }
+  window.__go = go;
+  function panelOpen(){ return document.body.classList.contains('toc'); }
+  window.__panelOpen = panelOpen;
+})();
+
+/* ---------- 主题 / 字号 ---------- */
+(function(){
+  var root = document.documentElement;
+  var saved = null; try { saved = localStorage.getItem('xt_read_theme'); } catch(e){}
+  root.setAttribute('data-theme', saved === 'dark' ? 'dark' : 'paper');
+  document.getElementById('btnTheme').addEventListener('click', function(){
+    var d = root.getAttribute('data-theme') === 'dark';
+    root.setAttribute('data-theme', d ? 'paper' : 'dark');
+    try { localStorage.setItem('xt_read_theme', d ? 'paper' : 'dark'); } catch(e){}
+  });
+  var fs = null; try { fs = parseFloat(localStorage.getItem('xt_read_fs')); } catch(e){}
+  if (!fs || fs < 0.8 || fs > 1.7) fs = 1;
+  var cur = fs;
+  function apply(){ root.style.setProperty('--fs', (1.06 * cur).toFixed(2) + 'rem'); }
+  window.addEventListener('DOMContentLoaded', apply); apply();
+  document.getElementById('fsU').addEventListener('click', function(){ cur = Math.min(1.5, cur + .08); apply(); store(); });
+  document.getElementById('fsD').addEventListener('click', function(){ cur = Math.max(.78, cur - .08); apply(); store(); });
+  function store(){ try { localStorage.setItem('xt_read_fs', cur); } catch(e){} }
+})();
+
+/* ---------- 抽屉 / 进度 / 快捷键 ---------- */
+(function(){
+  document.getElementById('btnToc').addEventListener('click', function(){ document.body.classList.toggle('toc'); });
+  document.getElementById('btnTocX').addEventListener('click', function(){ document.body.classList.remove('toc'); });
+  document.getElementById('mask').addEventListener('click', function(){ document.body.classList.remove('toc'); });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') document.body.classList.remove('toc');
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      var i = window.__cur === undefined ? 0 : window.__cur;
+      window.__go(Math.max(0, Math.min(flat.length-1, i + (e.key === 'ArrowRight' ? 1 : -1))));
+    }
+  });
+  var btnTop = document.getElementById('btnTop'), prog = document.getElementById('prog');
+  var secs = [].slice.call(document.querySelectorAll('.chap'));
+  var curIdx = -1;
+  function onScroll(){
+    var y = window.scrollY, h = document.documentElement.scrollHeight - window.innerHeight;
+    prog.style.width = (h > 0 ? Math.min(100, y / h * 100) : 0) + '%';
+    btnTop.classList.toggle('on', y > 700);
+    var i = 0;
+    for (var k = 0; k < secs.length; k++) if (secs[k].offsetTop - 90 <= y) i = k;
+    curIdx = i;
+    window.__cur = i;
+    if (window.__mark) window.__mark(i);
+    try { localStorage.setItem('xt_read_' + BOOK.slug, String(i)); } catch(e){}
+  }
+  window.addEventListener('scroll', onScroll, { passive:true });
+  btnTop.addEventListener('click', function(){ window.scrollTo({ top:0, behavior:'smooth' }); });
+  var last = -1; try { last = parseInt(localStorage.getItem('xt_read_' + BOOK.slug), 10); } catch(e){}
+  onScroll();
+  if (last > 0 && last < secs.length) {
+    setTimeout(function(){
+      var bar = document.getElementById('resume');
+      if (bar) bar.remove();
+      var el = secs[last];
+      var d = document.createElement('div');
+      d.id = 'resume';
+      d.style.cssText = 'max-width:44rem;margin:0 auto;padding:0 20px;font-size:.8rem';
+      d.innerHTML = '<button style="border:1px solid var(--line2);border-radius:9px;padding:7px 12px;color:var(--accent);background:var(--paper2)">继续上次读到 · ' + esc(flat[last] ? flat[last].t : '') + '</button>';
+      d.querySelector('button').onclick = function(){ window.__go(last); };
+      document.querySelector('main').insertBefore(d, document.getElementById('art'));
+    }, 60);
+  }
+})();
+</script>
+</body>
+</html>

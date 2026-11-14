@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知识点图谱 · 道家正统修习（道法术器 · 五术 · 540天）</title>
+<style>
+  :root{
+    --bg:#f7f5f0; --paper:#fffdf9; --ink:#2e2a24; --sub:#6f665a;
+    --line:#e5ded1; --accent:#7a5a30; --deep:#5d4322; --gold:#b8894b;
+    --dao:#8b5e3c; --fa:#9a6b3f; --shu:#a9763f; --qi:#7d6a4a; --xue:#6f7a5a;
+    --ok:#5b7d52; --todo:#c9bfae;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+  .serif{font-family:"Noto Serif SC","Songti SC","STSong",serif;}
+  header{position:sticky;top:0;z-index:20;background:var(--paper);border-bottom:1px solid var(--line);
+    box-shadow:0 2px 10px rgba(93,67,34,.05);}
+  .bar{max-width:1040px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .brand{font-weight:700;color:var(--deep);font-size:18px;letter-spacing:.5px;}
+  .brand small{display:block;font-weight:400;color:var(--sub);font-size:11px;letter-spacing:2px;margin-top:2px;}
+  .viewtog{display:flex;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:4px;}
+  .viewtog button{border:0;background:transparent;color:var(--sub);padding:7px 14px;border-radius:7px;cursor:pointer;font-size:13px;}
+  .viewtog button.on{background:var(--accent);color:#fff;}
+  .wrap{max-width:1040px;margin:0 auto;padding:22px 20px 80px;}
+  .lede{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:20px;}
+  .lede h1{font-size:19px;color:var(--deep);margin-bottom:6px;}
+  .lede p{color:var(--sub);font-size:13px;line-height:1.7;}
+  .lede .stat{margin-top:10px;display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--accent);}
+  .lede .stat b{color:var(--deep);font-size:15px;}
+
+  /* tree */
+  .stage{background:var(--paper);border:1px solid var(--line);border-radius:14px;margin-bottom:12px;overflow:hidden;}
+  .stage-h{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;user-select:none;}
+  .stage-h:hover{background:#fbf9f4;}
+  .stage-n{flex:0 0 auto;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;
+    font-weight:700;color:#fff;font-size:15px;font-family:"Noto Serif SC",serif;}
+  .stage-meta{flex:1;min-width:0;}
+  .stage-meta .nm{font-weight:600;color:var(--deep);font-size:15px;}
+  .stage-meta .ds{font-size:12px;color:var(--sub);margin-top:2px;}
+  .stage-cnt{font-size:12px;color:var(--sub);white-space:nowrap;}
+  .kps{border-top:1px solid var(--line);padding:4px 8px 10px;display:none;}
+  .stage.open .kps{display:block;}
+  .kp{display:flex;align-items:flex-start;gap:10px;padding:9px 10px;border-radius:9px;}
+  .kp:hover{background:#f6f2e9;}
+  .kp .dot{flex:0 0 auto;width:8px;height:8px;border-radius:50%;margin-top:7px;background:var(--accent);}
+  .kp .body{flex:1;min-width:0;}
+  .kp .tt{font-weight:600;color:var(--ink);font-size:14px;}
+  .kp .br{font-size:12.5px;color:var(--sub);line-height:1.55;margin-top:2px;}
+  .kp .tag{display:inline-block;font-size:10.5px;color:var(--accent);border:1px solid var(--line);
+    border-radius:6px;padding:0 5px;margin-left:6px;vertical-align:1px;}
+  .stars{color:var(--gold);font-size:11px;letter-spacing:-1px;white-space:nowrap;margin-top:6px;}
+  .kp-link-slot{flex:0 0 auto;margin-top:2px;}
+  .kp-link-slot a{display:inline-block;font-size:12px;text-decoration:none;color:#fff;background:var(--ok);
+    padding:4px 10px;border-radius:8px;white-space:nowrap;}
+  .kp-link-slot .none{font-size:11.5px;color:var(--todo);}
+
+  /* graph */
+  #graphView{display:none;}
+  .graphbox{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:8px;position:relative;}
+  svg{display:block;width:100%;height:auto;}
+  .ghub{cursor:pointer;}
+  .gk{cursor:pointer;}
+  .ginfo{position:absolute;right:14px;top:14px;max-width:280px;background:#fff;border:1px solid var(--line);
+    border-radius:12px;padding:12px 14px;box-shadow:0 8px 24px rgba(93,67,34,.12);display:none;}
+  .ginfo.show{display:block;}
+  .ginfo h4{font-size:14px;color:var(--deep);margin-bottom:4px;}
+  .ginfo p{font-size:12px;color:var(--sub);line-height:1.6;}
+  .ginfo .lk{margin-top:8px;}
+  .ginfo .lk a{font-size:12px;color:#fff;background:var(--ok);padding:4px 10px;border-radius:8px;text-decoration:none;}
+  footer{max-width:1040px;margin:0 auto;padding:0 20px 40px;color:var(--sub);font-size:12px;}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand serif">道家正统修习<small>DAOJIA · 道法术器 · 五术 · 540天</small></div>
+    <div class="viewtog">
+      <button id="vtTree" class="on">🌲 树形</button>
+      <button id="vtGraph">✦ 图谱</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="lede">
+    <h1 class="serif" id="bookTitle"></h1>
+    <p id="bookDesc"></p>
+    <div class="stat" id="bookStat"></div>
+  </div>
+
+  <div id="treeView"></div>
+
+  <div id="graphView">
+    <div class="graphbox">
+      <svg id="gsvg" viewBox="0 0 980 640" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="ginfo" id="ginfo"><h4 id="giT"></h4><p id="giB"></p><div class="lk" id="giLk"></div></div>
+    </div>
+  </div>
+</div>
+
+<footer id="foot"></footer>
+
+<script>
+var DATA = {"book":"道家正统修习（道法术器 · 五术 · 540天）","book_slug":"daojia_zhengtong","generated_at":"2026-09-21","stages":[{"n":1,"ch":"ch01","name":"老子《道德经》","days":"Day 1–81","dir":"道","goal":"逐章通读81章，立道·德·无为·自然·反·虚静全貌"},{"n":2,"ch":"ch02","name":"庄子《庄子》","days":"Day 82–114","dir":"道","goal":"33篇顺序：内篇7→外篇15→杂篇11"},{"n":3,"ch":"ch03","name":"列子与文子","days":"Day 115–132","dir":"道","goal":"列子8篇+文子核心10篇"},{"n":4,"ch":"ch04","name":"黄老与《淮南子》","days":"Day 133–162","dir":"道","goal":"黄帝四经+管子四篇+淮南子12篇"},{"n":5,"ch":"ch05","name":"《周易》基础","days":"Day 163–212","dir":"道","goal":"64卦顺序+系辞/说卦/序卦/杂卦"},{"n":6,"ch":"ch06","name":"法·道教经教","days":"Day 213–252","dir":"法","goal":"太平经+抱朴子内篇20篇+清静/阴符/度人/想尔"},{"n":7,"ch":"ch07","name":"术·山（内丹/导引/静功）","days":"Day 253–297","dir":"术","goal":"参同契→黄庭→悟真→张三丰+张至顺功法"},{"n":8,"ch":"ch08","name":"术·医（道医/中医）","days":"Day 298–342","dir":"术","goal":"内经选+伤寒六经+米晶子良方"},{"n":9,"ch":"ch09","name":"术·命（命理）","days":"Day 343–377","dir":"术","goal":"三命通会/滴天髓+紫微斗数全书"},{"n":10,"ch":"ch10","name":"术·相（风水/相术）","days":"Day 378–412","dir":"术","goal":"葬书/青囊+麻衣相法/太清神鉴"},{"n":11,"ch":"ch11","name":"术·卜（卜筮）","days":"Day 413–447","dir":"术","goal":"周易筮法/京房+奇门/六壬/六爻/太乙"},{"n":12,"ch":"ch12","name":"器·道法术器","days":"Day 448–480","dir":"器","goal":"道法术器总纲+法器/符箓/图像"},{"n":13,"ch":"ch13","name":"近现代研究+总测","days":"Day 481–540","dir":"学术","goal":"任继愈/卿希泰/汤用彤/李养正+现代校准"}],"kps":[{"id":"kp_1_1","ch":"ch01","t":"道可道，非常道","d":3,"brief":"第1章：可言之「道」非恒常之道，名与实的界限。","interactive":"interactive/kp_1_1.html"},{"id":"kp_1_2","ch":"ch01","t":"有无相生","d":2,"brief":"第2章：相反相成——有无、难易、长短的对偶生成。","interactive":"interactive/kp_1_2.html"},{"id":"kp_1_3","ch":"ch01","t":"无为而治","d":3,"brief":"第3/57章：不妄为而顺自然，为无为则无不治。","interactive":"interactive/kp_1_3.html"},{"id":"kp_1_4","ch":"ch01","t":"上善若水","d":1,"brief":"第8章：水善利万物而不争，处众人之所恶，故几于道。","interactive":"interactive/kp_1_4.html"},{"id":"kp_1_5","ch":"ch01","t":"致虚极，守静笃","d":2,"brief":"第16章：虚静以观复，归根曰静，是谓复命。","interactive":"interactive/kp_1_5.html"},{"id":"kp_1_6","ch":"ch01","t":"反者道之动","d":3,"brief":"第40章：道的运动是返回，弱者道之用；循环与转化。","interactive":"interactive/kp_1_6.html"},{"id":"kp_1_7","ch":"ch01","t":"道生一，一生二","d":3,"brief":"第42章：宇宙生成序列与「冲气以为和」。","interactive":"interactive/kp_1_7.html"},{"id":"kp_1_8","ch":"ch01","t":"柔弱胜刚强","d":2,"brief":"第76/78章：柔弱处上，天下之至柔驰骋天下之至坚。","interactive":"interactive/kp_1_8.html"},{"id":"kp_1_9","ch":"ch01","t":"三宝：慈·俭·不敢为天下先","d":2,"brief":"第67章：持而保之的三条处世根本。","interactive":"interactive/kp_1_9.html"},{"id":"kp_2_1","ch":"ch02","t":"逍遥游：无待","d":3,"brief":"小大之辨与「无待」——挣脱依赖方得绝对自由。","interactive":null},{"id":"kp_2_2","ch":"ch02","t":"齐物论：万物齐一","d":3,"brief":"是非相对、物我两忘；「天地与我并生，万物与我为一」。","interactive":null},{"id":"kp_2_3","ch":"ch02","t":"养生主：庖丁解牛","d":2,"brief":"依乎天理、因其固然——技进乎道的养生之道。","interactive":null},{"id":"kp_2_4","ch":"ch02","t":"人间世：心斋","d":3,"brief":"「无听之以耳而听之以心…听之以气」，虚而待物。","interactive":null},{"id":"kp_2_5","ch":"ch02","t":"德充符：才全德不形","d":3,"brief":"德内充而外不显，形残而德全者的境界。","interactive":null},{"id":"kp_2_6","ch":"ch02","t":"大宗师：坐忘","d":3,"brief":"堕肢体黜聪明、离形去知，同于大通之「坐忘」。","interactive":null},{"id":"kp_2_7","ch":"ch02","t":"应帝王：无为而治","d":2,"brief":"不治天下而在宥天下——为政者的虚静之道。","interactive":null},{"id":"kp_2_8","ch":"ch02","t":"秋水：井蛙与濠梁","d":2,"brief":"认知的局限（井底之蛙）与「子非鱼」的知论之辩。","interactive":null},{"id":"kp_3_1","ch":"ch03","t":"天瑞：生化之道","d":2,"brief":"「不生者能生生」——列子的宇宙生化观。","interactive":null},{"id":"kp_3_2","ch":"ch03","t":"黄帝：华胥梦游","d":1,"brief":"梦游华胥国——自然无为而治的理想国隐喻。","interactive":null},{"id":"kp_3_3","ch":"ch03","t":"汤问：愚公移山","d":1,"brief":"「子子孙孙无穷匮也」——恒心与积渐之力。","interactive":null},{"id":"kp_3_4","ch":"ch03","t":"力命：力与命","d":3,"brief":"人力与命运的关系：尽力而不执于结果。","interactive":null},{"id":"kp_3_5","ch":"ch03","t":"说符：察微知化","d":2,"brief":"见微知著、以道驭术的观察之道。","interactive":null},{"id":"kp_3_6","ch":"ch03","t":"文子·道原：道之本原","d":3,"brief":"「夫道者，乃大化之根」——文子的道论纲领。","interactive":null},{"id":"kp_3_7","ch":"ch03","t":"文子·九守：守虚守静","d":2,"brief":"守虚、守静、守弱…九守的修养工夫。","interactive":null},{"id":"kp_4_1","ch":"ch04","t":"黄帝四经：道生法","d":3,"brief":"「道生法」——黄老之学将道落实为治术法则。","interactive":null},{"id":"kp_4_2","ch":"ch04","t":"管子·心术：静因之道","d":3,"brief":"「静因之道」——虚静以因循，君无为而臣有为。","interactive":null},{"id":"kp_4_3","ch":"ch04","t":"管子·内业：精气","d":3,"brief":"精气论：精气入舍则为生，心静方能安精。","interactive":null},{"id":"kp_4_4","ch":"ch04","t":"淮南子·原道","d":2,"brief":"「道者，覆天载地」——刘安学派的本体论总纲。","interactive":null},{"id":"kp_4_5","ch":"ch04","t":"淮南子·天文·地形","d":2,"brief":"天人相应的宇宙图式与地形的体系化描述。","interactive":null},{"id":"kp_4_6","ch":"ch04","t":"淮南子·精神：养神","d":2,"brief":"「精神者，所受于天也」——养神以全天命。","interactive":null},{"id":"kp_5_1","ch":"ch05","t":"乾卦：天行健","d":2,"brief":"六爻以龙为喻的发展六阶段；元亨利贞。","interactive":null},{"id":"kp_5_2","ch":"ch05","t":"坤卦：厚德载物","d":2,"brief":"柔顺承载之德；「履霜坚冰至」的见微知著。","interactive":null},{"id":"kp_5_3","ch":"ch05","t":"泰否：消息盈虚","d":3,"brief":"天地交而泰、天地不交而否——通塞的消长之理。","interactive":null},{"id":"kp_5_4","ch":"ch05","t":"既济与未济","d":3,"brief":"以「未济」收尾：没有终点，旧结束即新开始。","interactive":null},{"id":"kp_5_5","ch":"ch05","t":"系辞：一阴一阳之谓道","d":3,"brief":"「易有太极，是生两仪」——易学哲学总纲。","interactive":null},{"id":"kp_5_6","ch":"ch05","t":"说卦：八卦取象","d":2,"brief":"八卦与天地万物的象征体系图谱。","interactive":null},{"id":"kp_5_7","ch":"ch05","t":"序卦与杂卦","d":2,"brief":"六十四卦排列的内在因果链条。","interactive":null},{"id":"kp_6_1","ch":"ch06","t":"太平经：天人感应","d":3,"brief":"天地人三统共生；承负说与调均思想。","interactive":null},{"id":"kp_6_2","ch":"ch06","t":"抱朴子·金丹","d":3,"brief":"「我命在我不在天」——葛洪的金丹思想（作文化史研读）。","interactive":null},{"id":"kp_6_3","ch":"ch06","t":"抱朴子·论仙","d":2,"brief":"仙可学致论；对世俗质疑的回应。","interactive":null},{"id":"kp_6_4","ch":"ch06","t":"清静经：清静为天下正","d":1,"brief":"「人能常清静，天地悉皆归」——清静工夫。","interactive":null},{"id":"kp_6_5","ch":"ch06","t":"阴符经：观天之道","d":3,"brief":"「观天之道，执天之行」——天人相关的行动哲学。","interactive":null},{"id":"kp_6_6","ch":"ch06","t":"度人经","d":2,"brief":"《道藏》首经；度人无量、齐同慈爱的救度观。","interactive":null},{"id":"kp_6_7","ch":"ch06","t":"老子想尔注","d":3,"brief":"早期五斗米道的《老子》诠释：守道诫、结精成神。","interactive":null},{"id":"kp_7_1","ch":"ch07","t":"参同契：炉鼎药物火候","d":3,"brief":"「万古丹经王」：以易象言丹道的三大要素。","interactive":null},{"id":"kp_7_2","ch":"ch07","t":"黄庭经：三丹田","d":3,"brief":"上中下三丹田与身中神体系的内观经典。","interactive":null},{"id":"kp_7_3","ch":"ch07","t":"悟真篇：逆修返本","d":3,"brief":"张伯端：顺则成人逆则成仙的丹道逻辑。","interactive":null},{"id":"kp_7_4","ch":"ch07","t":"张三丰·大道论","d":2,"brief":"「大道者，统生天、生地、生人、生物而名。」","interactive":null},{"id":"kp_7_5","ch":"ch07","t":"张至顺《炁体源流》","d":3,"brief":"全真龙门活传承：道体与修持的师授纲要。","interactive":null},{"id":"kp_7_6","ch":"ch07","t":"八部金刚长寿功","d":2,"brief":"张至顺所传导引功法体系（按师授次第习）。","interactive":null},{"id":"kp_7_7","ch":"ch07","t":"周天：小周天与大周天","d":3,"brief":"任督循环与全身经络循环的运行路线。","interactive":null},{"id":"kp_7_8","ch":"ch07","t":"内丹三宝：精气神","d":3,"brief":"炼精化气、炼气化神、炼神还虚的三步阶梯。","interactive":null},{"id":"kp_8_1","ch":"ch08","t":"内经·上古天真论","d":2,"brief":"「法于阴阳，和于术数」——养生的总原则。","interactive":null},{"id":"kp_8_2","ch":"ch08","t":"内经·四气调神","d":2,"brief":"四时养生：春生夏长秋收冬藏。","interactive":null},{"id":"kp_8_3","ch":"ch08","t":"伤寒六经：太阳","d":3,"brief":"六经辨证之首：表证与解表法（倪海厦人纪讲授）。","interactive":null},{"id":"kp_8_4","ch":"ch08","t":"伤寒六经：阳明·少阳","d":3,"brief":"里热实证与半表半里证；和法与清下法。","interactive":null},{"id":"kp_8_5","ch":"ch08","t":"伤寒六经：太阴·少阴·厥阴","d":3,"brief":"三阴病：虚寒与寒热错杂的辨证。","interactive":null},{"id":"kp_8_6","ch":"ch08","t":"米晶子济世良方","d":2,"brief":"张至顺所录单方验方（传统知识研读）。","interactive":null},{"id":"kp_9_1","ch":"ch09","t":"三命通会：四柱","d":3,"brief":"年柱月柱日柱时柱与干支组合的命理框架。","interactive":null},{"id":"kp_9_2","ch":"ch09","t":"滴天髓：体用与旺衰","d":3,"brief":"以日主为核心的体用、旺衰、调候之理。","interactive":null},{"id":"kp_9_3","ch":"ch09","t":"紫微斗数：十二宫","d":3,"brief":"命宫十二宫的人事分野与三方四正。","interactive":null},{"id":"kp_9_4","ch":"ch09","t":"紫微斗数：十四主星","d":3,"brief":"紫微/天机/太阳等十四主星的星性。","interactive":null},{"id":"kp_9_5","ch":"ch09","t":"十神与格局","d":3,"brief":"以生克定十神，以十神定格局高下。","interactive":null},{"id":"kp_10_1","ch":"ch10","t":"葬书：乘生气","d":3,"brief":"郭璞：「葬者，乘生气也」——风水理论奠基。","interactive":null},{"id":"kp_10_2","ch":"ch10","t":"青囊奥语：水法与龙脉","d":3,"brief":"杨筠松：寻龙、察砂、观水、点穴的操作纲要。","interactive":null},{"id":"kp_10_3","ch":"ch10","t":"麻衣相法：面相","d":2,"brief":"五官三停十二宫的面相基本框架。","interactive":null},{"id":"kp_10_4","ch":"ch10","t":"太清神鉴","d":3,"brief":"《道藏》所收相术典籍的神气形色论。","interactive":null},{"id":"kp_11_1","ch":"ch11","t":"周易筮法","d":2,"brief":"大衍之数五十的揲蓍法：成卦、变卦与断辞。","interactive":null},{"id":"kp_11_2","ch":"ch11","t":"京房易：纳甲与六亲","d":3,"brief":"八宫卦序、纳甲装卦、六亲六神的体系。","interactive":null},{"id":"kp_11_3","ch":"ch11","t":"奇门遁甲","d":3,"brief":"三奇六仪、九宫八门、天地盘的时空格局。","interactive":null},{"id":"kp_11_4","ch":"ch11","t":"六壬","d":3,"brief":"四课三传、十二天将的课式推算。","interactive":null},{"id":"kp_11_5","ch":"ch11","t":"六爻","d":3,"brief":"以钱代蓍，装卦取用神、定应期的实用占法。","interactive":null},{"id":"kp_11_6","ch":"ch11","t":"太乙","d":3,"brief":"太乙九宫与神煞格局，古称「三式」之首。","interactive":null},{"id":"kp_12_1","ch":"ch12","t":"道法术器总纲","d":3,"brief":"道为体、法为则、术为用、器为载的四层总纲。","interactive":null},{"id":"kp_12_2","ch":"ch12","t":"法器：剑·印·旗","d":2,"brief":"斩妖剑、法印、令旗等法器的形制与用途。","interactive":null},{"id":"kp_12_3","ch":"ch12","t":"符箓：符头·符身·符脚","d":3,"brief":"符的结构与画符要义（作文化史研读）。","interactive":null},{"id":"kp_12_4","ch":"ch12","t":"鼎炉与图像","d":2,"brief":"「器以载道」：鼎炉、图像、法衣的象征体系。","interactive":null},{"id":"kp_13_1","ch":"ch13","t":"任继愈《中国道教史》","d":2,"brief":"以现代宗教学方法梳理道教发展脉络。","interactive":null},{"id":"kp_13_2","ch":"ch13","t":"卿希泰《中国道教史》","d":2,"brief":"道教通史的重镇：制度、经教、派系的系统史。","interactive":null},{"id":"kp_13_3","ch":"ch13","t":"汤用彤《魏晋玄学论稿》","d":3,"brief":"玄学与佛道交涉的学术经典。","interactive":null},{"id":"kp_13_4","ch":"ch13","t":"李养正《道教概说》","d":2,"brief":"道教知识的入门概览与术语厘清。","interactive":null},{"id":"kp_13_5","ch":"ch13","t":"道家与现代学术校准","d":3,"brief":"以学术方法防误读：不神化、不妄断、不伪科学化。","interactive":null}],"interactiveCount":9};
+</script>
+<script>
+(function(){
+  var KPS = DATA.kps, ST = DATA.stages;
+  var byCh = {}; KPS.forEach(function(k){ (byCh[k.ch]=byCh[k.ch]||[]).push(k); });
+  var DIRCOL = {"道":"#8b5e3c","法":"#9a6b3f","术":"#a9763f","器":"#7d6a4a","学术":"#6f7a5a"};
+  function stars(d){ return "★★★".slice(0,d) + "☆☆☆".slice(0,3-d); }
+
+  document.getElementById("bookTitle").textContent = DATA.book;
+  document.getElementById("bookDesc").textContent =
+    "把《道家正统修习》540 天课程（13 阶 · 道法术器 · 五术全口径）织成知识骨架：每阶一个知识簇，逐知识点可跳转互动讲解页。底本取自 IMA『道家经典 / 道家典籍 / 张至顺·中医·倪海厦』。";
+  var nInt = KPS.filter(function(k){return k.interactive;}).length;
+  document.getElementById("bookStat").innerHTML =
+    "<span>阶段 <b>"+ST.length+"</b></span><span>知识点 <b>"+KPS.length+"</b></span>"+
+    "<span>互动页 <b>"+(DATA.interactiveCount!=null?DATA.interactiveCount:nInt)+"</b></span>"+
+    "<span>总课时 <b>540</b> 天</span>";
+  document.getElementById("foot").textContent = "课织匠 CourseWeaver 生成 · " + (DATA.generated_at||"");
+
+  // ---- tree ----
+  var tv = document.getElementById("treeView");
+  ST.forEach(function(s, i){
+    var list = byCh[s.ch] || [];
+    var el = document.createElement("div");
+    el.className = "stage" + (i===0 ? " open" : "");
+    var col = DIRCOL[s.dir] || "#8b5e3c";
+    var kpsHtml = list.map(function(k){
+      var slot = k.interactive
+        ? '<a href="'+k.interactive+'">📱 互动讲解</a>'
+        : '<span class="none">暂无互动页</span>';
+      return '<div class="kp" data-kp-id="'+k.id+'">'+
+        '<span class="dot" style="background:'+col+'"></span>'+
+        '<div class="body"><div class="tt">'+k.t+
+          '<span class="tag">'+s.dir+'</span></div>'+
+          '<div class="br">'+k.brief+'</div></div>'+
+        '<div class="stars" title="难度">'+stars(k.d)+'</div>'+
+        '<span class="kp-link-slot" data-kp-id="'+k.id+'">'+slot+'</span>'+
+      '</div>';
+    }).join("");
+    el.innerHTML =
+      '<div class="stage-h">'+
+        '<span class="stage-n serif" style="background:'+col+'">'+s.n+'</span>'+
+        '<div class="stage-meta"><div class="nm">'+s.name+'</div>'+
+        '<div class="ds">'+s.days+' · '+s.goal+'</div></div>'+
+        '<span class="stage-cnt">'+list.length+' 个知识点</span>'+
+      '</div>'+
+      '<div class="kps">'+(kpsHtml||'<div class="kp"><div class="body br">—</div></div>')+'</div>';
+    el.querySelector(".stage-h").addEventListener("click", function(){ el.classList.toggle("open"); });
+    tv.appendChild(el);
+  });
+
+  // ---- graph ----
+  var cx=490, cy=310, R=232;
+  var svg = document.getElementById("gsvg");
+  var NS="http://www.w3.org/2000/svg";
+  function mk(n,a){ var e=document.createElementNS(NS,n); for(var k in a) e.setAttribute(k,a[k]); return e; }
+  var hubPos = {};
+  ST.forEach(function(s, i){
+    var ang = -Math.PI/2 + i*(2*Math.PI/ST.length);
+    var x = cx + R*Math.cos(ang), y = cy + R*Math.sin(ang);
+    hubPos[s.ch] = {x:x,y:y,ang:ang,col:DIRCOL[s.dir]||"#8b5e3c",n:s.n,name:s.name};
+  });
+  var gLines = mk("g"), gNodes = mk("g");
+  svg.appendChild(gLines); svg.appendChild(gNodes);
+
+  Object.keys(byCh).forEach(function(ch){
+    var hub = hubPos[ch]; if(!hub) return;
+    var list = byCh[ch], m=list.length;
+    list.forEach(function(k, j){
+      var spread = 0.62;
+      var a2 = hub.ang + (m>1 ? (j/(m-1)-0.5)*spread : 0);
+      var r2 = 70 + (j%2)*16;
+      var x = hub.x + r2*Math.cos(a2), y = hub.y + r2*Math.sin(a2);
+      gLines.appendChild(mk("line",{x1:hub.x,y1:hub.y,x2:x,y2:y,stroke:hub.col,"stroke-opacity":.18,"stroke-width":1}));
+      var c = mk("circle",{cx:x,cy:y,r:k.interactive?5.4:4,fill:k.interactive?hub.col:"#cfc6b6",
+        stroke:"#fff","stroke-width":1.4,class:"gk"});
+      c.addEventListener("click", function(){ showInfo(k, hub); });
+      gNodes.appendChild(c);
+    });
+  });
+  Object.keys(hubPos).forEach(function(ch){
+    var h = hubPos[ch];
+    gNodes.appendChild(mk("circle",{cx:h.x,cy:h.y,r:20,fill:h.col,class:"ghub"}));
+    var t = mk("text",{x:h.x,y:h.y+5,"text-anchor":"middle",fill:"#fff","font-size":15,
+      "font-family":"Noto Serif SC, serif","pointer-events":"none"});
+    t.textContent = h.n; gNodes.appendChild(t);
+    var lb = mk("text",{x:h.x,y:h.y+40,"text-anchor":"middle",fill:"#5d4322","font-size":11.5});
+    lb.textContent = h.name.replace(/（.*/,""); gNodes.appendChild(lb);
+  });
+
+  var info = document.getElementById("ginfo");
+  function showInfo(k, hub){
+    document.getElementById("giT").textContent = k.t + "  (" + stars(k.d) + ")";
+    document.getElementById("giB").textContent = k.brief;
+    document.getElementById("giLk").innerHTML = k.interactive
+      ? '<a href="'+k.interactive+'">📱 进入互动讲解</a>'
+      : '<span style="color:#c9bfae;font-size:12px">暂无互动页</span>';
+    info.classList.add("show");
+  }
+
+  document.getElementById("vtTree").addEventListener("click", function(){
+    this.classList.add("on"); document.getElementById("vtGraph").classList.remove("on");
+    document.getElementById("treeView").style.display="block"; document.getElementById("graphView").style.display="none";
+  });
+  document.getElementById("vtGraph").addEventListener("click", function(){
+    this.classList.add("on"); document.getElementById("vtTree").classList.remove("on");
+    document.getElementById("treeView").style.display="none"; document.getElementById("graphView").style.display="block";
+  });
+})();
+</script>
+</body>
+</html>

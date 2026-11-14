@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>道网 · 法网 · 术网 ｜ 赛博法器 定本</title>
+<style>
+:root{
+  --bg:#faf8f5; --panel:#fff; --ink:#3b3129; --ink2:#7a6a58; --ink3:#a89780;
+  --accent:#8b5e3c; --soft:#f3e9e0; --line:rgba(139,94,60,.18); --line2:rgba(139,94,60,.38);
+  --ok:#4a7c59; --warn:#b8860b; --bad:#a33a2a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:13px/1.6 "PingFang SC","Microsoft YaHei",-apple-system,sans-serif;padding-bottom:60px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 14px}
+header{border-bottom:1px solid var(--line);background:var(--panel);margin-bottom:14px}
+.hd{max-width:1120px;margin:0 auto;padding:12px 14px 0}
+h1{font-size:15px;font-weight:500;letter-spacing:.5px}
+h1 span{color:var(--accent)}
+h1 em{font-style:normal;font-size:11px;color:var(--ink3);border:1px solid var(--line2);border-radius:3px;padding:1px 5px;margin-left:6px;letter-spacing:0}
+.axis{font-size:12px;color:var(--ink2);margin:5px 0 10px;line-height:1.75}
+.axis b{color:var(--accent);font-weight:500}
+.axis q{font-style:normal;color:var(--ink)}
+nav{display:flex;gap:2px;flex-wrap:wrap;max-width:1120px;margin:0 auto;padding:0 14px}
+nav button{font:inherit;font-size:13px;padding:7px 12px;background:none;border:none;border-bottom:2px solid transparent;color:var(--ink2);cursor:pointer}
+nav button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent);font-weight:500}
+section{display:none}section.on{display:block}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:12px}
+.card>h2{font-size:14px;font-weight:500;margin-bottom:2px}
+.card>.sub{font-size:12px;color:var(--ink3);margin-bottom:10px;line-height:1.6}
+.grid{display:grid;gap:11px}.g2{grid-template-columns:repeat(auto-fit,minmax(430px,1fr))}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;font-size:12.5px;line-height:1.55}
+th{background:var(--soft);font-weight:500;color:var(--accent);font-size:12px}
+td.k{color:var(--ink2)}
+td b,th b{font-weight:500;color:var(--accent)}
+.tag{display:inline-block;font-size:11px;padding:1px 6px;border-radius:3px;border:1px solid var(--line2);color:var(--accent);white-space:nowrap}
+.tag.x{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tag.know{background:#eaf1f7;border-color:#7fa8c9;color:#2a5878}
+.tag.act{background:#f3e9e0;border-color:var(--accent);color:var(--accent)}
+.sw{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid var(--line);border-radius:6px;margin-bottom:6px;cursor:pointer;background:var(--panel)}
+.sw .box{width:20px;height:20px;flex:0 0 20px;border:1px solid var(--line2);border-radius:4px;position:relative;background:transparent}
+.sw .box::after{content:"";position:absolute;left:6px;top:2px;width:6px;height:11px;border:2px solid transparent;border-top:none;border-left:none;transform:rotate(45deg)}
+.sw[aria-pressed="true"]{background:var(--soft);border-color:var(--accent)}
+.sw[aria-pressed="true"] .box{background:var(--accent);border-color:var(--accent)}
+.sw[aria-pressed="true"] .box::after{border-color:#fff}
+.sw .txt{flex:1;min-width:0}
+.sw .t1{font-size:13px}.sw .t2{font-size:11.5px;color:var(--ink3)}
+.sw .freq{font-size:11px;color:var(--accent);border:1px solid var(--line2);border-radius:3px;padding:0 5px;white-space:nowrap}
+.sw[aria-pressed="true"] .freq{background:var(--accent);color:#fff}
+.sw.brk[aria-pressed="true"]{background:#fbeceb;border-color:var(--bad)}
+.sw.brk[aria-pressed="true"] .box{background:var(--bad);border-color:var(--bad)}
+.sw.brk[aria-pressed="true"] .freq{background:var(--bad);border-color:var(--bad)}
+.mets{display:grid;grid-template-columns:repeat(auto-fit,minmax(94px,1fr));gap:8px;margin-bottom:12px}
+.met{background:var(--soft);border-radius:6px;padding:9px 10px}
+.met .l{font-size:11px;color:var(--ink2)}
+.met .n{font-size:21px;font-weight:500;color:var(--accent);line-height:1.25}
+.met .n small{font-size:12px;font-weight:400}
+label.f{display:block;font-size:12px;color:var(--ink2);margin:10px 0 4px}
+label.f em{font-style:normal;color:var(--accent);font-weight:500}
+input[type=text],textarea,select{width:100%;font:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--line2);border-radius:6px;background:var(--panel);color:var(--ink)}
+textarea{min-height:56px;resize:vertical}
+.btn{font:inherit;font-size:13px;padding:8px 16px;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:6px;cursor:pointer;margin-top:10px}
+.btn.ghost{background:transparent;color:var(--accent);margin-left:8px}
+.btn.sm{padding:5px 11px;font-size:12px;margin-top:8px}
+.verdict{margin-top:12px;padding:12px 14px;border-radius:8px;border:1px solid var(--line2)}
+.v-go{background:#eef4ef;border-color:var(--ok)}.v-go .big{color:var(--ok)}
+.v-wait{background:#fbf5e6;border-color:var(--warn)}.v-wait .big{color:var(--warn)}
+.v-no{background:#fbeceb;border-color:var(--bad)}.v-no .big{color:var(--bad)}
+.big{font-size:17px;font-weight:500;margin-bottom:4px}
+.q{border:1px solid var(--line);border-radius:6px;padding:9px 11px;margin-bottom:8px}
+.q .qh{font-size:12.5px;font-weight:500;margin-bottom:3px}
+.q .qh em{font-style:normal;color:var(--accent)}
+.q .qs{font-size:11.5px;color:var(--ink3);margin-bottom:7px}
+.log{border-left:2px solid var(--line2);padding:7px 0 7px 11px;margin-bottom:9px}
+.log .lh{font-size:12.5px;font-weight:500}
+.log .lm{font-size:11.5px;color:var(--ink3);line-height:1.65}
+.empty{color:var(--ink3);font-size:12.5px;padding:14px 0;text-align:center}
+.led{display:grid;grid-template-columns:1fr auto auto auto;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.led .n{font-size:13px}
+.led button{font:inherit;font-size:12px;width:30px;height:26px;border:1px solid var(--line2);background:var(--panel);border-radius:4px;cursor:pointer;color:var(--ink2)}
+.led button:hover{border-color:var(--accent);color:var(--accent)}
+.led .v{font-size:14px;font-weight:500;min-width:34px;text-align:center;color:var(--accent)}
+.pos{color:var(--ok)}.neg{color:var(--bad)}
+.hr{height:1px;background:var(--line);margin:12px 0}
+.note{font-size:11.5px;color:var(--ink3);line-height:1.7}
+.kv{font-size:12px;color:var(--ink2);line-height:1.75}
+.kv b{color:var(--accent);font-weight:500}
+.flow{display:flex;align-items:stretch;gap:6px;flex-wrap:wrap;margin:4px 0 2px}
+.fstep{flex:1 1 150px;min-width:140px;border:1px solid var(--line);border-radius:7px;padding:9px 10px;background:var(--panel)}
+.fstep .fn{font-size:11px;color:var(--accent);font-weight:500}
+.fstep .ft{font-size:13px;font-weight:500;margin:1px 0 2px}
+.fstep .fd{font-size:11.5px;color:var(--ink2);line-height:1.55}
+.fstep.k{background:#f5f8fa;border-color:#c5d8e6}
+.fstep.a{background:#faf4ee;border-color:var(--line2)}
+.fstep.r{background:#f6f2f8;border-color:#cbbcd8}
+.flow .arw{display:flex;align-items:center;font-size:15px;color:var(--accent);flex:0 0 auto}
+.five{border:1px solid var(--line);border-radius:8px;padding:11px 13px;margin-bottom:9px;background:var(--panel)}
+.five.road{background:#faf6f1;border-color:var(--accent)}
+.five .fh{display:flex;align-items:baseline;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.five .fnum{font-size:12px;color:#fff;background:var(--accent);border-radius:3px;padding:1px 7px;flex:0 0 auto}
+.five.road .fnum{background:var(--ink)}
+.five .fname{font-size:14.5px;font-weight:500;color:var(--accent)}
+.five .frole{font-size:11px;color:var(--ink3);margin-left:auto;flex:0 0 auto;border:1px solid var(--line2);border-radius:3px;padding:0 6px}
+.five .fmain{font-size:13px;line-height:1.85;color:var(--ink)}
+.five .fsrc{font-size:11.5px;color:var(--ink3);line-height:1.7;margin-top:6px;padding-top:6px;border-top:1px solid var(--line)}
+.demote{font-size:11.5px;color:var(--ink3);line-height:1.7;border-left:2px dashed var(--line2);padding:4px 0 4px 10px;margin:8px 0 0}
+.fail{font-size:11.5px;color:var(--bad);background:#fbeceb;border-left:2px solid var(--bad);padding:5px 0 5px 9px;margin:6px 0 0}
+.fail b{color:var(--bad);font-weight:500}
+.quote{border-left:2px solid var(--accent);padding:6px 0 6px 11px;margin:8px 0;font-size:12.5px;color:var(--ink2);line-height:1.75;background:#fcfaf7}
+.quote b{color:var(--accent);font-weight:500}
+.foot{font-size:11.5px;color:var(--ink3);text-align:center;padding:16px 14px 0;line-height:1.75;max-width:1120px;margin:0 auto}
+/* ══ UI 打磨：仅视觉层，不动逻辑与存储 ══ */
+:root{--sh:0 4px 18px rgba(139,94,60,.10);--sh2:0 2px 10px rgba(139,94,60,.20)}
+html{scroll-behavior:smooth}
+/* 粘性导航（nav 已移出 header 成为兄弟节点，确保整页滚动时停留） */
+nav{position:sticky;top:0;z-index:30;background:var(--panel);border-bottom:1px solid var(--line);box-shadow:0 1px 0 var(--line);padding-top:6px;padding-bottom:6px}
+nav button{transition:color .2s ease,border-color .2s ease;position:relative}
+nav button::after{content:"";position:absolute;left:12px;right:12px;bottom:-1px;height:2px;background:var(--accent);transform:scaleX(0);transform-origin:center;transition:transform .22s ease}
+nav button[aria-selected="true"]::after{transform:scaleX(1)}
+/* 页签切换淡入 */
+@keyframes secIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+section.on{animation:secIn .34s ease both}
+/* 卡片悬浮层次 */
+.card{transition:box-shadow .25s ease,transform .25s ease,border-color .25s ease}
+.card:hover{box-shadow:var(--sh);transform:translateY(-1px);border-color:var(--line2)}
+/* 复选行微动效 */
+.sw{transition:background .2s ease,border-color .2s ease}
+.sw .box{transition:background .2s ease,border-color .2s ease}
+.sw .box::after{transition:border-color .2s ease}
+/* 按钮微动效 */
+.btn{transition:background .2s ease,transform .08s ease,box-shadow .2s ease}
+.btn:hover{box-shadow:var(--sh2)}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{transition:background .2s ease,color .2s ease}
+.btn.ghost:hover{background:var(--soft)}
+/* 指标卡微动效 */
+.mets .met{transition:transform .2s ease,box-shadow .2s ease}
+.mets .met:hover{transform:translateY(-2px);box-shadow:var(--sh)}
+/* 流程步骤 / 五句卡悬浮 */
+.fstep{transition:box-shadow .2s ease,transform .2s ease}
+.fstep:hover{box-shadow:var(--sh);transform:translateY(-1px)}
+.five{transition:box-shadow .2s ease}
+.five:hover{box-shadow:var(--sh)}
+/* 焦点可见性（无障碍） */
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,94,60,.12)}
+/* 桌面端表格行悬浮 */
+@media (min-width:681px){tbody tr:hover td,tbody tr:hover th{background:#fcf7f1}}
+/* 移动端：导航更紧凑 + 双列转单列 + 表格横向滚动 */
+@media (max-width:680px){
+  .wrap{padding:0 10px}
+  .g2{grid-template-columns:1fr}
+  table{display:block;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
+  nav button{padding:7px 8px;font-size:12px}
+  h1{font-size:14px}
+  .hd{padding:10px 10px 0}
+}
+/* 减动偏好：尊重系统设置 */
+/* ══ 移动端竖屏（≤480px）优先适配 · 仅视觉层 ══ */
+@media (max-width:480px){
+ :root{
+  --tap:44px; --tap-lg:48px;
+  --fs-body:14px; --fs-sub:13px; --fs-micro:12px; --fs-input:16px;
+  --fs-h1:15px; --fs-h2:15px; --fs-big:18px; --fs-num:22px;
+  --lh-body:1.65;
+  --gap-s:6px; --gap-m:10px; --gap-l:14px;
+  --pad-card:12px; --radius-m:10px;
+  --nav-h:48px;
+  --ink-sub:var(--ink2);
+ }
+ nav{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;padding-top:6px;padding-bottom:6px}
+ nav::-webkit-scrollbar{display:none}
+ nav button{flex:0 0 auto;white-space:nowrap;min-height:var(--tap);padding:0 12px;font-size:13px;scroll-snap-align:start}
+ table{white-space:normal;table-layout:auto}
+ th,td{font-size:13px;padding:8px 9px;min-width:104px;word-break:break-word}
+ th:first-child,td:first-child{min-width:60px;position:sticky;left:0;background:var(--panel);box-shadow:1px 0 0 var(--line);z-index:1}
+ th:first-child{background:var(--soft)}
+ .led{gap:var(--gap-s);padding:8px 0}
+ .led button{width:var(--tap);height:var(--tap);font-size:17px;border-radius:8px}
+ .led .v{min-width:var(--tap);font-size:16px}
+ .sw{min-height:var(--tap-lg);padding:11px 12px}
+ .btn{min-height:var(--tap);font-size:14px;padding:10px 16px}
+ input[type=text],textarea,select{font-size:var(--fs-input);padding:11px 12px;min-height:var(--tap);border-radius:8px}
+ textarea{min-height:88px}
+ label.f{font-size:var(--fs-sub)}
+ .flow{flex-direction:column;gap:4px}
+ .fstep{flex:1 1 auto;min-width:0;width:100%}
+ .flow .arw{justify-content:center;transform:rotate(90deg);font-size:16px;line-height:1}
+ body{font-size:var(--fs-body);line-height:var(--lh-body)}
+ .card>.sub,.note,.demote,.fail,.quote,.kv,.foot,.empty,.log .lm,.q .qs,.sw .t2,.five .fsrc,.fstep .fd{font-size:var(--fs-sub);color:var(--ink-sub)}
+ .fail{color:var(--bad)}
+ .tag,.sw .freq,.five .frole,.fstep .fn,.met .l,.five .fnum{font-size:var(--fs-micro)}
+ h1{font-size:var(--fs-h1)}.card>h2{font-size:var(--fs-h2)}
+ .big{font-size:var(--fs-big)}.met .n{font-size:var(--fs-num)}
+ .sw .t1,.q .qh,.log .lh,.five .fmain,.fstep .ft{font-size:var(--fs-body)}
+ .card>.btn:not(.sm){display:block;width:100%;margin-top:var(--gap-m)}
+ .card>.btn.ghost{margin-left:0}
+ [id]{scroll-margin-top:calc(var(--nav-h) + 8px)}
+ .card{padding:var(--pad-card);border-radius:var(--radius-m);margin-bottom:var(--gap-m)}
+ .grid{gap:var(--gap-m)}
+ .mets{grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px}
+ body{padding-bottom:48px}
+}
+@media (hover:none){
+ .card:hover,.fstep:hover,.mets .met:hover{transform:none;box-shadow:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="hd">
+    <h1>道网 · 法网 · 术网 <span>｜ 赛博法器</span><em>定本 · 指月之指</em></h1>
+    <div class="axis">
+      五术不是挂在经典之外的第五项，<b>它本来就是道门的行网</b>：预测术（卜·相·命）＋ 长生术（山）＋ 独立出来的医。<br>
+      <b>道网＝体</b>（你是谁、往哪去，不可算的那一层，只产方向不产预测）·
+      <b>法网＝相</b>（五术共用的同一套算子，五术是一套符号系统的五种用法）·
+      <b>术网＝用</b>（五条闭环回路，输入→算法→输出→手上动作）<br>
+      一经一纬一枢纽：经＝<b>顺逆</b>（往外耗还是往回收）· 纬＝<b>性命</b>（对心性如何、对精气形如何）· 枢纽＝<b>守中</b>（身中之中：脐下一寸三分，不即不离；不在身中之中：喜怒哀乐未发）
+    </div>
+  </div>
+</header>
+<nav id="nav"></nav>
+
+<div class="wrap">
+
+<section id="v-net" class="on">
+  <div class="card">
+    <h2>一、五术在骨架里的真实位置</h2>
+    <div class="sub">古代方术官方三分，五术由此落位——它不是「术数附录」，是「行」的全部。</div>
+    <table id="tbl-fang"></table>
+    <div class="quote">山医命相卜 ＝ <b>预测术</b>（卜·相·命）＋ <b>长生术</b>（山）＋ 从方术中独立出来的<b>医</b>。</div>
+  </div>
+
+  <div class="card">
+    <h2>二、五术各自主管什么（分工表）</h2>
+    <div class="sub">注意这个排序，它本身就是一条知行链：<b>命给坐标系 → 卜、相负责「知」（测势、观象）→ 医、山负责「行」（改善、主宰）</b>。所以知网／行网不是外加的结构，是五术内部自带的。</div>
+    <table id="tbl-fen"></table>
+  </div>
+
+  <div class="card">
+    <h2>三、六步循环：一次完整的趋吉避凶跑法</h2>
+    <div class="sub">每步都有明确的出参与入参。第六步最容易被跳过，却是三网闭合的关键。</div>
+    <div class="flow" id="flow"></div>
+  </div>
+
+  <div class="card">
+    <h2>四、铺满自检：五术 × 三网，格格有知有行</h2>
+    <div class="sub">空格即为骨架缺口。下表 18 格已全部填满，每格同时给出「知」（依据）与「行」（动作）。</div>
+    <table id="tbl-cover"></table>
+  </div>
+
+  <div class="card" style="border-color:var(--accent)">
+    <h2>定本 · 指月之指</h2>
+    <div class="sub">这张表是地图，不是鼎炉；是解象之具，不是成丹之器——它的完成标志是被废弃。</div>
+    <div class="quote">收敛到最后只有五句，详见「<b>总持 · 戒律</b>」页签的「收敛为五句」：① 顺逆（原理）· ② 象数（算子）· ③ 五术闭环（闭环）· ④ 心息相依大定真空（<b>路本身</b>）· ⑤ 执则繁悟则简（戒律）。前四是路标，第四句才是路。<br>判宗的判据也已翻面——<b>传的是神不是形</b>：先观象看神，后以数定形（见「法网 · 象数」的判宗双向卡）。</div>
+  </div>
+</section>
+
+<section id="v-dao">
+  <div class="card">
+    <h2>道网 · 体｜经典七格：判据层</h2>
+    <div class="sub">道网的「行」不是动作，是行前必问的那句话。问不出来，说明这一格没读进去。</div>
+    <table id="tbl-dao7"></table>
+  </div>
+  <div class="card">
+    <h2>道网 · 体｜五个节点：方向与自我定位</h2>
+    <div class="sub">道网<b>不产出预测</b>，它只产出方向：你是在顺（往外耗），还是在逆（往回收）。</div>
+    <table id="tbl-daon"></table>
+  </div>
+</section>
+
+<section id="v-fa">
+  <div class="card">
+    <h2>法网 · 相｜象 · 数 · 理 · 神 四层</h2>
+    <div class="sub">法网不是算子清单，是一套<b>读数顺序</b>：先定性，再定量，中间讲理，最后那层不在纸上。</div>
+    <table id="tbl-xiang4"></table>
+    <div class="quote">一句话：<b>象＝定性</b>（模糊 · 抽象本质 · 你要的「神」）· <b>数＝定量</b>（具象 · 表现形式 · 你要的「形」）· <b>理＝推根源</b>（两者的推导链）· <b>神＝存乎其人</b>。<br><b>神不是算子</b>，是算子之上的那一层——唯一<b>写不进表格</b>的一层，只能靠排演次数与回向校准堆出来。<br>库内张延生给了这条几乎量身定做的链：<b>「数即是卦；卦即是场、态；状态即是象；象即是信息……它们七者是相互联系、不可也不能分开的『统一体』」</b>；而<b>「象断事体，数定吉凶，理推根源」</b>是象数三家的最低限度分工。动作指令只有两句：<b>直接以象取数，以数取象</b>。</div>
+  </div>
+
+  <div class="card">
+    <h2>四步操作链｜排演 → 测象 → 断事 → 心法</h2>
+    <div class="sub">每一步都带一个<b>失败信号</b>。触发信号就退回上一步重来，不许带着问题往下走。</div>
+    <div id="fa4"></div>
+  </div>
+
+  <div class="card">
+    <h2>强制往复规则｜以象领数 · 以数证象</h2>
+    <div class="sub">这不是建议，是<b>强制</b>：象与数没有互相撞过，不许出口。</div>
+    <table id="tbl-wang"></table>
+  </div>
+
+  <div class="card">
+    <h2>象数宗谱系（可考部分）</h2>
+    <div class="sub">能追到的线如下。追不到的不写——<b>谱系里没有的，就是没有</b>。</div>
+    <table id="tbl-xiangpu"></table>
+    <div class="quote" id="shangbh"></div>
+  </div>
+
+  <div class="card">
+    <h2>两道警示锁</h2>
+    <div class="sub">象数派历史上栽过两次，两次都栽在<b>象与数失衡</b>。这两道锁就是给这两次失败留的。</div>
+    <table id="tbl-lock2"></table>
+  </div>
+
+  <div class="card">
+    <h2>边界 · 四处不背书</h2>
+    <div class="sub">法网里写进去的每一条，都要同时知道<b>哪些没写进去</b>，以及为什么。</div>
+    <table id="tbl-ni"></table>
+  </div>
+
+  <div class="card">
+    <h2>「宗」＝神 ＋ 形 ｜ 判宗双向卡</h2>
+    <div class="sub">上一版我拿「师承名单／拜师年份」当判据——那全是形。这一版翻过来：<b>传的是神，不是形</b>。</div>
+    <div class="quote">宗 ＝ <b>神</b>（不可传，只能契应）＋ <b>形</b>（可传，但只是指月之指）。<br>真传的机制是<b>口传</b>（伴随传承力、法力的<b>无形传递</b>）与<b>心传</b>（<b>一般没有语言和动作</b>，心念加持——这正是「传的是神不是形」最精确的技术表述）；谱系、文本、口诀只是它留下的<b>痕迹</b>。<br>所以判宗的正确顺序是：<b>先观象看神，后以数定形</b>；拿名单当实，是「有师弟传授之名，无师弟传道之实」。</div>
+    <table id="tbl-zong2"></table>
+    <div class="quote" style="border-color:var(--bad);background:#fbeceb"><b>三条神形戒律（绕不开）</b><br>① <b>弃书执书皆非</b>——不可因「传的是神」而弃形（文本／谱系／口诀全扔），亦不可执形为道。<br>② <b>有师弟传授之名，无师弟传道之实</b>——拜师≠得法，名分不作判据。<br>③ <b>泥形执象转昏迷</b>——判宗判人，先观象看神，后以数定形；<b>顺序不可颠倒</b>（这一条我上一版就是倒着做的）。</div>
+  </div>
+
+  <div class="card">
+    <h2>择宗：一主 · 一辅 · 一借 · 另立一宗</h2>
+    <div class="sub">先立判据，再择宗。三条判据：<b>不自封绝对</b>（为「例外」留接口）、<b>可被反例推翻</b>、<b>有师承与实证断例</b>。</div>
+    <table id="tbl-zong"></table>
+  </div>
+  <div class="card">
+    <h2>三条裁决规则（分歧时按序裁）</h2>
+    <table id="tbl-rule"></table>
+    <div class="quote" id="zong-sum"></div>
+  </div>
+</section>
+
+<section id="v-shu">
+  <div class="card">
+    <h2>术网 · 用｜五条闭环回路</h2>
+    <div class="sub">每一格都写成 <b>输入 → 算法 → 输出 → 手上动作</b>。落不到「手上动作」的，不算术网。</div>
+    <div id="shu5"></div>
+  </div>
+</section>
+
+<section id="v-beat">
+  <div class="mets" id="mets"></div>
+  <div class="grid g2">
+    <div class="card">
+      <h2>每日晨课</h2>
+      <div class="sub">叩齿七至九下、咽津三口、导引通关节（丑后卯前最佳）；行炁长息。</div>
+      <div id="beat-am"></div>
+    </div>
+    <div class="card">
+      <h2>每日暮课</h2>
+      <div class="sub">记账：语、视、行三处各查一遍——这是「三省」的术数版。</div>
+      <div id="beat-pm"></div>
+      <div class="hr"></div>
+      <label class="f">今日顺逆自检（道网唯一要出的东西）</label>
+      <select id="shunni">
+        <option value="">未判</option><option value="耗">往外耗为主（顺）</option>
+        <option value="收">往回收为主（逆）</option><option value="平">大致持平</option>
+      </select>
+      <label class="f">今日一记</label>
+      <textarea id="beat-note" placeholder="一句话：今天最该收的地方在哪"></textarea>
+      <button class="btn" onclick="saveNote()">存入今日</button>
+      <div class="note" id="beat-note-view" style="margin-top:8px"></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>周 · 月 · 季 · 年 · 年一次（触发课，非日课）</h2>
+    <div class="sub">命、相、卜不是日课——硬把「起一卦」做成每日打卡，三个月就废了。它们是事件驱动的。</div>
+    <div id="beat-trig"></div>
+  </div>
+</section>
+
+<section id="v-liu">
+  <div class="card">
+    <h2>六步执行器</h2>
+    <div class="sub">按序过六步。第五步「行动」前必过四道防线定行／缓／避；第六步「回向」必做——把结论翻回心和德这一层复核一遍。</div>
+    <div id="liu-form"></div>
+    <button class="btn" onclick="runLiu()">过六步 · 归档</button>
+    <button class="btn ghost" onclick="resetLiu()">清空</button>
+    <div id="liu-out"></div>
+  </div>
+  <div class="card">
+    <h2>六步归档记录</h2>
+    <div class="sub">回向那一栏空着的，都是没闭合的网。</div>
+    <div id="liu-log"></div>
+  </div>
+</section>
+
+<section id="v-ledger">
+  <div class="mets" id="led-mets"></div>
+  <div class="grid g2">
+    <div class="card">
+      <h2>功过格 · 语视行三查</h2>
+      <div class="sub">「祸福无门，唯人自召」——功过格是唯一能改写命常数的输入端。每日三处各查一遍，起心动念处先断。</div>
+      <div id="led-list"></div>
+      <div class="hr"></div>
+      <label class="f">新增自查项（用「·」或「:」分隔类别，如 <em>语·恶口</em>）</label>
+      <input type="text" id="led-new" placeholder="例：视·无益之览">
+      <button class="btn" onclick="addLed()">加入清单</button>
+    </div>
+    <div class="card">
+      <h2>行为分布 · 近 30 日</h2>
+      <div class="sub">看的是长期偏移，不是单日净值。《感应篇》：一日三善，三年天必降之福。</div>
+      <div id="led-chart"></div>
+      <div class="hr"></div>
+      <div class="kv" id="led-stat"></div>
+    </div>
+  </div>
+</section>
+
+<section id="v-jie">
+  <div class="card">
+    <h2>总持｜《天口篇》三道箍：压在五术头上</h2>
+    <div class="sub">术可以精，但<b>心与德是术的上位变量</b>——"心体正，好相也；德性坚，好命也"。这三句合起来就是行网的总开关。</div>
+    <div id="tiankou"></div>
+  </div>
+  <div class="card">
+    <h2>戒律｜熔断机制</h2>
+    <div class="sub">没有这张网会反噬。每一条都是「守／破」两态。<b>一旦置为「破」，视为熔断触发。</b>下方实时显示熔断数。</div>
+    <div id="jie-list"></div>
+    <div class="verdict" id="jie-out"></div>
+  </div>
+
+  <div class="card" style="border-color:var(--accent)">
+    <h2>法器定位 · 指月之指</h2>
+    <div class="sub">这张表从头到尾都不是鼎炉——它是指月之指，是解象之具，不是成丹之器。</div>
+    <div class="quote">库内：「<b>鼎鼎原无鼎，炉炉非玉炉</b>」「万卷丹经皆可言下而废。此在得诀者见之，确乎其不可易也。」<br>所以法器的<b>完成标志是被废弃</b>——没得诀的人还不能废，所以现在还留着；但留着的时候要清楚它是要被废的。<br>把它用活、用空，是<b>真空</b>；把它守住不放、以体系代道，是<b>顽空</b>，是死水不藏龙。「能忘我则我存，执我则我亡」。</div>
+  </div>
+
+  <div class="card" style="border-color:var(--accent)">
+    <h2>收敛为五句</h2>
+    <div class="sub">「执则繁，悟则简」——堆了三网五术六步象数戒律，最后只留五句：前四是路标，第四句才是路本身。</div>
+    <table id="tbl-wuju"></table>
+    <div class="quote" style="border-color:var(--ok);background:#f4f8f5">前四句是<b>解象</b>，第四句（心息相依，大定真空）才是<b>成丹</b>，第五句（执则繁，悟则简）防止前四句吃掉第四句。<br>三轮下来最大的所得：我一直在替你把「形」造得更精致，而你要的从来是「神」。这张表现在收敛到五句——其中四句是路标，只有第四句是路本身。</div>
+  </div>
+</section>
+
+<section id="v-log">
+  <div class="card">
+    <h2>行网日志</h2>
+    <div class="sub">知行合一的落点：只有被记录的「行」才构成网。空白的日子就是断点。</div>
+    <div id="log-list"></div>
+  </div>
+  <div class="card">
+    <h2>数据</h2>
+    <div class="sub">全部存于本机浏览器 localStorage，不上传。换浏览器或清缓存会丢，请定期导出。</div>
+    <button class="btn" onclick="exportData()">导出 JSON 备份</button>
+    <button class="btn ghost" onclick="importData()">导入</button>
+    <button class="btn ghost" onclick="wipe()">清空全部</button>
+    <input type="file" id="file-in" accept="application/json" style="display:none">
+    <div class="hr"></div>
+    <div class="note" id="data-info"></div>
+  </div>
+</section>
+
+</div>
+<div class="foot">库内命、卜、相类文献以明清及近现代传本、讲义、函授稿为主，不同流派对同一算子的规定互有出入，实际操作请以一家为宗、不杂投。辟谷、服食、行炁一类属高风险实修，须明师指导、循序渐进——此处仅作文献梳理，不构成操作处方。<br>仅供学习、修身与决策参考；医疗、法律、投资等重要事项请以专业意见为准。</div>
+
+<script>
+"use strict";
+var KEY="daowang_saibo_v2";
+function E(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+
+/* ── 总览 ── */
+var FANG=[
+ {n:"预测术（占验术）",c:"占卜与星相，包括天文、医学、神仙、占卜、相术、命相、遁甲、堪舆等等",w:"卜 · 相 · 命"},
+ {n:"长生术",c:"外丹术、内丹术、气功、服食、房中术等",w:"山"},
+ {n:"杂术",c:"其余方技；后医术从方术中独立出来成为专门学科",w:"医（已独立）"}
+];
+var FEN=[
+ {t:"命",q:"人从何处来、将往何处去，命运与生存环境、日月星辰有何联系",g:"研究人的生老病死的一切变化",r:"坐标系"},
+ {t:"卜",q:"如何知晓自己的命运，如何通过大自然／天象的变化预测命运",g:"研究预测命运发展的势态",r:"知 · 测势"},
+ {t:"相",q:"自然界诸多变化如何影响人，天象改变给人带来什么变化",g:"研究命运本质的外在表现",r:"知 · 观象"},
+ {t:"医",q:"如何挽救命运中的不幸，如何把自然因素为我所用",g:"研究改善命运中的不幸的方法",r:"行 · 改善"},
+ {t:"山",q:"如何改变、主宰自己的命运",g:"研究主宰命运的方法",r:"行 · 主宰"}
+];
+var LIU=[
+ {n:"① 定势",c:"k",t:"卜 / 命",d:"用卜测此事结果场与应期；用命看今年是否落在关口上"},
+ {n:"② 定位",c:"k",t:"相",d:"查宅、坟、方位，把「空间变量」从吉凶里摘出来"},
+ {n:"③ 定器",c:"k",t:"医",d:"判断身体当前能不能承载这个变动（薄弱脏器、八风虚邪）"},
+ {n:"④ 定主",c:"k",t:"山",d:"用行炁、导引、存思、听息，把身心调到能「执」而非「被执」"},
+ {n:"⑤ 行动",c:"a",t:"改 / 避 / 择 / 行",d:"改向、择方、择时、换行业、调整居所。此步前必过四道防线"},
+ {n:"⑥ 回向",c:"r",t:"自相自算 · 推己复言德",d:"把结论翻回心和德这一层复核一遍。最易被跳过，却是三网闭合的关键"}
+];
+var COVER=[
+ {w:"命",d:"阴符经·机：观天之道、执天之行",f:"格局—用神—大运节奏；气势（《滴天髓》地主线）／气数（《穷通宝鉴》看三干喜忌）",s:"选方位 · 选行业 · 选时机 · 调整居家布局；年课重排大运流年"},
+ {w:"卜",d:"阴符经·机 ＋ 黄帝四经·因天之时而行",f:"世应·六亲·旺衰·空亡·伏吟·进退·虚实·六神；火珠林纳甲古法",s:"做／不做／改期／换方位；每周只起一卦，先问该断不该断"},
+ {w:"相",d:"列子·化：太易至浑沦，形势各有生化阶段",f:"阴宅内外卦、卦身形势、坐山世爻、穴向世冲；阳宅「官鬼戒其动」",s:"改向 · 调理 · 迁避；每季环境巡检：动线、水位、火位、形煞"},
+ {w:"医",d:"内经：天人同构；道德经·止（不妄作劳）",f:"干支配脏腑；过旺过弱之五行最易引发病伤；八风虚邪",s:"导引 · 行炁吐纳 · 听息内视 · 存思 · 叩齿咽津；子时前睡 · 节气食养"},
+ {w:"山",d:"道德经·体：反者道之动，功法不可抢进度",f:"抽坎填离、心肾相交、后天返先天；行气·房中·导引·辟谷·服食·佩符",s:"静坐回光守中 · 八部金刚功／五禽戏／八段锦 · 每年一次辟谷清地平基"},
+ {w:"德",d:"太上感应篇：祸福无门，唯人自召",f:"因果账 · 三层意识净化（识神／潜意识／元神）",s:"功过格三查：语·视·行（每日）· 感应篇日诵 · 回向复核"}
+];
+
+/* ── 道网 ── */
+var DAO7=[
+ {g:"体",b:"道德经",k:"道为万物本原；反者道之动；知足不辱，知止不殆",x:"行前必问：这件事的「止点」在哪？做到什么程度必须收手？",z:"能否说出具体的止点数字"},
+ {g:"心",b:"庄子",k:"齐物、心斋坐忘、无用之用，破除成见回归本真",x:"行前必问：我此刻是在适性，还是被某个结构绑架？",z:"做完是松还是紧；紧则是在做给别人看"},
+ {g:"机",b:"阴符经",k:"观天之道，执天之行；五贼三盗，阴阳相胜；君子得之固躬，小人得之轻命",x:"行前必问：此刻天时人事在顺段还是逆段？先问时，不问我要什么",z:"顺段发力、逆段守中；事后三月回看"},
+ {g:"化",b:"列子（补格）",k:"太易→太初→太始→太素→浑沦；贵虚",x:"行前必问：这件事处在哪一「化」的阶段？该进还是该退？",z:"进退回看三月，是否与所处阶段相合"},
+ {g:"治",b:"文子·通玄真经（补格）",k:"内修为本，外治为末；以道治国",x:"行前必问：我想改变的是外境，还是自己对外境的处置？",z:"外境未变而困扰是否消失"},
+ {g:"法",b:"黄帝四经（补格）",k:"依道立法、审形察名、因天之时而行赏罚",x:"行前必问：名实是否相符？时机是否已成熟？",z:"名实相符则事顺；不符则必有反复"},
+ {g:"德",b:"太上感应篇（补格）",k:"祸福无门，唯人自召；心起于善，善虽未为而吉神已随之；曾行恶事后自改悔、众善奉行，所谓转祸为福也",x:"每日三查：语、视、行各过一遍；起心动念处先断，不等事发",z:"功过格的长期偏移；三年为期"}
+];
+var DAON=[
+ {n:"顺轴",c:"道生一（太虚）→ 一生二（阴阳）→ 二生三（阴阳交合之气）→ 三生万物。「万物无不付阴而抱阳」",y:"方向：这是在生、在往外走的一步"},
+ {n:"逆轴",c:"抽坎填离：坎离对应肾心，「心肾相交，这是后天转先天的非常关键的一步」，具体做法「吸炁过脐下，呼炁不出心」",y:"方向：这是在返、在往回收的一步"},
+ {n:"生命三宝",c:"「精足不思淫，气足不思食，神足不思寝」",y:"三宝是术网·山的输入；三不足则一切术皆无所依"},
+ {n:"自我定位",c:"「心为太极，一阴一阳之谓道」；以八字整体为中心，五行气势为阳、气数为阴",y:"我是谁：先定位，再谈趋避"},
+ {n:"车的比喻",c:"「八字是车，下有四辐（四柱），大运为路，流年为人，为应期」",y:"车不可换、路可择、人（流年）可应——可改的只有路与应期"}
+];
+
+/* ── 法网 v3：象 · 数 · 理 · 神 ── */
+var XIANG4=[
+ {l:"象",q:"定性 · 看神",k:"是什么",
+  d:"对应与模拟：把盘上的符号翻译成「这是个什么事」。抓的是<b>抽象本质</b>——气势、气象、格局之象、类象归位。",
+  y:"「象也者，像也。」象回答<b>是什么</b>，不回答<b>有多少</b>。先有象，才谈得上数。<br>库内总纲分工：<b>「象断事体，数定吉凶，理推根源」</b>——断「是个什么事」靠象。"},
+ {l:"数",q:"定量 · 定形",k:"有多少 · 在何时",
+  d:"气数、度量、应期：把象压到刻度上——强弱几分、旺衰几度、应于何年何月、落在哪一宫。",
+  y:"数回答<b>有多少、在何时</b>。<b>象是根本，数使象得通</b>——没有象的数只是一串分数。<br>张延生（库内）：「数即是卦；卦即是场、态……象即是信息……七者是不可也不能分开的<b>统一体</b>」；「筮数、爻数之『数』……是对『象』的<b>定量研究</b>」。"},
+ {l:"理",q:"推根源",k:"凭什么",
+  d:"为什么这个象配这个数：生克制化、调候扶抑、宾主宫位、旺衰从化。理是象与数之间的<b>推导链</b>。",
+  y:"理回答<b>凭什么</b>。无理之象是猜，无理之数是套公式。两家打架时，也是靠理来裁（见三条裁决规则）。"},
+ {l:"神",q:"存乎其人",k:"非算子",
+  d:"操盘者本人的功夫：手熟、心静、见过多少真例、断完敢不敢改口。<b>它不是算子，是算子之上那层。</b>",
+  y:"「神而明之，存乎其人。」四层里唯一<b>不可写进表格</b>的一层——它只能靠排演次数、回向校准、和被打脸的次数堆出来。<br>认知方式的分野在此：**以质还质**（象·看神，象征的直感）vs <b>以量控质</b>（数·定形，可核验的痕迹）。"}
+];
+var FA4=[
+ {n:"① 排演",t:"把盘立起来",
+  d:"排四柱／起卦／安星／布盘——纯技术活，<b>不含任何判断</b>。这一步排错，后面三步全废，且越往后越难发现。",
+  a:"手上动作：查表校对；四查必过——<b>真太阳时</b>（出生城市经度）· <b>夏令时</b>（1986–1991 大陆区间扣回 1 小时）· <b>子时归属</b>（默认晚子时）· <b>空亡神煞</b>。排完再自检三处：时柱、月令、大运起运岁数（应在 0–10 岁）。",
+  f:"失败信号：同一造两次排盘结果不一致 → 停。回查表，不许带着错误盘往下走。"},
+ {n:"② 测象",t:"定性 · 看神",
+  d:"不看分数，先看气象：这一造的<b>势</b>往哪走、<b>病</b>在何处、气象清还是浊。用类象把符号翻译成事件语言的方向。",
+  a:"手上动作：先说<b>三句人话</b>——一句话说势、一句话说病、一句话说象。说不出人话 = 象没抓到。",
+  f:"失败信号：只能吐术语、说不出人话；或象与已知事实明显对不上 → 象错了，退回①重排，不许硬套。"},
+ {n:"③ 断事",t:"定量 · 定形",
+  d:"把象压到刻度：旺衰几分、用神是谁、应期在哪一年、宫位落在谁身上。<b>这一步才动数。</b>",
+  a:"手上动作：给数必须同时给<b>应期</b>与<b>宫位</b>。只说「你明年不利」不算断事；要说「某年、某事、在某宫」。取用神守序：<b>先调候，后扶抑</b>；断六亲守序：<b>先宫位，后十神</b>。",
+  f:"失败信号：数与象打架（象说吉、数说凶）→ 触发往复规则，不许骑墙多头下注。"},
+ {n:"④ 心法",t:"神存乎其人",
+  d:"断完之后这一步：不执着于自己断得准不准，不为显得准而吓人，不为显得神而加戏。<b>心法是熔断的最后一道。</b>",
+  a:"手上动作：出口前自问三句——<b>我有没有在讨好对方？我有没有在吓对方？这条断语对当事人有用吗？</b>三句有一句答不上来，就不出口。",
+  f:"失败信号：断语出口后心里发虚、或说完就想改口 → <b>神不足</b>，收，改日再看。"}
+];
+var WANG=[
+ {r:"以象领数",d:"先立象，再落数。<b>数不许反过来造象</b>——不能因为算出「身弱三分」，就倒推出一个「体弱多病」的象。",
+  y:"象是根本，数使象得通。象错了，数再精确也是<b>精确的错误</b>。"},
+ {r:"以数证象",d:"象立住之后，必须用数去撞它。撞得上，象才算数；撞不上，回头改象——<b>不许改数迁就象</b>。",
+  y:"这一步专防「象的美好」：象最容易自洽，也最容易自欺。数是它的对照实验。"},
+ {r:"往复成环",d:"象 → 数 → 象 → 数，直到两者不再互相推翻，才出口。<b>一次不成环的判断，不算判断，算猜测。</b>",
+  y:"象数<b>双向互转</b>——不是两步直线，是一个环。环没闭合就下断语，是术网里最常见的漏气点。"}
+];
+var XIANGPU=[
+ {s:"源头",n:"取象说 / 取义说",d:"象数派最早的分歧不在某个人，在「怎么读卦」：一是按卦象取象，一是按卦辞取义。",y:"象数派的根，是一个读法分歧，不是一个人。"},
+ {s:"汉",n:"孟喜（卦气）→ 京房（《京氏易传》）",d:"孟喜立卦气说；京房立纳甲、八宫、世应、六亲，把《易》变成<b>可计算的装置</b>。",y:"六爻火珠林那套算子，根就在这里。这是象数第一次「工程化」。"},
+ {s:"汉末",n:"《易纬》→ 郑玄 · 荀爽 · 虞翻",d:"爻辰、升降、卦变、旁通——汉易象数的技术高峰。",y:"也是禨祥化的起点：<b>技术越精密，越容易滑向「什么都算得出来」</b>。"},
+ {s:"宋",n:"图书派 → 邵雍（先天易学）",d:"河图洛书、先天八卦、元会运世，把象数推到宇宙论尺度。",y:"邵子是象数派第二个高峰，也是<b>「数压过象」的第一次大规模转向</b>。"},
+ {s:"入术",n:"三式（遁甲·太乙·六壬）· 梅花易数 · 六爻",d:"象数从经学注疏下沉为方术操作系统。",y:"这一步才是五术真正接上象数的地方——<b>不是读书读出来的，是术士用出来的</b>。"},
+ {s:"暗流",n:"盲师口诀派 / 丹道（钟吕 — 张伯端）",d:"象数的另一条流传线：不落文字，口传心授；并将象数结构并入内丹（参同契一系）。",y:"「口口相传不记文」「不遇真人莫强猜」——这条线<b>没有文献，只有师徒</b>，所以也最容易断。"}
+];
+var LOCK2=[
+ {n:"锁一 · 汉易之败",d:"入于禨祥",
+  y:"象数技术精密到极点之后，汉易滑向禨祥灾异——什么都能附会，于是等于什么都没说。<b>形式化陷阱</b>：当一套算子能解释一切结果时，它就不解释任何结果。",
+  g:"守：每条断语都要能被一个反例推翻；算完必须留一句「我可能错在哪」。<br>破：断语越说越圆、怎么都说得通 → <b>熔断</b>。"},
+ {n:"锁二 · 重数轻象之败",d:"一叶蔽目",
+  y:"新派（李涵辰系）把数推到极致、废象废调候，结果是<b>数越细、象越死</b>——算得出旺衰，说不出人话。这正是不守「以象领数」的样板失败。",
+  g:"守：先说人话，再落数字；数字说不出人话，就是数错了。<br>破：一开口就是分数、格局、从化，却讲不出这一造<b>是个什么人</b> → <b>熔断</b>。"}
+];
+var SHANGBH="尚秉和的判词：<b>传承一断，易学遂亡</b>——不是说书没了，是说「<b>象该怎么看</b>」这件事没人带，光有文献也读不回来。这正是「神存乎其人」那层的历史注脚：象数派最后留下的不是公式，是<b>需要人带的那一段</b>。<br><span style=\"color:var(--bad)\">证据等级：库内零命中，仅网络／常识层支撑——作立场注脚可以，作库内引证不行。</span>";
+var NI=[
+ {i:"倪海厦 · 易派象数宗",s:"自创自命名，非所承",
+  d:"多个独立来源一致：其易学五术为<b>自学</b>——「<b>在没有老师引领下</b>，不但五术俱全，还悟出了自己的想法……<b>开创自己独创的学说，倪师将之命名</b>『易派象数宗』」。",
+  y:"关键在两词：<b>「没有老师引领」「开创自己独创、倪师命名」</b>。准确说法是<b>「倪海厦自创并命名的易派象数宗」</b>，绝不是「倪海厦所承的象数宗」——<b>本就没有这条线可承</b>。"},
+ {i:"他的真根在医",s:"有明师，且自承断脉",
+  d:"明线师承只有两条：<b>周左宇 · 徐济民</b>（针灸，正式师徒制，周左宇倾囊相授）＋ <b>姜佐景</b>（经方，师承曹颖甫）。他恰是「传承不可断」最坚定的主张者。<b>但他自己承认断掉的那根</b>：「经方断代，台湾也没有什么所谓的经方家……经方只好从书上去研究」——针灸有口传，经方一脉却断了，只能从书里往回拼。",
+  y:"最有价值的一句话：他最大成就「复兴经方」恰好是在<b>一根断掉的脉</b>上、靠天才从书里拼回来的。这对「宗必有可溯的根」是<b>正面佐证不是反例</b>：断了根就只能靠天才去猜，而<b>天才不可复制</b>。"},
+ {i:"正确位置：集成者，非宗",s:"近代五术合流范例",
+  d:"五术俱全、医易同源的实操样本。而「象数」这条根，本库能溯到：《易传》已有取象说／取义说分歧 → 西汉孟喜卦气说 → 京房《京氏易传》→ 《易纬》集大成 → 宋代图书派·邵雍先天易学 → 民间纳甲·三式·梅花·星命·斗数。",
+  y:"这条脉<b>比「易派象数宗」长了近两千年，而且从没断过</b>。所以「象数」作为法网算子语言完全合格；<b>倪海厦本人是范例，不是宗</b>。"},
+ {i:"三件直接装进法器",s:"已落位",
+  d:"① <b>天地人三分</b>：天（命）不可改，只能从地理（相）、人事（卜／医／山）下手——与六步第⑤步「改向／择方／择时」同一条逻辑：<b>只动可动项</b>。<br>② <b>睡前三省</b>：省思所言所行 · 不论人非 · 重症求助经典——已加入暮课。<br>③ <b>不用排盘软件</b>：他刻星宿印章手排，呼应新派六爻「电脑随意起卦建议不用」——已立为戒律。",
+  y:"他身上可取的，是这三件<b>可操作的动作</b>，不是「象数宗」这个名号。"},
+ {i:"库内「象数宗」＋ 尚秉和",s:"边界仍在",
+  d:"库内「象数宗」仅 1 条，且是<b>你自著</b>《象数宗 · 六十四生成纲》；「尚秉和」「易学遂亡」「孟喜」「京房」「邵雍」在库内均为 <b>0 命中</b>。本库倪海厦资料<b>医极厚 · 命卜有 · 象数谱系无</b>。",
+  y:"用法：尚秉和「传承一断，易学遂亡」<b>作立场注脚可以，作库内引证不行</b>；「库内有象数宗」成立，但「库内有<b>倪海厦的</b>象数宗」不成立，<b>两者别混</b>。"}
+];
+var ZONG2=[
+ {n:"以象看神（主）",d:"观其气象、验其断事、看它是否「简易」、看是否契应本质",k:"神 · 不可传，只能契应"},
+ {n:"以数定形（验）",d:"谱系能否追溯、文本是否实在、年代是否可考、能否被独立反复复现",k:"形 · 可传，但只是指月之指"}
+];
+var ZONG=[
+ {p:"主宗 · 经典层",n:"子平古法",c:"《渊海子平》为<b>经</b>，《滴天髓》为<b>理</b>，《穷通宝鉴》为<b>用</b>",
+  y:"库内唯一被完整定义为「系统论述命理学的典籍……以日干为核心建立十神体系与格局分析法」的是《渊海子平》——它是骨架，其余是枝叶。读法有取舍：「古赋歌诀为其中之精华，其它的则是很多垃圾」，功在赋诀。<b>理用双柱不可偏废</b>：「滴天髓言其理而不言其用，穷通宝监言其用而不言其理」——滴天管「为什么」，穷通管「怎么用」，单抱一本，要么落空谈，要么落成口诀匠。"},
+ {p:"断法层",n:"段建业一系",c:"《命理珍宝》《命理瑰宝》（原身 50 期）、命理授课教程，承郝先生与盲师口诀",
+  y:"实际断事时的主坐标系。四条理由：① 明确反对体系自封绝对——「他将自己的体系奉绝对正确，不容纳其它东西，这是作学问的大忌」；② 讲宾主与宫位，直斥「他不懂得宫位的重要」；③ 讲调候，把「否定调候用神」列为严重不足；④ 有应期与六亲口诀：「伤官去官，天地全去，故官必大极」「妻入墓地冲，冲墓得贤妻，不冲墓则妻有灾」。"},
+ {p:"只借两条 · 不取体系",n:"新派（李涵辰系）",c:"借：<b>去忌神时得忌神喜</b>、<b>八字应期的法则</b>；不取：不讲宾主而统统讲合绊 · 否定调候 · 把三会说成合绊 · 将用神忌神终身化绝对化",
+  y:"新派不是不能用，是只能拆件用，不能整套用。争议需看到：「据他的学生李文扬讲，准确率 70％。而又据别的同行讲，他给一位慕名求测者只断对了 30％」——两条都是传闻不是硬数据，但足以说明不宜以新派为宗。"},
+ {p:"六爻另立一宗",n:"传统火珠林纳甲",c:"以钱代蓍，按纳甲配干支·五行·六亲·世应，分析爻与爻、爻与日支月支的生克冲合；<b>不采用</b>新派「合神定旺衰」",
+  y:"取舍理由很直接：传统火珠林法从隋唐沿用至今，检验期以千年计；合神法是 2000 年董元辰才发明的新发明，检验期以年计。作为「宗」，没有理由选后者。另完全采纳新派一条意见：「电脑随意起卦……出来的卦是经过电脑程序改编了的卦，很难真正代表每个人的真实信息，建议不用」。"}
+];
+var RULE=[
+ {n:"规则一｜名单类分歧",r:"从众，再用「量化」吸收异见",
+  y:"以地支藏干为例，库内至少五家互相指斥：通行口诀（午藏丁、己）／王丹平《命理正本》（丙、己、丁：丙11天·己9天·丁10天）／石在天《藏山雷学》（四正得气最纯，一支只藏一干，古人「误把午火所藏之天干配成了两个」）／刘立杰《四柱阴阳经》（同性共存、异性不共存）／《八字六亲秘诀录》含气数（丁11主·己9中·丙10余）。<br><b>裁决</b>：取通行口诀「丁、己」为名单，用含气数表加权（丁11、己9），把王丹平主张被「丢掉」的丙火 10 气以<b>余气</b>身份挂回。不改门庭，只加权重——这就是「留接口」。"},
+ {n:"规则二｜取用神分歧",r:"先调候，后扶抑",
+  y:"「任何一种有形的五行金木水火土都害怕被坏掉，惟有调候是一种季节，一种时间，是无形的，所以不怕被破坏。」库内实例：同一造李洪成说身弱用火、李涵辰说从官，卜文裁决「李涵辰肯定说的不对」，实际「应是调候用暖」。<br><b>裁决</b>：凡两家打架，先问寒暖燥湿，再论旺衰从化。"},
+ {n:"规则三｜断六亲吉凶",r:"先宫位，后十神",
+  y:"「当妻星得妻位时，就是忌神也不能制，制则死。」朱洪武造为例：伤官去官主克父，「有人问官为忌神去之为吉何能死父？李涵辰就讲父做忌神受制时父吉。实际上他不懂得宫位的重要」。<br><b>裁决</b>：十神说的是关系，宫位说的是位置；位置对了，忌神也不能动它。"}
+];
+var ZONGSUM="一句话总纲：<b>主坐标系唯一</b>（《渊海子平》为经、滴天／穷通为理用），<b>断法主干用段建业一系</b>，<b>新派只借「去忌神得忌神喜」与「应期」两条算子</b>，<b>六爻另守火珠林古法</b>。<br>而「为宗」的最终含义仍是那句：「命理是有许多特殊的东西，会游离于一般规律之外，有许多的理与法则」。任何时候，只要手上出现一个你的主宗解释不了的反例——<b>像阎锡山造那样</b>（按「杀旺身极弱应从杀」，反在戊午克杀之运当都督、掌山西 36 年，体系解释不了）——就该允许它推翻你的定式，而不是反过来。";
+
+/* ── 术网 ── */
+var SHU5=[
+ {t:"命",s:"给你一张终身地形图",
+  i:"出生年月日时 → 四柱八字 → 大运、流年、胎元、命宫",
+  a:"排盘：阴阳五行 → 干支 → 纳音 → 四柱 → 三元 → 日干旺衰 → 用神喜忌 → 十神 → 大运小运 → 格局 → 富贵贫贱 → 神煞；再看气势与气数",
+  o:"先天气质、强弱偏枯、喜忌方位与行业、六亲结构、健康薄弱脏器、以及「人生重大关口」的年份",
+  d:"学命的目的是<b>设计一套最完善的后天生存方式</b>；命运如路，「路障可改道使命运改变，因此需提前预测探明路障以有效改造命运」。具体动作：<b>选方位 · 选行业 · 选时机 · 调整居家布局</b>"},
+ {t:"卜",s:"一件事做不做、何时做",
+  i:"一个明确的疑问 ＋ 起卦时刻（或奇门局）",
+  a:"定用神 → 分析旺衰 → 看生克冲合空亡伏吟 → 定应期。教材方法是<b>找出卦内主要矛盾的三个关键步骤</b>；高阶走一卦多断、分爻、取数、飞宫、飞限运",
+  o:"该事的<b>结果场</b>结构与应期（实例：奇门测升学，时干落宫逢壬＋乙吉格断能考上，兼断方位、学校层次、身体状况、注意事项）",
+  d:"<b>做 / 不做 / 改期 / 换方位</b>。三条提醒：要有<b>断与不断的分界</b>；须<b>正确起卦且避免依赖现代工具</b>；要<b>把握出手时机</b>"},
+ {t:"相",s:"环境与形貌的可改项",
+  i:"住宅、坟茔、形貌",
+  a:"<b>风水</b>：阴宅「以内卦为地，外卦为人」，内旺相即地灵人杰；形势以卦身断（乾如龙马奔骤、坤如牛眠平坦、坎如豕临溪涧、艮如伏虎眠犬……）；坐山以世爻断；穴向以世冲之支定；再分未葬之穴与已葬之穴两套取用。阳宅「一家之趋避也，莫不以安为乐，以顺为道，故官鬼戒其动也」，逐条给动作——「水鬼动而远河川，土鬼动而莫堵宅，金鬼动而慎刀针，木鬼动而徒种植，火鬼动而防回禄」。理气一路另有分金、卦爻、元运（如坤壬乙、下元七运）。<br><b>相人</b>：麻衣、柳庄一系，五官配五行——「左耳属金，右耳属木，天庭属火，地角属水，鼻子属土」；决定寿数主要看眼",
+  o:"何处有煞、何向不吉、阳宅阴宅孰轻孰重",
+  d:"<b>改向 · 调理 · 迁避</b>。库内实例最诚实的优先级：卦师据卦断出「坟前低洼、后山不高，所以发财不长久」，客户反馈「首先考虑调理阳宅，有一定经济能力时再调理一下阴宅……<b>调阳宅会见效更快更直接一些</b>」"},
+ {t:"医",s:"身体这个「器」的日常维护",
+  i:"身体信号（含掌骨全息等整体诊法）",
+  a:"干支配脏腑：甲头肝、乙肩肝、丙额小肠、丁齿舌心、戊己鼻面脾胃、庚筋大肠、辛胸肺、壬胫膀胱、癸足肾。「凡命局中过旺或过弱的五行所代表的病伤信息就最易被引发」——木最旺易得肝胆筋骨之病、土最弱易得脾胃皮肤浮肿之病。再加<b>八风虚邪</b>：「谨候虚风而避之，故圣人日避虚邪之道，如避矢石然」",
+  o:"薄弱脏器、当避之虚邪、当前可否承载变动",
+  d:"这是最密的日课——<br>· <b>导引</b>：「肢体关节，本资于动用，经脉荣卫，实理于宣通……户枢不蠹」，时间在<b>丑后、卯前，天气清和日为之</b>；五禽戏、八段锦皆属此类<br>· <b>行炁吐纳</b>：「凡行气以鼻内气，以口吐气，微而引之，名曰长息」；六字诀分治——吹去热、呼去风、唏去烦、呵下气、嘘散气、稲解极<br>· <b>听息内视</b>：「无听之以耳，而听之以心；无听之以心，而听之以炁」；内视则「心求静必先制眼……抑之眼而使之归于心」<br>· <b>存思</b>：「存谓存我之神，想谓想我之身」，为学之基以存思为首<br>· <b>叩齿咽津</b>：「每朝早旦未起之时，先须叩齿七下至九下……舌柱上锷，集漱津液满口即咽」"},
+ {t:"山",s:"主宰那一层",
+  i:"精、气、神三宝",
+  a:"抽坎填离、心肾相交、后天返先天；方法谱系含行气、房中、导引、辟谷、服食、医药、佩符、符水，以及登涉、乘蹻、隐沦、坚齿、聪耳、明目诸术",
+  o:"身心是否已达「能执」而非「被执」的状态",
+  d:"落点是<b>清地平基</b>——「身未清时，不可能静，站难持久，坐难入定……以此类浊身入道，何能明心见性」，所以<b>正式炼丹前先做一次辟谷是必要的</b>（须严守戒律第二条：辟谷须渐进）"}
+];
+
+/* ── 节拍 ── */
+var AM=[
+ {k:"am-kou",t:"叩齿七至九下 · 咽津三口",d:"「每朝早旦未起之时，先须叩齿七下至九下……舌柱上锷，集漱津液满口即咽」"},
+ {k:"am-dao",t:"导引通关节",d:"「肢体关节，本资于动用……户枢不蠹」；丑后卯前、天气清和日为之"},
+ {k:"am-qi",t:"行炁长息 · 六字诀",d:"「凡行气以鼻内气，以口吐气，微而引之，名曰长息」"},
+ {k:"am-jing",t:"静坐 · 听息内视 · 存思",d:"「无听之以耳，而听之以心」；「存谓存我之神，想谓想我之身」"},
+ {k:"am-dong",t:"动功 · 五禽戏／八段锦／金刚功",d:"动功先行，通后再静"}
+];
+var PM=[
+ {k:"pm-yu",t:"语查",d:"恶口 · 妄语 · 两舌"},
+ {k:"pm-shi",t:"视查",d:"非礼之色 · 无益之览"},
+ {k:"pm-xing",t:"行查",d:"失信 · 拖延"},
+ {k:"pm-san",t:"睡前三省",d:"省思所言所行 · 不论人非 · 重症难题求助经典以求契应（倪海厦日课）"},
+ {k:"pm-song",t:"感应篇日诵",d:"日用善恶的因果账本"}
+];
+var TRIG=[
+ {k:"t-zhou",t:"起一卦 · 问一件具体的事",f:"每周",d:"先自问「该断不该断」；避免依赖电脑起卦"},
+ {k:"t-yue",t:"核对流年",f:"每月",d:"今年喜忌方位、薄弱脏器、有无关口"},
+ {k:"t-ji",t:"环境巡检 · 阳宅四查",f:"每季",d:"动线 · 水位 · 火位 · 有无形煞；按「官鬼戒其动」原则调"},
+ {k:"t-nian",t:"重排大运流年 · 重定用神",f:"每年",d:"重画一张当年地形图"},
+ {k:"t-gu",t:"辟谷一轮 · 清地平基",f:"每年一次",d:"「身未清时，不可能静」；须渐进、须明师，见戒律"}
+];
+
+/* ── 六步 + 四道防线 ── */
+var LINE4=[
+ {k:"act",n:"行为关",y:"太上感应篇：祸福无门，唯人自召；心起于善，善虽未为而吉神已随之",q:"起心动念是善、是恶，还是无记？这事会不会自召祸？",o:["善","无记","恶"]},
+ {k:"deg",n:"度量关",y:"道德经：知足不辱，知止不殆；祸莫大于不知足，咎莫大于欲得",q:"止点在哪？是不是过了度？（吉凶多半不是外来的，是过了度来的）",o:["说得出具体止点","止点模糊","根本没想过度"]},
+ {k:"tim",n:"时机关",y:"阴符经：观天之道，执天之行；君子得之固躬，小人得之轻命",q:"此刻天时人事在顺还是逆？若已起局，格局如何？",o:["顺","平","逆"]},
+ {k:"cul",n:"修持关",y:"大成捷要：防危虑险，不可心急烦躁，否则气血乱窜、走火出偏；须辨明旁门、依师求真",q:"是否在抢进度？功法上有无防危虑险？有无师长可问？",o:["稳，且有师可问","稳，但无师","抢进度／心急"]}
+];
+var LIUF=[
+ {k:"s1",n:"① 定势 · 卜／命",q:"此事的结果场与应期？今年是否落在关口上？",h:"例：奇门时干落宫逢壬＋乙吉格；今年戊午运，为关口"},
+ {k:"s2",n:"② 定位 · 相",q:"宅、坟、方位查过没？空间变量摘出来没？",h:"例：阳宅水位动，主财不聚；先调阳宅，后议阴宅"},
+ {k:"s3",n:"③ 定器 · 医",q:"身体当前能不能承载这个变动？",h:"例：土最弱，脾胃皮肤当心；八风虚邪当避"},
+ {k:"s4",n:"④ 定主 · 山",q:"身心是否已调到「能执」而非「被执」？",h:"例：行炁长息三日，听息能入；可执"},
+ {k:"s6",n:"⑥ 回向 · 推己复言德",q:"把结论翻回心和德这一层复核一遍。",h:"「吾愿尔世人，自相自算；吾愿尔相者，劝大修心；吾愿尔算者，劝人积德」"}
+];
+
+/* ── 总持 / 戒律 ── */
+var TIANKOU=[
+ {t:"医药篇",c:"医之为道也，<b>能活国亦能病国</b>；药之于世也，<b>能活人亦能杀人</b>，不可不慎其术也……<b>以命试医咎在己，以药试人咎在医</b>。"},
+ {t:"相卜篇",c:"<b>相自我改，命自我造</b>，古人有言不汝欺也。即操相算者，亦上相汝身，难相汝心，亦上算汝命，难算汝德。<b>不能相汝心，即不能相汝身也；不能算汝德，即不能算汝命也。</b>……吾愿尔世人，自相自算；吾愿尔相者，劝大修心；吾愿尔算者，劝人积德。"},
+ {t:"堪舆篇",c:"<b>地理者，天理也。</b>既有天理，即无人欲……十个堪舆九个穷，何足怪也！<b>仙师赐地，吉人与吉，凶人与凶，吉不受恩，凶不受怨。</b>"}
+];
+var JIE=[
+ {k:"j1",t:"术不可孤用",c:"抱朴子：「食草者善走而愚，食肉者多力而悍，食谷者智而不寿，食气者神明不死——此乃行气者一家之偏说耳，<b>不可便孤用也</b>」"},
+ {k:"j2",t:"辟谷须渐进",c:"不可突然断食（除非身体已打开），先减量过渡；期间别久躺（<b>「总躺着的人，身体中钙的流失量是平时正常状态下的许多倍」</b>）；第二到四天会有强烈心理欲望期，<b>「不去管他，坚持到下一天自然就好了」</b>；复食须先润肠胃"},
+ {k:"j3",t:"不耗元神",c:"「饥肠饿肚而不知缺什么，此可曰意识中断，<b>耗的是元神</b>，不是坐化『升天』，就是衰竭殒命」"},
+ {k:"j4",t:"医不自欺",c:"「不可自轻，不可自误，不可自欺……<b>以命试医咎在己，以药试人咎在医</b>」"},
+ {k:"j5",t:"地不讲人情",c:"「地理者，天理也」；「<b>仙师赐地，吉人与吉，凶人与凶</b>」——别指望靠风水绕过德行这一关"},
+ {k:"j6",t:"相不算心，则相不准",c:"「<b>不能相汝心，即不能相汝身也</b>」"},
+ {k:"j7",t:"卜者以诚",c:"「卜者以诚，断者宜慎，若谋人之成穴，破人之吉地，<b>地理得而天心怒，鬼神所不告也</b>」"},
+ {k:"j8",t:"别把工具当神",c:"六爻研究者须<b>「明确断与不断的分界」</b>、<b>「正确起卦且避免依赖现代工具」</b>"},
+ {k:"j9",t:"弃书执书皆非",c:"〈库内〉「弃经书全不理论，固是大错，若执经书再不求人，更是大错。弃书执书皆非也。」不可因「传的是神」而弃形，亦不可执形为道"},
+ {k:"j10",t:"名实不可混",c:"〈库内〉「有师弟传授之名，无师弟传道之实。」拜师≠得法，名分不作判据；谱系的「名」只是指月之指，不是道本身"},
+ {k:"j11",t:"泥形执象转昏迷",c:"〈库内〉「得意忘言方了彻，泥形执象转昏迷。」判宗判人，<b>先观象看神，后以数定形；顺序不可颠倒</b>"},
+ {k:"j12",t:"别靠软件排盘",c:"倪海厦刻星宿印章手排十二宫、先看大运再批流年；与新派六爻「电脑随意起卦……出来的卦经程序改编，难代表真实信息，建议不用」<b>两条独立来源指向同一条戒律</b>"}
+];
+var LED_DEF=[
+ {k:"yu-e",t:"语 · 恶口／妄语／两舌",c:"语"},
+ {k:"shi-fei",t:"视 · 非礼之色／无益之览",c:"视"},
+ {k:"xing-tuo",t:"行 · 拖延／失信",c:"行"},
+ {k:"yu-shan",t:"语 · 劝善／实语／柔语",c:"语"},
+ {k:"xing-shan",t:"行 · 守信／布施／济急",c:"行"}
+];
+var WUJU=[
+ {n:"① 原理一句｜顺逆",c:"顺则生人，逆则成仙",d:"「炼精化炁，炼炁化神，炼神还虚，炼虚合道」。落到卦上就一个动作：<b>取坎填离</b>（抽坎填离、心肾相交、吸炁过脐下呼炁不出心）。",k:"路标"},
+ {n:"② 算子一对｜象数",c:"象＝定性（看神）· 数＝定量（定形）",d:"认知分野：<b>以质还质</b>（象，象征的直感、全靠心智之明）vs <b>以量控质</b>（数，可核验的外部痕迹）。神是目的，形是验具——形用来证神，不用来代神。",k:"路标"},
+ {n:"③ 闭环一环｜五术",c:"命知本 · 卜知势 · 相知象 · 医救不幸 · 山主命",d:"库内这份定义不是五个技术门类，是<b>五个功能位，天然成环</b>：命给坐标系，卜相负责「知」，医山负责「行」。",k:"路标"},
+ {n:"④ 口诀一句｜心息相依，大定真空",c:"真火无候，大药无斤，鼎鼎原无鼎",d:"「一部丹诀全旨，只是一个心息相依，大定真空而已。」<b>这一句是路本身，不是路标</b>——前三条都是解象，这一条才是成丹。",k:"路本身"},
+ {n:"⑤ 戒律一条｜执则繁，悟则简",c:"废的是执，不是文",d:"「执之则愈繁愈难，悟之则惟简惟易」。得诀之后文字可废，未得诀之前还需文字作指月之指——所以这张表现在还得留着。",k:"防④被前③吃掉"}
+];
+
+/* ── 状态 ── */
+var S={days:{},liuLog:[],ledger:{},ledItems:LED_DEF.slice(),notes:{},jie:{}};
+try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&typeof p==="object"){
+  S.days=p.days||{};S.liuLog=p.liuLog||[];S.ledger=p.ledger||{};
+  S.ledItems=(p.ledItems&&p.ledItems.length)?p.ledItems:LED_DEF.slice();
+  S.notes=p.notes||{};S.jie=p.jie||{};}}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function dnum(n){return (n>0?"+":"")+n;}
+
+/* ── 导航 ── */
+var TABS=[["v-net","总览 · 五术定位"],["v-dao","道网 · 体"],["v-fa","法网 · 象数"],["v-shu","术网 · 用"],
+          ["v-beat","日课 · 节拍"],["v-liu","决策 · 六步"],["v-ledger","功过格"],["v-jie","总持 · 戒律"],["v-log","日志数据"]];
+document.getElementById("nav").innerHTML=TABS.map(function(t,i){return '<button role="tab" data-v="'+t[0]+'" aria-selected="'+(i===0)+"\" onclick=\"tab('"+t[0]+"')\">"+t[1]+"</button>";}).join("");
+function tab(id){
+  document.querySelectorAll("section").forEach(function(s){s.classList.toggle("on",s.id===id);});
+  document.querySelectorAll("nav button").forEach(function(b){b.setAttribute("aria-selected",b.dataset.v===id);});
+  if(id==="v-beat")renderBeat();
+  if(id==="v-ledger")renderLedger();
+  if(id==="v-jie")renderJie();
+  if(id==="v-log")renderLog();
+  if(id==="v-liu")renderLiuLog();
+}
+
+/* ── 表格渲染 ── */
+function tbl(el,head,rows){
+  document.getElementById(el).innerHTML="<colgroup>"+head.map(function(h){return '<col style="width:'+h[1]+'">';}).join("")+"</colgroup><thead><tr>"+
+    head.map(function(h){return "<th>"+h[0]+"</th>";}).join("")+"</tr></thead><tbody>"+
+    rows.map(function(r){return "<tr>"+r.map(function(c,i){return i===0?"<td><b>"+c+"</b></td>":'<td class="k">'+c+"</td>";}).join("");}).join("")+"</tbody>";
+}
+tbl("tbl-fang",[["方术三分",110],["内容",420],["对应五术",110]],
+  FANG.map(function(f){return [E(f.n),E(f.c),E(f.w)];}));
+tbl("tbl-fen",[["术",40],["它回答的问题",300],["它的目的",200],["知行链位置",110]],
+  FEN.map(function(f){return [E(f.t),E(f.q),E(f.g),'<span class="tag '+(f.r.indexOf("知")===0?"know":"act")+'">'+E(f.r)+"</span>"];}));
+tbl("tbl-cover",[["五术",44],["道网 · 判据",200],["法网 · 算子",300],["术网 · 动作",280]],
+  COVER.map(function(c){return [E(c.w),E(c.d),E(c.f),E(c.s)];}));
+tbl("tbl-dao7",[["格",36],["书",110],["知 · 依据",290],["行 · 行前必问",290],["证验",180]],
+  DAO7.map(function(d){return [E(d.g),E(d.b),E(d.k),E(d.x),E(d.z)];}));
+tbl("tbl-daon",[["节点",80],["内容 · 依据",520],["它给你的东西",220]],
+  DAON.map(function(d){return [E(d.n),E(d.c),E(d.y)];}));
+tbl("tbl-xiang4",[["层",40],["分工",110],["回答",100],["内容",330],["依据",240]],
+  XIANG4.map(function(d){return [E(d.l),E(d.q),E(d.k),d.d,d.y];}));
+tbl("tbl-wang",[["规则",110],["怎么走",340],["为什么强制",370]],
+  WANG.map(function(d){return [E(d.r),d.d,d.y];}));
+tbl("tbl-xiangpu",[["段",50],["人物 / 著作",200],["做了什么",310],["对法网的意义",260]],
+  XIANGPU.map(function(d){return [E(d.s),E(d.n),d.d,d.y];}));
+tbl("tbl-lock2",[["锁 · 败因",150],["位置",80],["它怎么败的",300],["守 / 破（破则熔断）",290]],
+  LOCK2.map(function(d){return [E(d.n),E(d.d),d.y,d.g];}));
+tbl("tbl-ni",[["条目",140],["状态",120],["实况",330],["结论",230]],
+  NI.map(function(d){return [E(d.i),E(d.s),d.d,d.y];}));
+tbl("tbl-zong2",[["判什么",130],["怎么做",430],["落在哪一层",160]],
+  ZONG2.map(function(d){return [E(d.n),d.d,E(d.k)];}));
+tbl("tbl-wuju",[["",150],["收敛",260],["",300],["性质",150]],
+  WUJU.map(function(d){return ['<b>'+E(d.n)+"</b>",E(d.c),d.d,'<span class="tag '+(d.k==="路本身"?"x":"")+'">'+E(d.k)+"</span>"];}));
+document.getElementById("shangbh").innerHTML=SHANGBH;
+document.getElementById("fa4").innerHTML=FA4.map(function(s){
+  return '<div class="q"><div class="qh"><em>'+E(s.n)+"</em> ｜ "+E(s.t)+"</div>"+
+   '<div class="qs" style="margin:6px 0 6px">'+s.d+"</div>"+
+   '<div class="qs" style="color:var(--ink);background:#fcfaf7;border-left:2px solid var(--accent);padding:5px 0 5px 9px">'+s.a+"</div>"+
+   '<div class="fail"><b>'+E(s.f.split("：")[0])+"</b>："+E(s.f.split("：").slice(1).join("："))+"</div></div>";
+}).join("");
+tbl("tbl-zong",[["位",110],["宗",130],["构成",300],["为什么",280]],
+  ZONG.map(function(d){return [E(d.p),E(d.n),d.c,d.y];}));
+tbl("tbl-rule",[["规则",150],["裁决",130],["依据与实例",540]],
+  RULE.map(function(d){return [E(d.n),E(d.r),d.y];}));
+document.getElementById("zong-sum").innerHTML=ZONGSUM;
+
+document.getElementById("flow").innerHTML=LIU.map(function(s,i){
+  return (i?'<div class="arw">→</div>':"")+'<div class="fstep '+s.c+'"><div class="fn">'+E(s.n)+'</div><div class="ft">'+E(s.t)+'</div><div class="fd">'+E(s.d)+"</div></div>";
+}).join("")+'<div class="arw">↺</div>';
+
+document.getElementById("shu5").innerHTML=SHU5.map(function(s){
+  return '<div class="q"><div class="qh"><em>'+E(s.t)+"</em> ｜ "+E(s.s)+"</div>"+
+   '<div class="qs" style="margin:6px 0 4px"><b>输入</b>　'+E(s.i)+"</div>"+
+   '<div class="qs" style="margin-bottom:4px"><b>算法</b>　'+s.a+"</div>"+
+   '<div class="qs" style="margin-bottom:4px"><b>输出</b>　'+E(s.o)+"</div>"+
+   '<div class="qs" style="color:var(--ink);background:#fcfaf7;border-left:2px solid var(--accent);padding:5px 0 5px 9px;margin:6px 0 0"><b>手上动作</b>　'+s.d+"</div></div>";
+}).join("");
+
+document.getElementById("tiankou").innerHTML=TIANKOU.map(function(t){
+  return '<div class="quote"><b>'+E(t.t)+"</b><br>"+t.c+"</div>";
+}).join("")+'<div class="quote" style="border-color:var(--ok);background:#f4f8f5"><b>总开关</b>　术可以精，但<b>心与德是术的上位变量</b>——「心体正，好相也；德性坚，好命也」。</div>';
+
+/* ── 节拍 ── */
+function swHTML(it,d,brk){
+  return '<div class="sw'+(brk?" brk":"")+'" role="button" aria-pressed="'+(!!d[it.k])+'" onclick="tog(\''+it.k+'\')"><div class="box"></div><div class="txt"><div class="t1">'+
+    E(it.t)+'</div><div class="t2">'+E(it.d)+'</div></div><span class="freq">'+E(it.f)+"</span></div>";
+}
+function renderBeat(){
+  var t=today(),d=S.days[t]||{};
+  document.getElementById("beat-am").innerHTML=AM.map(function(i){i.f="晨";return swHTML(i,d);}).join("");
+  document.getElementById("beat-pm").innerHTML=PM.map(function(i){i.f="暮";return swHTML(i,d);}).join("");
+  document.getElementById("beat-trig").innerHTML=TRIG.map(function(i){return swHTML(i,d);}).join("");
+  var n=S.notes[t]||{};
+  document.getElementById("shunni").value=n.sn||"";
+  document.getElementById("beat-note").value=n.txt||"";
+  document.getElementById("beat-note-view").innerHTML=n.txt?("已存：顺逆＝"+E(n.sn||"未判")+" · "+E(n.txt)):"今日尚未记录。";
+  var am=AM.filter(function(i){return d[i.k];}).length, pm=PM.filter(function(i){return d[i.k];}).length;
+  var streak=0,cur=new Date();
+  for(var i=0;i<400;i++){
+    var k=cur.getFullYear()+"-"+String(cur.getMonth()+1).padStart(2,"0")+"-"+String(cur.getDate()).padStart(2,"0");
+    var dd=S.days[k];
+    if(dd&&AM.every(function(x){return dd[x.k];})&&PM.every(function(x){return dd[x.k];})){streak++;}
+    else if(i>0){break;}
+    cur.setDate(cur.getDate()-1);
+  }
+  var d30=0;
+  for(var j=0;j<30;j++){var c2=new Date();c2.setDate(c2.getDate()-j);
+    var k2=c2.getFullYear()+"-"+String(c2.getMonth()+1).padStart(2,"0")+"-"+String(c2.getDate()).padStart(2,"0");
+    if(S.days[k2])d30++;}
+  document.getElementById("mets").innerHTML=
+    met("晨课",am+"<small>/"+AM.length+"</small>")+met("暮课",pm+"<small>/"+PM.length+"</small>")+
+    met("连续满课",streak+"<small> 天</small>")+met("近 30 日有记",d30+"<small>/30</small>")+
+    met("六步归档",S.liuLog.length+"<small> 条</small>")+met("熔断",Object.keys(S.jie).length+"<small> 条</small>");
+}
+function met(l,n){return '<div class="met"><div class="l">'+l+'</div><div class="n">'+n+"</div></div>";}
+function tog(k){var t=today();if(!S.days[t])S.days[t]={};S.days[t][k]=!S.days[t][k];if(!S.days[t][k])delete S.days[t][k];save();renderBeat();}
+function saveNote(){
+  var t=today();if(!S.notes[t])S.notes[t]={};
+  S.notes[t].sn=document.getElementById("shunni").value;
+  S.notes[t].txt=document.getElementById("beat-note").value.trim();
+  save();renderBeat();
+}
+
+/* ── 六步 ── */
+document.getElementById("liu-form").innerHTML=
+  LIUF.map(function(s){
+    return '<div class="q"><div class="qh"><em>'+E(s.n)+"</em></div><div class=\"qs\">"+E(s.q)+'</div><textarea id="'+s.k+'" placeholder="'+E(s.h)+'"></textarea></div>';
+  }).join("")+
+  '<div class="q"><div class="qh"><em>⑤ 行动 · 四道防线</em></div><div class="qs">改向／择方／择时／换行业／调整居所。此步前必过四关。</div>'+
+  LINE4.map(function(q){
+    return '<label class="f"><em>'+E(q.n)+"</em> ｜ "+E(q.q)+'</label><select id="c-'+q.k+'"><option value="">未判</option>'+
+      q.o.map(function(o){return "<option>"+E(o)+"</option>";}).join("")+"</select>";
+  }).join("")+"</div>";
+function runLiu(){
+  var what=document.getElementById("s1").value.trim();
+  if(!what){alert("第①步「定势」不能空——没有势，后面五步都是空的。");return;}
+  var v={};LINE4.forEach(function(q){v[q.k]=document.getElementById("c-"+q.k).value;});
+  if(LINE4.some(function(q){return !v[q.k];})){alert("四道防线都要作答。未判的关就是漏洞。");return;}
+  var bad=[],wait=[];
+  if(v.act==="恶")bad.push("行为关：起心动念已是恶，此事自召祸");
+  if(v.cul==="抢进度／心急")bad.push("修持关：在抢进度，功法上最易出偏");
+  if(v.deg==="根本没想过度")wait.push("度量关：说不出止点，吉凶多半从过度来");
+  if(v.deg==="止点模糊")wait.push("度量关：止点模糊，先写成数字再动");
+  if(v.tim==="逆")wait.push("时机关：此刻在逆段，宜守中不宜发力");
+  var cls,big,detail;
+  if(bad.length){cls="v-no";big="避";detail=bad;}
+  else if(wait.length){cls="v-wait";big="缓";detail=wait;}
+  else{cls="v-go";big="行";detail=["四关全过：念善、止点明确、天时在顺、修持不抢进度。"];}
+  var rec={d:today(),ts:new Date().toISOString(),
+    s1:what,s2:document.getElementById("s2").value.trim(),
+    s3:document.getElementById("s3").value.trim(),s4:document.getElementById("s4").value.trim(),
+    s6:document.getElementById("s6").value.trim(),v:v,r:big};
+  S.liuLog.unshift(rec);save();
+  var hx=rec.s6?'':'<div style="margin-top:8px;padding:8px 10px;background:#fbeceb;border-radius:6px;font-size:12.5px;color:var(--bad)">第⑥步「回向」是空的——这张网没闭合。算完必须把结论翻回心和德这一层复核一遍。</div>';
+  document.getElementById("liu-out").innerHTML='<div class="verdict '+cls+'"><div class="big">'+big+"</div>"+detail.map(function(x){return "· "+E(x);}).join("<br>")+"</div>"+hx;
+  renderLiuLog();
+}
+function resetLiu(){
+  LIUF.forEach(function(s){document.getElementById(s.k).value="";});
+  LINE4.forEach(function(q){document.getElementById("c-"+q.k).value="";});
+  document.getElementById("liu-out").innerHTML="";
+}
+function renderLiuLog(){
+  var el=document.getElementById("liu-log");
+  if(!S.liuLog.length){el.innerHTML='<div class="empty">还没有六步归档。先从一件正在犹豫的事开始。</div>';return;}
+  el.innerHTML=S.liuLog.map(function(c){
+    var col=c.r==="行"?"var(--ok)":(c.r==="缓"?"var(--warn)":"var(--bad)");
+    return '<div class="log"><div class="lh">'+E(c.d)+' <span style="color:'+col+';font-size:15px">'+E(c.r)+"</span>"+(c.s6?"":' <span class="tag" style="border-color:var(--bad);color:var(--bad)">未回向</span>')+"</div>"+
+      '<div class="lm"><b>① 定势</b>　'+E(c.s1)+"</div>"+
+      (c.s2?'<div class="lm"><b>② 定位</b>　'+E(c.s2)+"</div>":"")+
+      (c.s3?'<div class="lm"><b>③ 定器</b>　'+E(c.s3)+"</div>":"")+
+      (c.s4?'<div class="lm"><b>④ 定主</b>　'+E(c.s4)+"</div>":"")+
+      '<div class="lm" style="margin-top:2px">四关：行为 '+E(c.v.act)+" · 度量 "+E(c.v.deg)+" · 时机 "+E(c.v.tim)+" · 修持 "+E(c.v.cul)+"</div>"+
+      (c.s6?'<div class="lm" style="color:var(--ok)"><b>⑥ 回向</b>　'+E(c.s6)+"</div>":"")+"</div>";
+  }).join("");
+}
+
+/* ── 功过格 ── */
+function renderLedger(){
+  document.getElementById("led-list").innerHTML=["语","视","行"].map(function(c){
+    var items=S.ledItems.filter(function(i){return i.c===c;});
+    if(!items.length)return "";
+    return '<div style="margin-bottom:10px"><div style="font-size:12px;color:var(--accent);font-weight:500;margin-bottom:4px">'+c+"</div>"+
+      items.map(function(it){var n=S.ledger[it.k]||0;
+        return '<div class="led"><span class="n">'+E(it.t)+'</span><button onclick="ledSet(\''+it.k+'\',-1)">−</button><span class="v '+(n>0?"pos":(n<0?"neg":""))+'">'+dnum(n)+'</span><button onclick="ledSet(\''+it.k+'\',1)">+</button></div>';
+      }).join("")+"</div>";
+  }).join("");
+  var pos=0,neg=0,days=0;
+  for(var i=0;i<30;i++){var c2=new Date();c2.setDate(c2.getDate()-i);
+    var k=c2.getFullYear()+"-"+String(c2.getMonth()+1).padStart(2,"0")+"-"+String(c2.getDate()).padStart(2,"0");
+    var e=S.ledger["#"+k];if(e){days++;pos+=e.p||0;neg+=e.n||0;}}
+  var tot=pos+neg,net=pos-neg;
+  document.getElementById("led-mets").innerHTML=
+    met("近 30 日功",pos+"<small> 次</small>")+met("近 30 日过",neg+"<small> 次</small>")+
+    met("净值",(net>0?"+":"")+net)+met("有记天数",days+"<small>/30</small>")+
+    met("功占比",(tot?Math.round(pos/tot*100):0)+"<small>%</small>");
+  var maxv=Math.max(1,pos,neg);
+  document.getElementById("led-chart").innerHTML=
+    '<div class="led" style="border:none"><span class="n">功</span><span></span><span></span><span class="v pos">'+pos+"</span></div>"+
+    '<div style="height:8px;background:var(--soft);border-radius:4px;overflow:hidden;margin-bottom:8px"><div style="height:100%;width:'+Math.round(pos/maxv*100)+'%;background:var(--ok)"></div></div>'+
+    '<div class="led" style="border:none"><span class="n">过</span><span></span><span></span><span class="v neg">'+neg+"</span></div>"+
+    '<div style="height:8px;background:var(--soft);border-radius:4px;overflow:hidden"><div style="height:100%;width:'+Math.round(neg/maxv*100)+'%;background:var(--bad)"></div></div>';
+  document.getElementById("led-stat").innerHTML="近 30 日：功 <b>"+pos+"</b> 次，过 <b>"+neg+"</b> 次，净值 <b>"+(net>0?"+":"")+net+"</b>。<br><br>"+
+    E(net>0?"行为分布正在向功一侧偏移，继续保持。":(net<0?"过大于功。起心动念处先断，不等事发。":"功过相抵。看的是三年期，不是单日。"))+
+    "<br><br>《太上感应篇》：一日三善，三年天必降之福；曾行恶事后自改悔、众善奉行，所谓转祸为福也。";
+}
+function ledSet(k,d){
+  var t=today(),mk="#"+t;
+  if(!S.ledger[mk])S.ledger[mk]={p:0,n:0};
+  S.ledger[k]=(S.ledger[k]||0)+d;
+  if(d>0)S.ledger[mk].p++;else S.ledger[mk].n++;
+  save();renderLedger();
+}
+function addLed(){
+  var v=document.getElementById("led-new").value.trim();
+  if(!v){alert("先写清楚自查项。");return;}
+  var pt=v.split(/[·:：]/),c=pt.length>1?pt[0].trim().slice(0,1):"行";
+  if(["语","视","行"].indexOf(c)<0)c="行";
+  S.ledItems.push({k:"u"+Date.now(),t:v,c:c});
+  document.getElementById("led-new").value="";save();renderLedger();
+}
+
+/* ── 戒律 ── */
+function renderJie(){
+  document.getElementById("jie-list").innerHTML=JIE.map(function(j){
+    var brk=!!S.jie[j.k];
+    return '<div class="sw brk" role="button" aria-pressed="'+brk+'" onclick="jieTog(\''+j.k+'\')"><div class="box"></div><div class="txt"><div class="t1">'+
+      E(j.t)+'</div><div class="t2">'+j.c+"</div></div><span class=\"freq\">"+(brk?"已破":"守")+"</span></div>";
+  }).join("");
+  var n=Object.keys(S.jie).filter(function(k){return S.jie[k];}).length;
+  var el=document.getElementById("jie-out");
+  if(!n){el.className="verdict v-go";el.innerHTML='<div class="big">无熔断</div>八条戒律当前全部为「守」。';}
+  else{el.className="verdict v-no";el.innerHTML='<div class="big">熔断 '+n+" 条</div>"+
+    "「术可以精，但心与德是术的上位变量。」破戒之处即术反噬之处——先把心和德这一层补回去，再谈术。";}
+}
+function jieTog(k){if(S.jie[k])delete S.jie[k];else S.jie[k]=1;save();renderJie();}
+
+/* ── 日志 ── */
+function renderLog(){
+  var keys=Object.keys(S.days).sort().reverse();
+  var el=document.getElementById("log-list");
+  if(!keys.length){el.innerHTML='<div class="empty">还没有打卡记录。行的网，从今天这一格开始织。</div>';}
+  else{
+    el.innerHTML=keys.slice(0,60).map(function(k){
+      var d=S.days[k],n=S.notes[k]||{};
+      var all=[].concat(
+        AM.filter(function(x){return d[x.k];}).map(function(x){return "晨·"+x.t.split(" · ")[0];}),
+        PM.filter(function(x){return d[x.k];}).map(function(x){return "暮·"+x.t;}),
+        TRIG.filter(function(x){return d[x.k];}).map(function(x){return "［"+x.f+"］"+x.t.split(" · ")[0];}));
+      return '<div class="log"><div class="lh">'+k+"　"+(n.sn?"顺逆："+E(n.sn):"")+"</div>"+
+        '<div class="lm">'+(all.length?E(all.join(" · ")):"未打卡")+(n.txt?"　｜　"+E(n.txt):"")+"</div></div>";
+    }).join("");
+  }
+  document.getElementById("data-info").innerHTML="当前共 "+keys.length+" 天打卡记录，"+S.liuLog.length+" 条六步归档，"+
+    S.ledItems.length+" 项功过自查，熔断 "+Object.keys(S.jie).length+" 条。存储位置：本机 localStorage（键名 "+KEY+"），不上传任何服务器。";
+}
+function exportData(){
+  var b=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
+  var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="道网法网术网_备份_"+today()+".json";a.click();
+}
+document.getElementById("file-in").addEventListener("change",function(e){
+  var f=e.target.files[0];if(!f)return;
+  var r=new FileReader();r.onload=function(){
+    try{var p=JSON.parse(r.result);if(p&&p.days){
+      S.days=p.days;S.liuLog=p.liuLog||[];S.ledger=p.ledger||{};S.ledItems=p.ledItems||LED_DEF.slice();
+      S.notes=p.notes||{};S.jie=p.jie||{};save();renderBeat();renderLog();renderJie();alert("导入完成。");}}catch(x){alert("文件格式不对。");}
+  };r.readAsText(f);
+});
+function importData(){document.getElementById("file-in").click();}
+function wipe(){if(confirm("清空全部本机记录？此操作不可撤销，建议先导出备份。")){
+  S={days:{},liuLog:[],ledger:{},ledItems:LED_DEF.slice(),notes:{},jie:{}};save();location.reload();}}
+
+renderBeat();
+</script>
+</body>
+</html>

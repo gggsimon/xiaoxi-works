@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小西 · 数字作品集</title>
+<style>
+  :root {
+    --paper:#f6f1e6; --paper-deep:#efe8d8; --ink:#2b2419; --ink-soft:#6f6252;
+    --cinnabar:#a63a2b; --gold:#8b5e3c; --line:#ddd0b8; --card:#fffdf7;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body {
+    background:
+      repeating-linear-gradient(0deg, rgba(139,94,60,.022) 0 1px, transparent 1px 4px),
+      radial-gradient(1200px 600px at 20% -10%, #fbf7ee 0%, var(--paper) 55%, var(--paper-deep) 100%);
+    color:var(--ink);
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    min-height:100vh;
+  }
+  .kai { font-family:"Kaiti SC","STKaiti","KaiTi","Songti SC","SimSun",serif; }
+  .wrap { max-width:1020px; margin:0 auto; padding:0 22px 64px; }
+
+  /* ── HERO ─────────────────────────── */
+  .hero { position:relative; padding:64px 0 40px; border-bottom:2px solid var(--ink); }
+  .hero .frame-line { position:absolute; inset:12px; border:1px solid rgba(139,94,60,.28); pointer-events:none; }
+  .hero-top { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+  .brand { display:flex; flex-direction:column; gap:10px; }
+  .eyebrow { font-size:12px; letter-spacing:6px; color:var(--gold); }
+  h1 { font-size:52px; line-height:1.12; letter-spacing:4px; font-weight:600; }
+  h1 .dot { color:var(--cinnabar); }
+  .tagline { font-size:14px; color:var(--ink-soft); letter-spacing:2px; }
+  .seal {
+    flex:none; width:74px; height:74px; background:var(--cinnabar); color:#f8efe4;
+    display:flex; align-items:center; justify-content:center;
+    font-size:40px; border-radius:6px; transform:rotate(-4deg);
+    box-shadow:0 6px 16px rgba(166,58,43,.35), inset 0 0 0 2px rgba(248,239,228,.35), inset 0 0 0 5px var(--cinnabar);
+    user-select:none;
+  }
+  .stats { display:flex; flex-wrap:wrap; margin-top:26px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+  .stat { flex:1 1 0; padding:12px 6px 12px 14px; border-left:1px solid var(--line); display:flex; align-items:baseline; gap:8px; }
+  .stat:first-child { border-left:none; }
+  .stat b { font-family:"Songti SC","SimSun",serif; font-size:26px; color:var(--cinnabar); font-weight:700; }
+  .stat span { font-size:12px; color:var(--ink-soft); letter-spacing:2px; }
+
+  /* ── SECTIONS：竖排分类 + 卡片 ────── */
+  section.cat { display:grid; grid-template-columns:96px 1fr; gap:20px; padding:40px 0 8px; }
+  .side { position:relative; display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .side .vname { writing-mode:vertical-rl; letter-spacing:10px; font-size:21px; font-weight:600; color:var(--ink); }
+  .side .vno { font-size:12px; color:var(--gold); letter-spacing:4px; writing-mode:vertical-rl; }
+  .side::before { content:""; width:1px; flex:1; background:linear-gradient(var(--line), transparent); }
+  .side::after { content:""; width:22px; height:1px; background:var(--cinnabar); }
+  .watermark {
+    position:absolute; right:-8px; top:-6px; font-size:110px; line-height:1;
+    color:rgba(139,94,60,.06); pointer-events:none; user-select:none; font-weight:700;
+  }
+  .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:12px; align-content:start; }
+  .cards .wide { grid-column:1 / -1; }
+
+  a.card {
+    position:relative; display:block; background:var(--card);
+    border:1px solid var(--line); border-radius:4px;
+    padding:16px 18px 14px; text-decoration:none; color:var(--ink);
+    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    overflow:hidden;
+  }
+  a.card::before { content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--gold); opacity:.55; transition:all .18s; }
+  a.card:hover { transform:translateY(-3px); border-color:var(--gold); box-shadow:0 10px 24px rgba(60,45,25,.13); }
+  a.card:hover::before { background:var(--cinnabar); opacity:1; }
+  .card .row1 { display:flex; align-items:baseline; gap:8px; margin-bottom:5px; }
+  .card .no { font-family:"Songti SC","SimSun",serif; font-size:12px; color:var(--cinnabar); letter-spacing:1px; flex:none; }
+  .card .name { font-size:16px; font-weight:600; letter-spacing:.5px; }
+  .card .en { margin-left:auto; font-size:10px; color:#b3a68f; letter-spacing:1px; white-space:nowrap; }
+  .card .desc { font-size:12.5px; color:var(--ink-soft); line-height:1.65; }
+  .card .go { position:absolute; right:14px; bottom:12px; font-size:12px; color:var(--cinnabar); opacity:0; transform:translateX(-6px); transition:all .18s; }
+  a.card:hover .go { opacity:1; transform:none; }
+  .card .badge { display:inline-block; margin-left:8px; font-size:10px; color:var(--gold); border:1px solid var(--gold); border-radius:3px; padding:0 5px; vertical-align:2px; }
+
+  /* ── FOOTER ───────────────────────── */
+  footer { margin-top:52px; padding-top:18px; border-top:2px solid var(--ink); position:relative; }
+  footer::before { content:""; position:absolute; top:-6px; left:50%; transform:translateX(-50%); width:56px; height:8px; background:var(--cinnabar); }
+  .foot-flex { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; font-size:12px; color:var(--ink-soft); line-height:1.9; }
+  footer a { color:var(--gold); text-decoration:none; border-bottom:1px dotted var(--gold); }
+  .foot-mark { font-size:12px; color:var(--gold); letter-spacing:4px; }
+
+  @media (max-width:720px) {
+    h1 { font-size:38px; }
+    section.cat { grid-template-columns:1fr; gap:10px; }
+    .side { flex-direction:row; }
+    .side .vname, .side .vno { writing-mode:horizontal-tb; letter-spacing:4px; }
+    .side::before { display:none; }
+    .watermark { font-size:70px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="frame-line"></div>
+    <div class="hero-top">
+      <div class="brand">
+        <div class="eyebrow kai">道 生 一 · 一 生 二 · 二 生 三</div>
+        <h1 class="kai">小西<span class="dot">·</span>数字作品集</h1>
+        <div class="tagline">THE DIGITAL WORKS OF XIAOXI —— 单文件自包含 · 点开即用 · 无所依傍</div>
+      </div>
+      <div class="seal kai">西</div>
+    </div>
+    <div class="stats kai">
+      <div class="stat"><b>五</b><span>玄学应用</span></div>
+      <div class="stat"><b>一台</b><span>FM-1 音乐</span></div>
+      <div class="stat"><b>二部</b><span>内容作品</span></div>
+      <div class="stat"><b>卅七</b><span>玄学妙器</span></div>
+      <div class="stat"><b>三套</b><span>硬件固件</span></div>
+    </div>
+  </header>
+
+  <section class="cat">
+    <div class="side kai"><span class="vno">卷之一</span><span class="vname">大玄学</span></div>
+    <div class="watermark kai">玄</div>
+    <div class="cards">
+      <a class="card" href="html/xuanxue/xuanxue-box.html">
+        <div class="row1"><span class="no">壹・一</span><span class="name">玄学百宝箱</span><span class="en badge">玄枢高级版</span></div>
+        <div class="desc">紫微、八字、塔罗一站式工具箱，解读档案与养生链路交汇之处。</div>
+        <span class="go">进入 ⟶</span>
+      </a>
+      <a class="card" href="html/xuanxue/ziwei-6pan.html">
+        <div class="row1"><span class="no">壹・二</span><span class="name">紫微斗数 · 六层叠盘</span><span class="en">ZIWEI 6-PAN</span></div>
+        <div class="desc">本命、大限、流年、流月、流日、流时六层活盘，四化体系完整。</div>
+        <span class="go">进入 ⟶</span>
+      </a>
+      <a class="card" href="html/xuanxue/zhenxiang.html">
+        <div class="row1"><span class="no">壹・三</span><span class="name">真香预演器</span><span class="en">ZHENXIANG</span></div>
+        <div class="desc">九维命理路径推演，以人生语料预演「真香」时刻。</div>
+        <span class="go">进入 ⟶</span>
+      </a>
+      <a class="card" href="html/xuanxue/meet-gua.html">
+        <div class="row1"><span class="no">壹・四</span><span class="name">相遇一卦 · 活名片</span><span class="en">MEET-GUA</span></div>
+        <div class="desc">即时起卦的社交活名片，一页看懂一次相遇。</div>
+        <span class="go">进入 ⟶</span>
+      </a>
+      <a class="card" href="html/xuanxue/xuantong-3d.html">
+        <div class="row1"><span class="no">壹・五</span><span class="name">玄同宇宙 · 三维洞天</span><span class="en badge">THREE.JS · 9MB</span></div>
+        <div class="desc">六百米见方可走进的私人山野——看山、翻书、逛摊、与意识体说话。</div>
+        <span class="go">进入 ⟶</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="cat">
+    <div class="side kai"><span class="vno">卷之二</span><span class="vname">音乐台</span></div>
+    <div class="watermark kai">律</div>
+    <div class="cards">
+      <a class="card wide" href="html/music/index.html">
+        <div class="row1"><span class="no">贰・一</span><span class="name">FM1 · SLOOP 工作台</span><span class="en badge">WEB MIDI · 四件套</span></div>
+        <div class="desc">工作台入口 → Web MIDI 编曲器 / LaLaLand 前奏按谱复原 / USB 监听——掌机磁带播放器的网页端配套。</div>
+        <span class="go">进入 ⟶</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="cat">
+    <div class="side kai"><span class="vno">卷之三</span><span class="vname">作品集</span></div>
+    <div class="watermark kai">文</div>
+    <div class="cards">
+      <a class="card" href="works/shengsheng.html">
+        <div class="row1"><span class="no">叁・一</span><span class="name">《生生》</span><span class="en">NOVEL</span></div>
+        <div class="desc">长篇小说 HTML 版——楔子 + 八十八章 + 尾声。</div>
+        <span class="go">进入 ⟶</span>
+      </a>
+      <a class="card" href="works/holo-cards.html">
+        <div class="row1"><span class="no">叁・二</span><span class="name">全息卡牌库</span><span class="en badge">HOLOCARD V4</span></div>
+        <div class="desc">AI修仙传七十余张，生生、龙烬亚欧两套并陈，另有散卡三张。</div>
+        <span class="go">进入 ⟶</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="cat">
+    <div class="side kai"><span class="vno">卷之四</span><span class="vname">玄学妙器</span></div>
+    <div class="watermark kai">器</div>
+    <div class="cards">
+      <a class="card wide" href="minitools/">
+        <div class="row1"><span class="no">肆・一</span><span class="name">小红书玄学小工具 · 三十七件套</span><span class="en badge">纯本地 H5</span></div>
+        <div class="desc">命理术数二十三器 + 仪式民俗六器 + 西方神秘学八器——八字、紫微、六爻、奇门、塔罗、占星、卢恩……统一容器规范，一册在手。</div>
+        <span class="go">展开全目 ⟶</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="cat">
+    <div class="side kai"><span class="vno">卷之五</span><span class="vname">固件</span></div>
+    <div class="watermark kai">铸</div>
+    <div class="cards">
+      <a class="card" href="https://github.com/gggsimon/xiaoxi-works/tree/main/firmware/aipassport">
+        <div class="row1"><span class="no">伍・一</span><span class="name">yijing-pocket 易经掌机</span><span class="en badge">ESP32-S3</span></div>
+        <div class="desc">ESP-IDF 完整源码 + 可刷写 bin + 刷机脚本，附九作品交付包与玩法图。</div>
+        <span class="go">查看 ⟶</span>
+      </a>
+      <a class="card" href="https://github.com/gggsimon/xiaoxi-works/tree/main/firmware/ziwei-six-layers">
+        <div class="row1"><span class="no">伍・二</span><span class="name">紫微六层叠盘固件</span><span class="en badge">PLAY 316</span></div>
+        <div class="desc">bootloader、分区表、merged.bin 三件套，社区已上架玩法。</div>
+        <span class="go">查看 ⟶</span>
+      </a>
+      <a class="card" href="https://github.com/gggsimon/xiaoxi-works/tree/main/firmware/holocard">
+        <div class="row1"><span class="no">伍・三</span><span class="name">全息卡牌箱固件</span><span class="en badge">HOLOCARD</span></div>
+        <div class="desc">ESP-IDF 工程（BSP 与应用层；LVGL 依赖由组件管理器拉取）。</div>
+        <span class="go">查看 ⟶</span>
+      </a>
+      <a class="card" href="html/ap10/README.md">
+        <div class="row1"><span class="no">伍・四</span><span class="name">AP10 网页原型</span><span class="en badge">不烧录演示</span></div>
+        <div class="desc">固件交互原型 s02.html 与 ap10.bin、刷机脚本，浏览器中先行体验。</div>
+        <span class="go">查看 ⟶</span>
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="foot-flex">
+      <div class="kai foot-mark">观 复 · 归 根 · 静 为 天 下 正</div>
+      <div>
+        目录结构：html（大玄学 / 音乐 / 原型）· minitools（卅七妙器）· works（作品）· firmware（固件）<br>
+        托管于 GitHub Pages · <a href="https://github.com/gggsimon/xiaoxi-works">github.com/gggsimon/xiaoxi-works</a> · 亦可收藏 <a href="https://zhenxiang-d27266.surge.sh/">surge 备用入口</a>
+      </div>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

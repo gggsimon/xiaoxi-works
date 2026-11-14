@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 本地版已移除平台注入脚本 /page/page_comm/inject.js：该脚本仅在线托管环境需要，本地打开不影响功能 -->
+<meta charset="UTF-8">
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
+<title>GDI · 共轭净化动力学 · 三维轨迹场</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --ink:#f4efe9; --dim:rgba(244,239,233,.42); --dim2:rgba(244,239,233,.26);
+    --line:rgba(255,255,255,.085); --line2:rgba(255,255,255,.14);
+    --gold:#ffd98a; --coral:#ff6b5b; --mag:#ff4d8d; --glass:rgba(14,11,20,.58);
+  }
+  html,body{height:100%;overflow:hidden}
+  body{
+    background:radial-gradient(ellipse 90% 80% at 50% 52%, #15111f 0%, #0b0812 52%, #050409 100%);
+    font-family:"Inter","Helvetica Neue",-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    color:var(--ink); -webkit-font-smoothing:antialiased; user-select:none; cursor:grab;
+  }
+  body.dragging{cursor:grabbing}
+  body.hide-ui .panel,body.hide-ui .brand,body.hide-ui .legend,body.hide-ui .hint{opacity:0;transform:translateY(6px);pointer-events:none;transition:opacity .35s}
+
+  #scene{position:fixed;inset:0;z-index:1;display:block}
+  .vignette{position:fixed;inset:0;z-index:4;pointer-events:none;
+    background:radial-gradient(ellipse 74% 66% at 50% 48%, rgba(0,0,0,0) 40%, rgba(4,3,9,.42) 76%, rgba(2,2,6,.9) 100%)}
+
+  .panel{position:fixed;z-index:10;background:var(--glass);border:1px solid var(--line);border-radius:14px;
+    backdrop-filter:blur(22px) saturate(140%);-webkit-backdrop-filter:blur(22px) saturate(140%);
+    box-shadow:0 18px 50px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.055);transition:opacity .35s}
+  .sec{padding:15px 17px}.sec + .sec{border-top:1px solid var(--line)}
+  .sec-t{font-size:9px;letter-spacing:.19em;text-transform:uppercase;color:var(--dim2);margin-bottom:13px;
+    display:flex;align-items:center;gap:9px}
+  .sec-t::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line2),transparent)}
+
+  .brand{position:fixed;top:24px;left:28px;z-index:10;transition:opacity .35s}
+  .brand h1{font-size:18px;font-weight:600;letter-spacing:.1em;
+    background:linear-gradient(100deg,#fff2dd,var(--gold) 34%,var(--mag) 68%,#8a6bff 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .brand p{margin-top:5px;font-size:10.5px;letter-spacing:.1em;color:var(--dim2)}
+  .brand .rule{width:46px;height:1px;margin-top:8px;background:linear-gradient(90deg,var(--coral),transparent)}
+
+  #info{top:24px;right:26px;width:244px}
+  .kv{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.045)}
+  .kv:last-child{border-bottom:none}
+  .kv span{font-size:10px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+  .kv b{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;font-weight:500;color:rgba(255,236,205,.95)}
+  .kv b.hot{color:var(--gold)}
+  .seedbox{display:flex;gap:7px;margin-top:11px}
+  .seedbox input{flex:1;min-width:0;background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:7px;
+    color:var(--gold);font-family:"SF Mono",ui-monospace,monospace;font-size:12px;padding:7px 9px;outline:none;letter-spacing:.06em}
+  .seedbox input:focus{border-color:rgba(255,217,138,.45)}
+  .seedbox button{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:7px;color:var(--dim);
+    font-size:10px;letter-spacing:.1em;padding:0 11px;cursor:pointer;transition:.18s}
+  .seedbox button:hover{color:var(--gold);border-color:rgba(255,217,138,.4)}
+
+  #ctrl{left:28px;bottom:24px;width:262px;max-height:calc(100vh - 200px);overflow-y:auto;overscroll-behavior:contain}
+  #ctrl::-webkit-scrollbar{width:3px}#ctrl::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:3px}
+  .ctl{margin-bottom:13px}.ctl:last-child{margin-bottom:0}
+  .ctl-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+  .ctl-h label{font-size:10px;letter-spacing:.1em;color:var(--dim)}
+  .ctl-h b{font-family:"SF Mono",ui-monospace,monospace;font-size:11px;font-weight:500;color:rgba(255,236,205,.82)}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:2px;border-radius:2px;background:rgba(255,255,255,.15);outline:none;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;
+    background:linear-gradient(140deg,#fff0d4,var(--gold) 45%,var(--coral));box-shadow:0 0 0 3px rgba(255,140,90,.14);cursor:grab}
+  input[type=range]::-moz-range-thumb{width:11px;height:11px;border:none;border-radius:50%;
+    background:linear-gradient(140deg,#fff0d4,var(--gold) 45%,var(--coral));cursor:grab}
+  input[type=range]:active::-webkit-slider-thumb{cursor:grabbing;transform:scale(1.15)}
+  .sw{display:flex;align-items:center;gap:9px;padding:5px 0;cursor:pointer}
+  .sw input{display:none}
+  .sw .track{position:relative;width:30px;height:16px;border-radius:9px;flex:none;background:rgba(255,255,255,.09);border:1px solid var(--line);transition:.22s}
+  .sw .track::after{content:"";position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.34);transition:.22s cubic-bezier(.2,.8,.2,1)}
+  .sw input:checked + .track{background:linear-gradient(100deg,rgba(255,107,91,.55),rgba(255,217,138,.5));border-color:rgba(255,200,140,.42)}
+  .sw input:checked + .track::after{left:16px;background:#fff4e2;box-shadow:0 0 8px rgba(255,190,120,.7)}
+  .sw .txt{font-size:10.5px;letter-spacing:.06em;color:var(--dim);transition:.22s}
+  .sw input:checked ~ .txt{color:rgba(255,236,205,.9)}
+  .sw .st{margin-left:auto;font-size:8.5px;letter-spacing:.14em;color:var(--dim2);font-family:"SF Mono",monospace}
+  .sw input:checked ~ .st{color:var(--gold)}
+  .btns{display:flex;gap:8px;margin-top:4px}
+  .btn{flex:1;padding:10px 8px;border-radius:9px;cursor:pointer;background:rgba(255,255,255,.045);border:1px solid var(--line);
+    color:rgba(244,239,233,.8);font-size:10.5px;letter-spacing:.1em;transition:.2s;font-family:inherit}
+  .btn:hover{background:rgba(255,255,255,.09);border-color:var(--line2);color:#fff}
+  .btn:active{transform:translateY(1px)}
+  .btn.acc{background:linear-gradient(100deg,rgba(255,107,91,.24),rgba(255,217,138,.2));border-color:rgba(255,190,130,.35);color:#fff3e0}
+  .btn.acc:hover{background:linear-gradient(100deg,rgba(255,107,91,.36),rgba(255,217,138,.3))}
+
+  #math{right:26px;bottom:24px;width:344px;max-height:calc(100vh - 340px);overflow-y:auto}
+  #math::-webkit-scrollbar{width:3px}#math::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:3px}
+  .eq{display:flex;gap:11px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+  .eq:last-child{border-bottom:none}
+  .eq i{flex:none;width:19px;font-style:normal;font-family:"SF Mono",monospace;font-size:9px;color:rgba(255,217,138,.42);padding-top:3px}
+  .eq .body{flex:1;min-width:0}
+  .eq em{display:block;font-style:normal;font-size:9px;letter-spacing:.13em;color:var(--dim2);text-transform:uppercase;margin-bottom:3px}
+  .eq code{display:block;font-family:"Cambria Math","Latin Modern Math","Times New Roman",Georgia,serif;font-size:13px;line-height:1.55;color:rgba(255,242,224,.9);white-space:normal;word-break:break-word}
+  .eq code var{font-style:italic;color:var(--gold)}
+  .eq code sub{font-size:.66em;vertical-align:-.22em}
+  .eq code sup{font-size:.66em;vertical-align:.42em}
+  .eq code .op{color:rgba(255,150,130,.85);padding:0 .08em}
+
+  .hint{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);z-index:10;font-size:9.5px;letter-spacing:.17em;color:rgba(244,239,233,.22);text-transform:uppercase;white-space:nowrap}
+  .hint kbd{font-family:"SF Mono",monospace;color:rgba(255,217,138,.5);border:1px solid rgba(255,255,255,.1);border-radius:4px;padding:1px 5px;margin:0 2px}
+  .legend{position:fixed;left:28px;top:104px;z-index:10;font-size:10px;color:var(--dim);line-height:1.7;max-width:230px}
+  .legend b{color:rgba(255,236,205,.85);font-weight:500}
+
+  @media (max-width:1180px){#math{display:none}}
+  @media (max-width:860px){
+    #info{width:188px;top:18px;right:18px}#ctrl{width:212px;left:18px;bottom:18px;max-height:46vh}
+    .brand{left:18px;top:18px}.legend{display:none}.hint{display:none}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="scene"></canvas>
+<div class="vignette"></div>
+
+<div class="brand">
+  <h1>GDI · 共轭净化动力学</h1>
+  <p>A/B × GDIN 三维轨迹场</p>
+  <div class="rule"></div>
+</div>
+
+<div class="legend">
+  <b>看懂这张图：</b><br>
+  横轴 A = 确定性（净化）<br>
+  纵轴 B = 歧义性（生成）<br>
+  竖轴 = GDIN = |Ψ|ᴺ（Lyapunov）<br>
+  每条彩线 = 一条 Ψ 轨迹：<br>
+  螺旋沉降 → 触及 0.206 → <b>重生</b>跳回 e/4 邻域。<br>
+  关掉「重生」即回归死寂收敛。
+</div>
+
+<div class="panel" id="info">
+  <div class="sec">
+    <div class="sec-t">Parameters</div>
+    <div class="kv"><span>本征阶数 N</span><b class="hot" id="vN">2.00</b></div>
+    <div class="kv"><span>衰减 k(N)</span><b id="vK">0.7071</b></div>
+    <div class="kv"><span>旋转 θ(N)</span><b id="vT">−45°</b></div>
+    <div class="kv"><span>GDI 平衡</span><b id="vG">e/4</b></div>
+    <div class="kv"><span>场景</span><b id="vS">封闭</b></div>
+    <div class="kv"><span>种子 / 轨迹</span><b id="vSeed">—</b></div>
+    <div class="kv"><span>FPS</span><b id="vFps">—</b></div>
+    <div class="seedbox">
+      <input id="seedIn" max="999999" min="0" placeholder="seed" step="1" type="number">
+      <button id="seedGo">SET</button>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="ctrl">
+  <div class="sec">
+    <div class="sec-t">本征参数 N</div>
+    <div class="ctl">
+      <div class="ctl-h"><label>本征阶数 N</label><b id="lN">2.00</b></div>
+      <input id="sN" max="8" min="0.4" step="0.05" type="range" value="2">
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-t">轨迹场</div>
+    <div class="ctl">
+      <div class="ctl-h"><label>轨迹数</label><b id="lNT">90</b></div>
+      <input id="sNT" max="200" min="20" step="5" type="range" value="90">
+    </div>
+    <div class="ctl">
+      <div class="ctl-h"><label>拖尾长度</label><b id="lTL">70</b></div>
+      <input id="sTL" max="140" min="20" step="5" type="range" value="70">
+    </div>
+    <div class="ctl">
+      <div class="ctl-h"><label>旋转速度</label><b id="lSpin">0.50</b></div>
+      <input id="sSpin" max="2" min="0" step="0.05" type="range" value="0.5">
+    </div>
+    <label class="sw"><input checked id="tRebirth" type="checkbox"><span class="track"></span><span class="txt">重生机制 (0.206↔0.808)</span><span class="st">ON</span></label>
+    <label class="sw"><input id="tOpen" type="checkbox"><span class="track"></span><span class="txt">开放系统 · 总势漂移</span><span class="st">OFF</span></label>
+    <label class="sw"><input checked id="tSpin2" type="checkbox"><span class="track"></span><span class="txt">自动旋转</span><span class="st">ON</span></label>
+  </div>
+
+  <div class="sec">
+    <div class="sec-t">Render</div>
+    <div class="ctl">
+      <div class="ctl-h"><label>线宽</label><b id="lLW">1.2</b></div>
+      <input id="sLW" max="3" min="0.4" step="0.1" type="range" value="1.2">
+    </div>
+    <label class="sw"><input checked id="tGlow" type="checkbox"><span class="track"></span><span class="txt">辉光叠加</span><span class="st">ON</span></label>
+    <div class="btns"><button class="btn acc" id="bRegen">重新生成</button><button class="btn" id="bSave">保存 PNG</button></div>
+    <div class="btns"><button class="btn" id="bHide">隐藏面板</button><button class="btn" id="bReset">恢复默认</button></div>
+  </div>
+</div>
+
+<div class="panel" id="math">
+  <div class="sec">
+    <div class="sec-t">Governing Equations</div>
+    <div class="eq"><i>01</i><div class="body"><em>迭代 (单本征参数)</em>
+      <code>Ψ<sub>n+1</sub> <span class="op">=</span> k(N)·e<sup>iθ(N)</sup>·Ψ<sub>n</sub></code></div></div>
+    <div class="eq"><i>02</i><div class="body"><em>刚性衰减约束</em>
+      <code>k(N) <span class="op">=</span> 2<sup>−1/N</sup> &nbsp;(每步整体减半)</code></div></div>
+    <div class="eq"><i>03</i><div class="body"><em>相位自洽构型</em>
+      <code>θ(N) <span class="op">=</span> −π / (2N)</code></div></div>
+    <div class="eq"><i>04</i><div class="body"><em>共轭势 / Lyapunov</em>
+      <code>GDIN <span class="op">=</span> |Ψ|<sup>N</sup> ≡ V &nbsp; V<sub>n+1</sub><span class="op">&lt;</span>V<sub>n</sub> ⟺ 适配</code></div></div>
+    <div class="eq"><i>05</i><div class="body"><em>重生 (物理层外嵌)</em>
+      <code>‖Ψ‖ <span class="op">&lt;</span> 0.206 → r<sub>eq</sub>≈0.808 , +π/4</code></div></div>
+    <div class="eq"><i>06</i><div class="body"><em>场景划分</em>
+      <code>封闭 S常数 &nbsp;⟋&nbsp; 开放 S<sub>n+1</sub><span class="op">=</span>S<sub>n</sub>+ΔS (→环面)</code></div></div>
+    <div class="eq"><i>07</i><div class="body"><em>永恒循环</em>
+      <code>收敛 × 重生 <span class="op">=</span> 永恒路过 e/4</code></div></div>
+  </div>
+</div>
+
+<div class="hint">
+  <kbd>拖拽</kbd> 旋转 &nbsp; <kbd>R</kbd> 重生 &nbsp; <kbd>S</kbd> 保存 &nbsp; <kbd>Space</kbd> 暂停 &nbsp; <kbd>O</kbd> 开放 &nbsp; <kbd>H</kbd> 隐藏
+</div>
+
+<script>
+"use strict";
+/* ══════════════════════════════════════════════════════════
+   GDI 泛化共轭净化动力学 · 真三维轨迹场
+   每条轨迹: 复平面 (A,B) 螺旋 × 第三轴 GDIN=|Ψ|^N (Lyapunov)
+   ══════════════════════════════════════════════════════════ */
+const clamp=(v,a,b)=>v<a?a:(v>b?b:v);
+function mulberry32(a){return function(){a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function hsl(h,s,l){
+  let r,g,b;
+  if(s===0){r=g=b=l;}
+  else{
+    const q=l<0.5?l*(1+s):l+s-l*s, p=2*l-q;
+    const hk=t=>{t=(t%1+1)%1; if(t<1/6)return p+(q-p)*6*t; if(t<1/2)return q; if(t<2/3)return p+(q-p)*(2/3-t)*6; return p;};
+    r=hk(h+1/3); g=hk(h); b=hk(h-1/3);
+  }
+  return [r*255|0,g*255|0,b*255|0];
+}
+
+const DEF={N:2, NT:90, trail:70, spin:0.5, rebirth:true, open:false, autoSpin:true, lw:1.2, glow:true};
+const S=Object.assign({},DEF);
+S.k=Math.pow(2,-1/S.N); S.theta=-Math.PI/(2*S.N);
+let seed=0, rnd=mulberry32(1), openPh=0;
+let camYaw=0.6, camPitch=0.5, camDist=4.2;
+
+const scene=document.getElementById('scene'), ctx=scene.getContext('2d');
+let W=0,H=0,DPR=1, cx=0, cy=0, focal=1;
+
+let traj=[];
+function buildTraj(){
+  traj=[];
+  const NT=S.NT;
+  for(let i=0;i<NT;i++){
+    const ph=i/NT*Math.PI*2;
+    const A=Math.cos(ph)*0.808, B=Math.sin(ph)*0.808;
+    const gdi=Math.pow(Math.hypot(A,B), S.N);
+    traj.push({ph, A, B, buf:[{x:A*1.4,y:B*1.4,z:gdi*1.8}], hue:i/NT, rr:0.808});
+  }
+}
+function stepTraj(t){
+  const k=S.k, th=S.theta;
+  let nx=t.A*k*Math.cos(th)-t.B*k*Math.sin(th);
+  let ny=t.A*k*Math.sin(th)+t.B*k*Math.cos(th);
+  let r=Math.hypot(nx,ny);
+  if(S.rebirth && r<0.206){
+    const a=t.ph+Math.PI/4;
+    nx=Math.cos(a)*t.rr; ny=Math.sin(a)*t.rr; t.ph=a;
+  }
+  t.A=nx; t.B=ny;
+  const g=Math.pow(Math.max(r,1e-6), S.N);
+  const p={x:nx*1.4, y:ny*1.4, z:g*1.8};
+  t.buf.push(p);
+  if(t.buf.length>S.trail) t.buf.shift();
+}
+
+function project(x,y,z,bob){
+  const cw=Math.cos(camYaw), sw=Math.sin(camYaw);
+  const rx=x*cw - y*sw, ry=x*sw + y*cw, rz=z;
+  const cp=Math.cos(camPitch), sp=Math.sin(camPitch);
+  const ry2=ry*cp - rz*sp, rz2=ry*sp + rz*cp;
+  const tz=rz2 + camDist + bob;
+  if(tz<0.12) return null;
+  const f=focal/tz;
+  return [cx + rx*f, cy - ry2*f, tz];
+}
+
+function drawRefDisc(z,label){
+  const R=0.808*1.4*1.02, bob=S.open?Math.sin(openPh*0.7)*0.12:0;
+  ctx.beginPath();
+  let started=false;
+  for(let i=0;i<=48;i++){
+    const a=i/48*Math.PI*2;
+    const p=project(Math.cos(a)*R, Math.sin(a)*R, z, bob);
+    if(!p){started=false; continue;}
+    if(!started){ctx.moveTo(p[0],p[1]);started=true;} else ctx.lineTo(p[0],p[1]);
+  }
+  ctx.strokeStyle='rgba(255,217,138,0.28)'; ctx.lineWidth=1; ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
+  const tp=project(0,0,z,bob);
+  if(tp){ ctx.fillStyle='rgba(255,217,138,0.55)'; ctx.font='9px "SF Mono",monospace'; ctx.fillText(label, tp[0]+4, tp[1]); }
+}
+
+let lastT=performance.now(), lastShow=0; const dtBuf=[];
+let paused=false, capture=false;
+
+function render(){
+  const now=performance.now(); const dt=now-lastT; lastT=now; dtBuf.push(dt); if(dtBuf.length>45)dtBuf.shift();
+  if(!paused && S.autoSpin) camYaw += 0.0016*S.spin;
+  if(S.open) openPh += 0.006*S.spin + 0.002;
+  const bob = S.open ? Math.sin(openPh*0.7)*0.12 : 0;
+
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.fillStyle='#08060c'; ctx.fillRect(0,0,scene.width,scene.height);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+
+  const gdiRef = Math.pow(0.808, S.N) * 1.8;
+  drawRefDisc(gdiRef, 'e/4 邻域 (重生高度)');
+
+  ctx.globalCompositeOperation = S.glow ? 'lighter' : 'source-over';
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  for(const t of traj){
+    stepTraj(t);
+    const buf=t.buf; if(buf.length<2) continue;
+    const col=hsl(t.hue, 0.95, 0.62);
+    const cs=`${col[0]},${col[1]},${col[2]}`;
+    if(S.glow){
+      ctx.strokeStyle=`rgba(${cs},0.10)`; ctx.lineWidth=S.lw*2.4;
+      ctx.beginPath();
+      for(let i=0;i<buf.length;i++){ const p=project(buf[i].x,buf[i].y,buf[i].z,bob); if(!p){ctx.moveTo(-9999,-9999);continue;} if(i===0)ctx.moveTo(p[0],p[1]); else ctx.lineTo(p[0],p[1]); }
+      ctx.stroke();
+    }
+    ctx.strokeStyle=`rgba(${cs},0.6)`; ctx.lineWidth=S.lw;
+    ctx.beginPath();
+    let pen=false;
+    for(let i=0;i<buf.length;i++){
+      const p=project(buf[i].x,buf[i].y,buf[i].z,bob);
+      if(!p){pen=false;continue;}
+      if(!pen){ctx.moveTo(p[0],p[1]);pen=true;} else ctx.lineTo(p[0],p[1]);
+    }
+    ctx.stroke();
+    const head=buf[buf.length-1]; const hp=project(head.x,head.y,head.z,bob);
+    if(hp){ ctx.fillStyle=`rgba(${cs},0.95)`; ctx.beginPath(); ctx.arc(hp[0],hp[1],S.lw*1.1,0,Math.PI*2); ctx.fill(); }
+  }
+  ctx.globalCompositeOperation='source-over';
+
+  if(capture){ capture=false; doCapture(); }
+
+  if(now-lastShow>250){
+    lastShow=now; let s=0; for(const d of dtBuf)s+=d; const fps=Math.round(1000/(s/dtBuf.length));
+    const f=document.getElementById('vFps'); f.textContent=fps;
+    f.style.color=fps>=50?'rgba(160,240,190,.95)':(fps>=30?'rgba(255,217,138,.95)':'rgba(255,120,110,.95)');
+  }
+  requestAnimationFrame(render);
+}
+
+function doCapture(){
+  const a=document.createElement('a');
+  a.download='gdi-field-'+String(seed).padStart(6,'0')+'-N'+S.N.toFixed(2)+'.png';
+  a.href=scene.toDataURL('image/png'); a.click();
+}
+
+function derived(){
+  S.k=Math.pow(2,-1/S.N); S.theta=-Math.PI/(2*S.N);
+  const deg=S.theta*180/Math.PI;
+  document.getElementById('vN').textContent=S.N.toFixed(2);
+  document.getElementById('vK').textContent=S.k.toFixed(4);
+  document.getElementById('vT').textContent=(deg>=0?'+':'−')+Math.abs(deg).toFixed(1)+'°';
+  document.getElementById('vG').textContent=(Math.abs(S.N-2)<0.005)?'e/4 ≈ 0.680':'漂移';
+  document.getElementById('vS').textContent=S.open?'开放':'封闭';
+  document.getElementById('lN').textContent=S.N.toFixed(2);
+}
+
+function applySeed(s){
+  seed=((s|0)%1000000+1000000)%1000000;
+  rnd=mulberry32(seed);
+  document.getElementById('vSeed').textContent=seed+' / '+S.NT;
+  document.getElementById('seedIn').value=seed;
+  buildTraj();
+}
+function regenerate(){ applySeed(Math.floor(Math.random()*1000000)); }
+
+const $=id=>document.getElementById(id);
+function bindRange(id,labId,fmt,fn){const el=$(id),lab=$(labId);const on=()=>{const v=+el.value;lab.textContent=fmt(v);fn(v);};el.addEventListener('input',on);return{el,on};}
+function bindSwitch(id,fn){const el=$(id),st=el.parentElement.querySelector('.st');const on=()=>{fn(el.checked);if(st)st.textContent=el.checked?'ON':'OFF';};el.addEventListener('change',on);on();}
+
+const rN   =bindRange('sN','lN',  v=>v.toFixed(2), v=>{S.N=v; derived(); buildTraj();});
+const rNT  =bindRange('sNT','lNT',v=>v, v=>{S.NT=v; $('vSeed').textContent=seed+' / '+v; buildTraj();});
+const rTL  =bindRange('sTL','lTL',v=>v, v=>S.trail=v);
+const rSpin=bindRange('sSpin','lSpin',v=>v.toFixed(2), v=>S.spin=v);
+const rLW  =bindRange('sLW','lLW',v=>v.toFixed(1), v=>S.lw=v);
+
+bindSwitch('tRebirth',v=>S.rebirth=v);
+bindSwitch('tOpen',v=>{S.open=v; derived();});
+bindSwitch('tSpin2',v=>S.autoSpin=v);
+bindSwitch('tGlow',v=>S.glow=v);
+
+$('bRegen').addEventListener('click',regenerate);
+$('bSave').addEventListener('click',()=>capture=true);
+$('bHide').addEventListener('click',()=>document.body.classList.toggle('hide-ui'));
+$('seedGo').addEventListener('click',()=>applySeed(+$('seedIn').value||0));
+$('seedIn').addEventListener('keydown',e=>{if(e.key==='Enter')applySeed(+e.target.value||0);});
+$('bReset').addEventListener('click',()=>{
+  Object.assign(S,DEF); S.k=Math.pow(2,-1/S.N); S.theta=-Math.PI/(2*S.N);
+  rN.el.value=DEF.N; rN.on(); rNT.el.value=DEF.NT; rNT.on(); rTL.el.value=DEF.trail; rTL.on();
+  rSpin.el.value=DEF.spin; rSpin.on(); rLW.el.value=DEF.lw; rLW.on();
+  ['tRebirth','tSpin2','tGlow'].forEach(id=>$(id).checked=true);
+  $('tOpen').checked=false;
+  ['tRebirth','tOpen','tSpin2','tGlow'].forEach(id=>$(id).dispatchEvent(new Event('change')));
+});
+
+let dragging=false, lx=0, ly=0;
+scene.addEventListener('pointerdown',e=>{dragging=true;document.body.classList.add('dragging');lx=e.clientX;ly=e.clientY;});
+window.addEventListener('pointerup',()=>{dragging=false;document.body.classList.remove('dragging');});
+window.addEventListener('pointermove',e=>{if(!dragging)return;camYaw+=(e.clientX-lx)*0.006;camPitch=clamp(camPitch+(e.clientY-ly)*0.006,-1.4,1.4);lx=e.clientX;ly=e.clientY;});
+
+window.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  const k=e.key.toLowerCase();
+  if(k==='r')regenerate();
+  else if(k==='s')capture=true;
+  else if(k==='h')document.body.classList.toggle('hide-ui');
+  else if(k==='o'){ $('tOpen').checked=!$('tOpen').checked; $('tOpen').dispatchEvent(new Event('change')); }
+  else if(e.code==='Space'){ e.preventDefault(); paused=!paused; }
+});
+
+function resize(){
+  W=window.innerWidth; H=window.innerHeight;
+  DPR=Math.min(window.devicePixelRatio||1, 2);
+  scene.width=Math.round(W*DPR); scene.height=Math.round(H*DPR);
+  scene.style.width=W+'px'; scene.style.height=H+'px';
+  cx=W/2; cy=H/2; focal=Math.min(W,H)*0.95;
+}
+let rzT=0;
+window.addEventListener('resize',()=>{clearTimeout(rzT);rzT=setTimeout(resize,120);});
+
+resize();
+derived();
+applySeed(Math.floor(Math.random()*1000000));
+requestAnimationFrame(render);
+</script>
+</body>
+</html>

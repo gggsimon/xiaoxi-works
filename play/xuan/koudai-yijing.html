@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 本地版已移除平台注入脚本 /page/page_comm/inject.js：该脚本仅在线托管环境需要，本地打开不影响功能 -->
+<meta charset="UTF-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>玄学口袋 · 易经六十四卦深度集</title>
+<style>
+/* ===== 基础 ===== */
+:root{
+  --bg:#1e1610; --bg2:#262015; --bg3:#33291c;
+  --card:#2b2217; --card2:#33291d;
+  --ink:#e8dcc3; --ink2:#b8a888; --ink3:#8a7a5e;
+  --gold:#c9a35c; --gold2:#e0c98a;
+  --cinnabar:#b3541e; --cinnabar2:#d97a41;
+  --jade:#6f8f6a; --line:#4a3d2c;
+  --shadow:0 6px 24px rgba(0,0,0,.35);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Noto Serif SC","Songti SC","SimSun","Source Han Serif SC",serif;
+  line-height:1.75; min-height:100vh;
+}
+a{color:var(--gold);text-decoration:none}
+a:hover{color:var(--gold2)}
+button{font-family:inherit;cursor:pointer}
+::selection{background:var(--gold);color:#1e1610}
+
+/* ===== 布局 ===== */
+#app{max-width:1080px;margin:0 auto;padding:0 20px 80px}
+header.top{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:22px 0 14px;border-bottom:1px solid var(--line);
+  margin-bottom:22px;position:sticky;top:0;background:var(--bg);z-index:50;
+}
+header.top .brand{display:flex;align-items:center;gap:10px}
+header.top .brand .seal{
+  width:38px;height:38px;border:1.5px solid var(--cinnabar);border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--cinnabar2);font-weight:700;font-size:16px;letter-spacing:1px;
+  background:linear-gradient(135deg,#2a1a10,#3a2518);flex-shrink:0;
+}
+header.top h1{font-size:19px;letter-spacing:3px;color:var(--gold2);font-weight:700}
+header.top .sub{font-size:12px;color:var(--ink3);letter-spacing:2px}
+nav.tabs{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+nav.tabs button{
+  background:none;border:1px solid var(--line);color:var(--ink2);
+  padding:6px 14px;border-radius:20px;font-size:13px;letter-spacing:1px;
+  transition:all .2s;
+}
+nav.tabs button:hover{border-color:var(--gold);color:var(--gold)}
+nav.tabs button.active{background:var(--cinnabar);border-color:var(--cinnabar);color:#f7ead0}
+
+/* ===== 通用组件 ===== */
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:20px;margin-bottom:18px;box-shadow:var(--shadow);
+}
+.card h2{font-size:17px;color:var(--gold2);letter-spacing:2px;margin-bottom:6px}
+.card h3{font-size:15px;color:var(--gold);margin:14px 0 6px;letter-spacing:1px}
+.card .hint{font-size:12px;color:var(--ink3);margin-bottom:10px}
+.divider{height:1px;background:var(--line);margin:14px 0;border:none}
+
+.tag{
+  display:inline-block;font-size:11px;padding:2px 10px;border-radius:12px;
+  border:1px solid var(--line);color:var(--ink2);margin:2px 4px 2px 0;letter-spacing:1px;
+}
+.tag.gold{border-color:var(--gold);color:var(--gold)}
+.tag.red{border-color:var(--cinnabar);color:var(--cinnabar2)}
+.tag.jade{border-color:var(--jade);color:var(--jade)}
+
+/* 卦画 */
+.gua-lines{display:flex;flex-direction:column;gap:7px;padding:6px 0}
+.gua-lines .yline{display:flex;gap:8px}
+.gua-lines .yline i{height:9px;border-radius:2px;background:var(--ink);flex:1}
+/* 阳爻：模板里每条爻都生成两个 i，必须隐藏第二段，否则阳爻被画成两段（看着像阴爻） */
+.gua-lines .yline.yang i+i{display:none}
+/* 阴爻：两段实心，与阳爻同厚同色 */
+.gua-lines .yline.yin i{background:var(--ink);border-top:0;height:9px;transform:none}
+.gua-lines .yline.dong i{background:var(--cinnabar2)}
+.gua-lines.small{width:54px}
+.gua-lines.small .yline{gap:5px}
+.gua-lines.small .yline i{height:6px}
+.gua-lines.small .yline.yin i{background:var(--ink);border-top:0;height:6px;transform:none}
+/* 本地修复：网格卡里 .gua-lines 在居中 flex 列中宽度会塌成 0，补固定宽度让六爻可见 */
+.hex-cell .gua-lines{width:52px;height:101px;justify-content:center}
+
+/* 卦盘 */
+.hex-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:8px}
+.hex-cell{
+  background:var(--card2);border:1px solid var(--line);border-radius:8px;
+  padding:10px 6px;text-align:center;cursor:pointer;transition:all .2s;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.hex-cell:hover{border-color:var(--gold);transform:translateY(-2px)}
+.hex-cell .no{font-size:10px;color:var(--ink3);letter-spacing:1px}
+.hex-cell .nm{font-size:12px;color:var(--ink2);letter-spacing:1px}
+.hex-cell.active{border-color:var(--cinnabar);background:var(--bg3)}
+
+/* 筛选 */
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.filters .fgroup{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.filters label{font-size:12px;color:var(--ink3);margin-right:2px}
+.fbtn{
+  background:none;border:1px solid var(--line);color:var(--ink2);
+  padding:3px 10px;border-radius:14px;font-size:12px;
+}
+.fbtn.active{background:var(--gold);border-color:var(--gold);color:#241a10}
+.searchbox{
+  background:var(--bg2);border:1px solid var(--line);color:var(--ink);
+  padding:7px 14px;border-radius:8px;font-size:13px;font-family:inherit;flex:1;min-width:160px;
+}
+.searchbox:focus{outline:none;border-color:var(--gold)}
+
+/* 卦详情 */
+.hex-head{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.hex-head .symbol{font-size:52px;line-height:1;color:var(--gold2)}
+.hex-head .titles h2{font-size:24px;letter-spacing:4px;margin-bottom:2px}
+.hex-head .titles .sub{font-size:13px;color:var(--ink3);letter-spacing:1px}
+.hex-meta{font-size:13px;color:var(--ink2);display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+blockquote{
+  border-left:3px solid var(--gold);padding:8px 14px;margin:8px 0;
+  background:var(--bg2);border-radius:0 8px 8px 0;color:var(--ink);font-size:14.5px;
+}
+.baihua{color:var(--ink2);font-size:14px;margin:6px 0}
+.small-note{font-size:11px;color:var(--ink3)}
+.yao-list{list-style:none}
+.yao-item{
+  border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;
+  background:var(--bg2);cursor:pointer;transition:border-color .2s;
+}
+.yao-item:hover{border-color:var(--gold)}
+.yao-item.open{border-color:var(--cinnabar)}
+.yao-item .yao-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.yao-item .yao-label{font-weight:700;color:var(--gold2);letter-spacing:1px;font-size:14px}
+.yao-item .yao-type{font-size:11px;color:var(--ink3)}
+.yao-item .yao-text{font-size:14.5px;margin-top:6px}
+.yao-item .yao-baihua{font-size:13px;color:var(--ink2);margin-top:4px}
+.yao-item .yao-xx{font-size:12.5px;color:var(--jade);margin-top:6px;font-style:italic}
+details{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+details summary{cursor:pointer;color:var(--gold);font-size:14px;letter-spacing:1px;font-weight:600}
+details[open] summary{margin-bottom:8px}
+.analysis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.analysis-grid .item{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center}
+.analysis-grid .item .k{font-size:11px;color:var(--ink3);letter-spacing:2px}
+.analysis-grid .item .v{font-size:13px;color:var(--gold2);margin-top:4px}
+.change-list{display:flex;flex-direction:column;gap:6px}
+.change-list .chg{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink2);padding:6px 10px;background:var(--bg2);border-radius:6px}
+.change-list .chg b{color:var(--cinnabar2)}
+
+/* 起卦 */
+.cast-methods{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.cast-card{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:16px}
+.cast-card h3{color:var(--gold);font-size:14px;margin-bottom:8px;letter-spacing:1px}
+.cast-card p{font-size:12.5px;color:var(--ink3);margin-bottom:10px}
+.cast-card input{
+  width:100%;background:var(--bg);border:1px solid var(--line);color:var(--ink);
+  padding:8px 12px;border-radius:6px;font-size:14px;font-family:inherit;margin-bottom:10px;
+}
+.cast-card input:focus{outline:none;border-color:var(--gold)}
+.btn{
+  background:var(--cinnabar);border:none;color:#f7ead0;padding:9px 18px;
+  border-radius:8px;font-size:14px;letter-spacing:1px;transition:filter .2s;
+}
+.btn:hover{filter:brightness(1.15)}
+.btn.ghost{background:none;border:1px solid var(--gold);color:var(--gold)}
+.btn.ghost:hover{background:var(--gold);color:#241a10}
+
+.result-hex{display:flex;gap:16px;align-items:center;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:12px}
+.result-hex .sym{font-size:44px;color:var(--gold2)}
+.result-hex .meta h4{font-size:17px;color:var(--gold2);letter-spacing:2px}
+.result-hex .meta .sub{font-size:12.5px;color:var(--ink3);margin-top:2px}
+.ti-yong{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+.ti-yong .pill{flex:1;min-width:150px;background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center}
+.ti-yong .pill b{display:block;font-size:16px;color:var(--gold2);letter-spacing:2px}
+.ti-yong .pill span{font-size:12px;color:var(--ink3)}
+.ti-yong .pill.yong b{color:var(--cinnabar2)}
+.verdict{
+  border:1px solid var(--cinnabar);background:linear-gradient(135deg,#3a2114,#2a1a10);
+  border-radius:10px;padding:14px 16px;margin:10px 0;color:var(--ink);
+}
+.verdict .v-title{color:var(--cinnabar2);font-weight:700;letter-spacing:2px;font-size:14px;margin-bottom:4px}
+.shengke-table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+.shengke-table th,.shengke-table td{border:1px solid var(--line);padding:7px 10px;text-align:left}
+.shengke-table th{color:var(--gold);background:var(--bg3)}
+.shengke-table .good{color:var(--jade)}
+.shengke-table .bad{color:var(--cinnabar2)}
+
+footer{text-align:center;color:var(--ink3);font-size:12px;padding:26px 0 10px;border-top:1px solid var(--line);margin-top:30px}
+footer a{color:var(--ink3);text-decoration:underline}
+.note-box{background:var(--bg2);border:1px dashed var(--line);border-radius:8px;padding:10px 14px;font-size:12.5px;color:var(--ink3);margin:10px 0}
+
+/* 响应式 */
+@media (max-width:760px){
+  .hex-grid{grid-template-columns:repeat(4,1fr)}
+  #app{padding:0 12px 60px}
+  header.top h1{font-size:16px}
+  nav.tabs{margin-left:0;width:100%}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="brand">
+      <div class="seal">易</div>
+      <div>
+        <h1>玄学口袋 · 易经深度集</h1>
+        <div class="sub">六十四卦 · 梅花易数体用引擎</div>
+      </div>
+    </div>
+    <nav class="tabs">
+      <button data-view="pan">卦盘</button>
+      <button data-view="cast">起卦</button>
+      <button data-view="about">说明</button>
+    </nav>
+  </header>
+  <main id="view"></main>
+  <footer>
+    经文与白话整理参考公开通行本《周易》，白话为解释性转述 · 占断仅供参考，不可机械套用
+  </footer>
+</div>
+<script>
+/* ===== 数据（由构建脚本注入） ===== */
+const HEX_DATA = [{"index":1,"section":"上经","title":"乾为天","eyebrow":"上经 · 乾下乾上","meta":"乾下乾上 · 乾下乾上","lines_top_down":[1,1,1,1,1,1],"symbol":"䷀","guaci":"乾：元亨。利贞。","guaci_baihua":"大为亨通，适宜守持正固。","scriptures":[{"name":"彖曰","text":"大哉乾元，万物资始，乃统天。云行雨施，品物流形。大明终始，六位时成。时乘六龙以御天。乾道变化，各正性命，保合太和，乃利贞。首出庶物，万国咸宁。","baihua":"《彖》把乾解释为天道创生和运行的根本：万物依乾元而开始，云雨流行使万物成形，六爻象征不同时间位置。乾道贵在变化而各正性命，保持太和，所以利于守正；首出万物而天下安宁。"},{"name":"大象","text":"天行健，君子以自强不息。","baihua":"《大象》以此卦象提示修身治事之法：天行健，君子以自强不息。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：潜龙勿用。","baihua":"龙德潜藏于下，才力尚未到可施展的时位；此时宜涵养、蓄势，不宜急于表现或任事。","xiaoxiang":"小象 潜龙勿用，阳在下也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：见龙在田，利见大人。","baihua":"才德开始显露在可见的场域中，已经能影响他人；宜亲近贤明有德者，借助正当平台成就事业。","xiaoxiang":"小象 见龙在田，德施普也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：君子终日乾乾，夕惕若；厉，无咎。","baihua":"处在下卦之极，进取力强而风险增大；若能日夜勤勉并保持警惕，虽处危境也可免咎。","xiaoxiang":"小象 终日乾乾，反复道也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：或跃在渊，无咎。","baihua":"来到由下入上的转折点，可进可退；像龙或跃起、或仍在渊中，只要审时度势，不冒进便无咎。","xiaoxiang":"小象 或跃在渊，进无咎也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：飞龙在天，利见大人。","baihua":"阳刚中正而居尊位，才德与时位相合；宜广会贤能，承担领导与成就万物的责任。","xiaoxiang":"小象 飞龙在天，大人造也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：亢龙，有悔。","baihua":"龙飞得过高而不能退，象征盛极而亢；若只知进不知止，终会有悔。","xiaoxiang":"小象 亢龙有悔，盈不可久也。"}],"special":[{"text":"用九：见群龙无首，吉。纯阳之卦的用法，不在于人人争首，而在于群龙各得其位、刚健而不专断，所以吉。小象 用九，天德不可为首也。此为乾坤两卦特有的用九/用六，不计入通常三百八十四爻。","xiaoxiang":"小象 用九，天德不可为首也。"}],"wenyan":[{"title":"卦辞总释 · 乾卦卦辞","text":"元者，善之长也。亨者，嘉之会也。利者，义之和也。贞者，事之干也。君子体仁足以长人，嘉会足以合礼，利物足以和义，贞固足以干事。君子行此四德者，故曰：乾，元、亨、利、贞。元是众善的开端，亨是美好事物的会通，利是义理的和合，贞是成事的骨干。君子体行仁德足以领导众人，善于会通足以合礼，利益万物足以合义，坚守正固足以担当事务，所以乾德表现为元、亨、利、贞四德。"},{"title":"逐爻问答 · 初九","text":"初九曰：潜龙，勿用。何谓也？子曰：龙德而隐者也。不易乎世，不成乎名，遯世无闷，不见是而无闷，乐则行之，忧则违之，确乎其不可拔，潜龙也。初九像有龙德而潜隐的人：不因世俗改变节操，不急于成名；隐居不闷，不被世人认可也不闷；合乎乐行就行，遇忧患则避，坚确不可动摇，所以叫潜龙。"},{"title":"逐爻问答 · 九二","text":"九二曰：见龙在田，利见大人。何谓也？子曰：龙德而正中者也。庸言之信，庸行之谨；闲邪存其诚，善世而不伐，德博而化。易曰：见龙在田，利见大人。君德也。九二是龙德显现且居中得正的人：平常言语守信，日常行为谨慎；防止邪念、保存诚心；善化世人而不自夸，德广而能化人，所以具备君德。"},{"title":"逐爻问答 · 九三","text":"九三曰：君子终日乾乾，夕惕若，厉，无咎。何谓也？子曰：君子进德修业。忠信，所以进德也；修辞立其诚，所以居业也。知至至之，可与言几也。知终终之，可与存义也。是故居上位而不骄，在下位而不忧，故乾乾因其时而惕，虽危无咎矣。九三处在进德修业的紧要处。忠信用来增进德行，修辞立诚用来安定事业；知道何时到达、何时终止，才能把握机微和义理。能居上不骄、在下不忧，随时勤勉警惕，虽危而无咎。"},{"title":"逐爻问答 · 九四","text":"九四曰：或跃在渊，无咎。何谓也？子曰：上下无常，非为邪也。进退无恒，非离群也。君子进德修业，欲及时也。故无咎。九四处在可上可下、可进可退的位置；变化不定并不是邪僻，也不是离群，而是君子为进德修业而等待合适时机，所以无咎。"},{"title":"逐爻问答 · 九五","text":"九五曰：飞龙在天，利见大人。何谓也？子曰：同声相应，同气相求；水流湿，火就燥，云从龙，风从虎；圣人作而万物睹；本乎天者亲上，本乎地者亲下，则各从其类也。九五说明同类相感、同气相求：水流向湿处，火趋向干燥，云随龙、风随虎。圣人兴起，万物都能看见其化育；本于天者亲上，本于地者亲下，各从其类而相应。"},{"title":"逐爻问答 · 上九","text":"上九曰：亢龙，有悔。何谓也？子曰：贵而无位，高而无民，贤人在下位而无辅，是以动而有悔也。上九高亢到极处，虽尊贵却无实际位置，虽高却无民众，贤人居下也不能辅助，所以一动就有悔。"},{"title":"逐爻层次释义 · 六爻与用九","text":"潜龙勿用，下也。见龙在田，时舍也。终日乾乾，行事也。或跃在渊，自试也。飞龙在天，上治也。亢龙有悔，穷之灾也。乾元用九，天下治也。这一段把六爻按层次解释：初九在下而潜，九二因时而显，九三进入行事警惕，九四自我试探，九五居上而治，上九因穷极而有灾；用九则是不争为首、使天下归治。"},{"title":"逐爻气化释义 · 六爻与用九","text":"潜龙勿用，阳气潜藏。见龙在田，天下文明。终日乾乾，与时偕行。或跃在渊，乾道乃革。飞龙在天，乃位乎天德。亢龙有悔，与时偕极。乾元用九，乃见天则。这一段从阳气与时势解释乾卦：阳气先潜藏，再显现而使天下文明；勤勉要随时而行，进跃是乾道转化，飞龙是居天德之位，亢龙是与时势同至极点；用九显示天道法则。"},{"title":"乾元总论 · 乾卦整体","text":"乾元者，始而亨者也。利贞者，性情也。乾始能以美利利天下，不言所利，大矣哉！大哉乾元，刚健中正，纯粹精也。六爻发挥，旁通情也。时乘六龙，以御天也。云行雨施，天下平也。乾元是开始并通达的根源；利贞表现乾的性情。乾能以美好利益利天下而不自言其利，伟大在于刚健、中正、纯粹精一。六爻展开不同情势，乘六龙御天，云行雨施而天下平。"},{"title":"德业修养 · 初九至上九","text":"君子以成德为行，日可见之行也。潜之为言也，隐而未见，行而未成，是以君子弗用也。君子学以聚之，问以辩之，宽以居之，仁以行之，易曰：见龙在田，利见大人。君德也。九三，重刚而不中，上不在天，下不在田，故乾乾因其时而惕，虽危，无咎矣。九四，重刚而不中，上不在天，下不在田，中不在人，故或之。或之者，疑之也，故无咎。夫大人者，与天地合其德，与日月合其明，与四时合其序，与鬼神合其吉凶；先天而天弗违，后天而奉天时，天且弗违，而况于人乎？况于鬼神乎？亢之为言也，知进而不知退，知存而不知亡，知得而不知丧；其唯圣人乎？知进退存亡而不失其正者，其唯圣人乎！这一长段把乾卦落实为君子修养：未成德时要潜藏不用；显德时靠学习、问辨、宽居、仁行成就君德；九三、九四因位置不中而必须警惕或疑慎；大人能合天地日月四时鬼神之德；亢龙之失在只知进、存、得，不知退、亡、丧，只有圣人能知进退存亡而不失正。"}],"互卦":"䷀ 乾为天 · 第1卦","错卦":"䷁ 坤为地 · 第2卦","综卦":"䷀ 乾为天 · 第1卦","应位":"0/3 有应","中正":"1 中正 · 3 得正","changes":["初九 → ䷫ 天风姤 · 第44卦","九二 → ䷌ 天火同人 · 第13卦","九三 → ䷉ 天泽履 · 第10卦","九四 → ䷈ 风天小畜 · 第9卦","九五 → ䷍ 火天大有 · 第14卦","上九 → ䷪ 泽天夬 · 第43卦"]},{"index":2,"section":"上经","title":"坤为地","eyebrow":"上经 · 坤下坤上","meta":"坤下坤上 · 坤下坤上","lines_top_down":[0,0,0,0,0,0],"symbol":"䷁","guaci":"坤：元亨。利牝马之贞。君子有攸往，先迷后得主，利。西南得朋，东北丧朋。安贞，吉。","guaci_baihua":"大为亨通，有利于像母马那样柔顺而守正。君子有所前往，起初迷失，后来能得到主导而有利；向西南可得同类相助，向东北会失去同类。安于正道则吉。","scriptures":[{"name":"彖曰","text":"至哉坤元，万物资生，乃顺承天。坤厚载物，德合无疆；含弘光大，品物咸亨。牝马地类，行地无疆，柔顺利贞。君子攸行，先迷失道，后顺得常。西南得朋，乃与类行；东北丧朋，乃终有庆。安贞之吉，应地无疆。","baihua":"《彖》把坤解释为顺承天道、厚载万物的地道。坤以柔顺、广大、含容使万物通达；君子效坤，先自作主会迷，后顺正道而得常，安于正固则吉。"},{"name":"大象","text":"地势坤，君子以厚德载物。","baihua":"《大象》以此卦象提示修身治事之法：地势坤，君子以厚德载物。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：履霜，坚冰至。","baihua":"脚下刚见霜，就应想到坚冰将至；微小征兆不可忽视，事情的发展常由细微处累积成大势。","xiaoxiang":"小象 履霜坚冰，阴始凝也。驯致其道，至坚冰也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：直方大，不习无不利。","baihua":"柔顺而中正，品德正直、方正、广大；不靠刻意造作，也能因合乎本性而无不利。","xiaoxiang":"小象 六二之动，直以方也。不习无不利，地道光也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：含章，可贞。或从王事，无成有终。","baihua":"内有美德但不急于显露，守正可行；若辅佐王事，应以成就整体为重，不居功而能善终。","xiaoxiang":"小象 含章可贞，以时发也。或从王事，知光大也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：括囊，无咎无誉。","baihua":"像扎紧口袋一样谨慎收敛言行；不求名誉，也不招过失，适合在多变处境中自保守正。","xiaoxiang":"小象 括囊无咎，慎不害也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：黄裳，元吉。","baihua":"黄色居中，裳为下服，象征中和而谦下；有尊位而不骄，能以柔顺之德获大吉。","xiaoxiang":"小象 黄裳元吉，文在中也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：龙战于野，其血玄黄。","baihua":"阴柔发展到极点而与阳争，冲突已外露于野；天地之气混战，说明柔顺若失其分也会走向灾伤。","xiaoxiang":"小象 龙战于野，其道穷也。"}],"special":[{"text":"用六：利永贞。纯阴之卦的用法，在于长久守持正固；柔顺能持久而不偏，故有利。小象 用六永贞，以大终也。此为乾坤两卦特有的用九/用六，不计入通常三百八十四爻。","xiaoxiang":"小象 用六永贞，以大终也。"}],"wenyan":[{"title":"坤德总论 · 坤卦整体","text":"坤至柔而动也刚，至静而德方。后得主而有常，含万物而化光。坤道其顺乎！承天而时行。坤德极柔，却一旦行动就能坚决；极静，却德性方正。它在后顺承而得主，所以有常；包容万物而化育光大。坤道的核心就是顺承天道、依时而行。"},{"title":"逐爻释义 · 初六","text":"积善之家，必有余庆；积不善之家，必有余殃。臣弑其君，子弑其父，非一朝一夕之故，其所由来者渐矣。由辨之不早辨也。易曰：履霜，坚冰至。盖言顺也。善恶都会逐渐积累：积善有余庆，积不善有余殃。臣弑君、子弑父不是一日之故，而是早期征兆未辨、任其顺势发展所致；履霜知坚冰，就是提醒从微渐处早辨。"},{"title":"逐爻释义 · 六二","text":"直其正也，方其义也。君子敬以直内，义以方外，敬义立而德不孤。直方大，不习无不利，则不疑其所行也。直是内心正，方是外行合义。君子用敬使内心正直，用义使外行方正；敬义确立，德就不孤。直、方、大达到自然，不必刻意也无不利。"},{"title":"逐爻释义 · 六三","text":"阴虽有美，含之。以从王事，弗敢成也。地道也，妻道也，臣道也。地道无成，而代有终也。阴柔虽有美德，也应含藏不露。辅佐王事，不敢自居成功；这是地道、妻道、臣道：不自成名，却代上完成其终。"},{"title":"逐爻释义 · 六四","text":"天地变化，草木蕃；天地闭，贤人隐。易曰：括囊，无咎，无誉。盖言谨也。天地变化通畅时草木繁茂；天地闭塞时贤人隐退。括囊无咎无誉，是说在闭塞危险之时，谨慎闭藏比求名更重要。"},{"title":"逐爻释义 · 六五","text":"君子黄中通理，正位居体，美在其中，而畅于四支，发于事业，美之至也。六五象征黄中通理：内在中和通达，处位端正，美德藏于内而流畅于身体四肢，发为事业，这是美德的极致。"},{"title":"逐爻释义 · 上六","text":"阴疑于阳必战，为其嫌于无阳也，故称龙焉。犹未离其类也，故称血焉。夫玄黄者，天地之杂也。天玄而地黄。阴盛到几乎与阳相敌，必然发生争战；称龙，是因为它疑似与阳抗衡；称血，是因为仍未离阴类。玄黄是天地颜色混杂，说明阴阳相争而天地之气混乱。"}],"互卦":"䷁ 坤为地 · 第2卦","错卦":"䷀ 乾为天 · 第1卦","综卦":"䷁ 坤为地 · 第2卦","应位":"0/3 有应","中正":"1 中正 · 3 得正","changes":["初六 → ䷗ 地雷复 · 第24卦","六二 → ䷆ 地水师 · 第7卦","六三 → ䷎ 地山谦 · 第15卦","六四 → ䷏ 雷地豫 · 第16卦","六五 → ䷇ 水地比 · 第8卦","上六 → ䷖ 山地剥 · 第23卦"]},{"index":3,"section":"上经","title":"水雷屯","eyebrow":"上经 · 震下坎上","meta":"震下坎上 · 震下坎上","lines_top_down":[0,1,0,0,0,1],"symbol":"䷂","guaci":"屯：元亨，利贞。勿用有攸往，利建侯。","guaci_baihua":"初创艰难之时仍可亨通，适宜守正；不宜急于有所前往，利于建立根基、确立领导。","scriptures":[{"name":"彖曰","text":"屯，刚柔始交而难生，动乎险中，大亨贞。雷雨之动满盈，天造草昧，宜建侯而不宁。","baihua":"《彖》说屯是刚柔初交、万物初生而困难同时产生。人在险中发动，虽然有大亨之道，也不应安逸冒进，而应建立秩序、任用能承担初创责任的人。"},{"name":"大象","text":"云雷，屯；君子以经纶。","baihua":"《大象》取象为“云雷，屯”。白话说：观此卦象，君子应当以经纶。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：磐桓，利居贞，利建侯。","baihua":"初创之时艰难盘旋，不宜躁进；守正安居、建立根基和领导秩序，反而有利。","xiaoxiang":"小象 虽磐桓，志行正也。以贵下贱，大得民也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：屯如邅如，乘马班如，匪寇婚媾，女子贞不字，十年乃字。","baihua":"前行艰涩、马队徘徊，看似盗寇其实是婚媾；在未明朗时应守正等待，久后条件成熟才可结合。","xiaoxiang":"小象 六二之难，乘刚也。十年乃字，反常也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：即鹿无虞，惟入于林中，君子几不如舍，往吝。","baihua":"追鹿而无向导，只会迷入林中；见机的君子宁可放弃，若盲目前往必有羞吝。","xiaoxiang":"小象 即鹿无虞，以从禽也。君子舍之，往吝穷也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：乘马班如，求婚媾，往，吉无不利。","baihua":"仍有徘徊，但目标转为正当结合；主动求合而往，可获吉利，无所不利。","xiaoxiang":"小象 求而往，明也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：屯其膏；小贞吉，大贞凶。","baihua":"恩泽受阻，不能广施；小事守正尚吉，若强行做大事则会因资源未通而凶。","xiaoxiang":"小象 屯其膏，施未光也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：乘马班如，泣血涟如。","baihua":"艰难发展到末端仍徘徊不决，悲伤深重；说明初创困局若久不能通，会流于哀困。","xiaoxiang":"小象 泣血涟如，何可长也。"}],"special":[],"wenyan":[],"互卦":"䷖ 山地剥 · 第23卦","错卦":"䷱ 火风鼎 · 第50卦","综卦":"䷃ 山水蒙 · 第4卦","应位":"2/3 有应","中正":"2 中正 · 5 得正","changes":["初九 → ䷇ 水地比 · 第8卦","六二 → ䷻ 水泽节 · 第60卦","六三 → ䷾ 水火既济 · 第63卦","六四 → ䷐ 泽雷随 · 第17卦","九五 → ䷗ 地雷复 · 第24卦","上六 → ䷩ 风雷益 · 第42卦"]},{"index":4,"section":"上经","title":"山水蒙","eyebrow":"上经 · 坎下艮上","meta":"坎下艮上 · 坎下艮上","lines_top_down":[1,0,0,0,1,0],"symbol":"䷃","guaci":"蒙：亨。匪我求童蒙，童蒙求我。初筮告，再三渎，渎则不告。利贞。","guaci_baihua":"蒙昧可以亨通。不是老师求童蒙来学，而是童蒙来求教；初次诚敬占问可以告知，再三亵渎就不再告知。守正有利。","scriptures":[{"name":"彖曰","text":"蒙，山下有险，险而止，蒙。蒙亨，以亨行，时中也。匪我求童蒙，童蒙求我，志应也。初筮告，以刚中也。再三渎，渎则不告，渎蒙也。蒙以养正，圣功也。","baihua":"《彖》说蒙是险在山下而停止，象征蒙昧未开。启蒙不是老师主动迎合，而是童蒙诚心来求；教育要把握时机、以刚中之道告诫，反复亵渎则不告，根本目的在养正。"},{"name":"大象","text":"山下出泉，蒙；君子以果行育德。","baihua":"《大象》取象为“山下出泉，蒙”。白话说：观此卦象，君子应当以果行育德。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：发蒙，利用刑人，用说桎梏，以往吝。","baihua":"启蒙初期宜用规范矫正偏差，使人脱离束缚；但若只靠惩罚而继续前行，会有羞吝。","xiaoxiang":"小象 利用刑人，以正法也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：包蒙吉，纳妇吉，子克家。","baihua":"能包容蒙昧、接纳柔顺者，吉；像儿子能治理家业，说明教育在于包容与担当。","xiaoxiang":"小象 子克家，刚柔接也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：勿用取女，见金夫，不有躬，无攸利。","baihua":"不可娶见利忘身、不能自持之女；象征受外物诱惑而失主守，则无所利。","xiaoxiang":"小象 勿用取女，行不顺也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：困蒙，吝。","baihua":"被蒙昧困住，又远离刚明之助；若不能求教破蔽，会陷入羞吝。","xiaoxiang":"小象 困蒙之吝，独远实也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：童蒙，吉。","baihua":"保持童蒙般谦虚受教的心，虽未知而能顺从正道；以诚求学则吉。","xiaoxiang":"小象 童蒙之吉，顺以巽也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：击蒙，不利为寇，利御寇。","baihua":"蒙昧到极处需要猛然警醒；强力不可用于侵犯别人，只宜用于抵御邪妄和纠偏。","xiaoxiang":"小象 利御寇，上下顺也。"}],"special":[],"wenyan":[],"互卦":"䷗ 地雷复 · 第24卦","错卦":"䷰ 泽火革 · 第49卦","综卦":"䷂ 水雷屯 · 第3卦","应位":"2/3 有应","中正":"0 中正 · 1 得正","changes":["初六 → ䷨ 山泽损 · 第41卦","九二 → ䷖ 山地剥 · 第23卦","六三 → ䷑ 山风蛊 · 第18卦","六四 → ䷿ 火水未济 · 第64卦","六五 → ䷺ 风水涣 · 第59卦","上九 → ䷆ 地水师 · 第7卦"]},{"index":5,"section":"上经","title":"水天需","eyebrow":"上经 · 乾下坎上","meta":"乾下坎上 · 乾下坎上","lines_top_down":[0,1,0,1,1,1],"symbol":"䷄","guaci":"需：有孚，光亨。贞吉，利涉大川。","guaci_baihua":"有诚信，则光明显达而亨通；守正则吉，利于涉越大川、承担险难。","scriptures":[{"name":"彖曰","text":"需，须也，险在前也；刚健而不陷，其义不困穷矣。需，有孚，光亨，贞吉，位乎天位，以正中也。利涉大川，往有功也。","baihua":"《彖》说需是等待，因为险阻在前。刚健而能等待，就不会陷入困穷；有诚信并居中守正，才能等待到光明亨通，涉险也会有功。"},{"name":"大象","text":"云上于天，需；君子以饮食宴乐。","baihua":"《大象》取象为“云上于天，需”。白话说：观此卦象，君子应当以饮食宴乐。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：需于郊，利用恒，无咎。","baihua":"在郊外等待，离险尚远；贵在恒久守正，不急于接近危险，故无咎。","xiaoxiang":"小象 需于郊，不犯难行也。利用恒，无咎，未失常也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：需于沙，小有言，终吉。","baihua":"等待地点已近水边，可能有小争议；但能居中自守，最终仍吉。","xiaoxiang":"小象 需于沙，衍在中也。虽小有言，以终吉也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：需于泥，致寇至。","baihua":"已陷入泥地，离险很近；躁进会招致外患，应警惕自招其祸。","xiaoxiang":"小象 需于泥，灾在外也。自我致寇，敬慎不败也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：需于血，出自穴。","baihua":"进入险境而见血，处境已迫；顺势听从、设法脱出穴中，是化险的关键。","xiaoxiang":"小象 需于血，顺以听也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：需于酒食，贞吉。","baihua":"处于尊位而能安享饮食，说明等待已有秩序；守正则吉，不必躁动。","xiaoxiang":"小象 酒食贞吉，以中正也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：入于穴，有不速之客三人来，敬之终吉。","baihua":"等待发展到终极，已入穴中；意外来客出现，若能恭敬接纳，终可转为吉。","xiaoxiang":"小象 不速之客来，敬之终吉。虽不当位，未大失也。"}],"special":[],"wenyan":[],"互卦":"䷥ 火泽睽 · 第38卦","错卦":"䷢ 火地晋 · 第35卦","综卦":"䷅ 天水讼 · 第6卦","应位":"2/3 有应","中正":"1 中正 · 5 得正","changes":["初九 → ䷯ 水风井 · 第48卦","九二 → ䷾ 水火既济 · 第63卦","九三 → ䷻ 水泽节 · 第60卦","六四 → ䷪ 泽天夬 · 第43卦","九五 → ䷊ 地天泰 · 第11卦","上六 → ䷈ 风天小畜 · 第9卦"]},{"index":6,"section":"上经","title":"天水讼","eyebrow":"上经 · 坎下乾上","meta":"坎下乾上 · 坎下乾上","lines_top_down":[1,1,1,0,1,0],"symbol":"䷅","guaci":"讼：有孚，窒，惕，中吉，终凶。利见大人，不利涉大川。","guaci_baihua":"虽有诚信，但受阻而须警惕；中途适可则吉，争讼到底则凶。利见大人，不利涉越大川。","scriptures":[{"name":"彖曰","text":"讼，上刚下险，险而健，讼。讼，有孚，窒，惕，中吉，刚来而得中也。终凶，讼不可成也。利见大人，尚中正也。不利涉大川，入于渊也。","baihua":"《彖》说讼由上刚下险而成，是险中又刚健而起争。争讼初有诚信但受阻，能中正警惕则吉；若把争讼进行到底则凶，所以宜见中正大人裁断，不宜冒险前进。"},{"name":"大象","text":"天与水违行，讼；君子以作事谋始。","baihua":"《大象》取象为“天与水违行，讼”。白话说：观此卦象，君子应当以作事谋始。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：不永所事，小有言，终吉。","baihua":"争讼刚起，不把事情拖长；虽有小口舌，能及时止争则终吉。","xiaoxiang":"小象 不永所事，讼不可长也。虽小有言，其辩明也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：不克讼，归而逋，其邑人三百户无眚。","baihua":"不能胜讼，退回避让；这样可保全邑人不受牵连，退让反而免灾。","xiaoxiang":"小象 不克讼，归逋窜也。自下讼上，患至掇也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：食旧德，贞厉，终吉。或从王事，无成。","baihua":"依靠旧有德业和本分，守正虽有危险终能吉；若参与公事，应不居功。","xiaoxiang":"小象 食旧德，从上吉也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：不克讼，复即命渝，安贞吉。","baihua":"争讼不能成功，回到正命并改变争心；安于正道则吉。","xiaoxiang":"小象 复即命渝，安贞，不失也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：讼，元吉。","baihua":"以中正之德审理争讼，能大吉；关键不是好争，而是公正裁断。","xiaoxiang":"小象 讼元吉，以中正也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：或锡之鞶带，终朝三褫之。","baihua":"即使因争讼而得到荣耀，也很快被多次剥夺；靠争胜得来的名位不足久保。","xiaoxiang":"小象 以讼受服，亦不足敬也。"}],"special":[],"wenyan":[],"互卦":"䷤ 风火家人 · 第37卦","错卦":"䷣ 地火明夷 · 第36卦","综卦":"䷄ 水天需 · 第5卦","应位":"2/3 有应","中正":"1 中正 · 1 得正","changes":["初六 → ䷉ 天泽履 · 第10卦","九二 → ䷋ 天地否 · 第12卦","六三 → ䷫ 天风姤 · 第44卦","九四 → ䷺ 风水涣 · 第59卦","九五 → ䷿ 火水未济 · 第64卦","上九 → ䷮ 泽水困 · 第47卦"]},{"index":7,"section":"上经","title":"地水师","eyebrow":"上经 · 坎下坤上","meta":"坎下坤上 · 坎下坤上","lines_top_down":[0,0,0,0,1,0],"symbol":"䷆","guaci":"师：贞丈人吉，无咎。","guaci_baihua":"出师用兵贵在正道，并由成熟稳重的长者统领，吉而无咎。","scriptures":[{"name":"彖曰","text":"师，众也，贞正也，能以众正，可以王矣。刚中而应，行险而顺，以此毒天下而民从之，吉又何咎矣。","baihua":"《彖》说师是众，关键在于正。统众出师若由刚中而有应的人主持，虽处险事、甚至会伤害天下，却能顺正而使民众服从，所以吉而无咎。"},{"name":"大象","text":"地中有水，师；君子以容民畜众。","baihua":"《大象》取象为“地中有水，师”。白话说：观此卦象，君子应当以容民畜众。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：师出以律，否臧，凶。","baihua":"军队出动必须有纪律；若纪律不善，即使名义正当也会凶。","xiaoxiang":"小象 师出以律，失律凶也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：在师中吉，无咎；王三锡命。","baihua":"刚中而居军中，能统众有方；得君命嘉奖，吉而无咎。","xiaoxiang":"小象 在师中吉，承天宠也。王三锡命，怀万邦也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：师或舆尸，凶。","baihua":"军队可能载尸而归，象征指挥不当、失败惨重；凶。","xiaoxiang":"小象 师或舆尸，大无功也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：师左次，无咎。","baihua":"军队退次而守，不贸然前进；能按常法避险，所以无咎。","xiaoxiang":"小象 左次无咎，未失常也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：田有禽，利执言，无咎。长子帅师，弟子舆尸，贞凶。","baihua":"有敌情可讨，宜名正言顺地处置；应任用成熟可靠者统军，若让轻率者主事，即使守正也凶。","xiaoxiang":"小象 长子帅师，以中行也。弟子舆尸，使不当也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：大君有命，开国承家，小人勿用。","baihua":"战事终了，君命论功封赏；可以建国承家，但不可任用小人，否则功后生乱。","xiaoxiang":"小象 大君有命，以正功也。小人勿用，必乱邦也。"}],"special":[],"wenyan":[],"互卦":"䷗ 地雷复 · 第24卦","错卦":"䷌ 天火同人 · 第13卦","综卦":"䷇ 水地比 · 第8卦","应位":"1/3 有应","中正":"0 中正 · 2 得正","changes":["初六 → ䷒ 地泽临 · 第19卦","九二 → ䷁ 坤为地 · 第2卦","六三 → ䷭ 地风升 · 第46卦","六四 → ䷧ 雷水解 · 第40卦","六五 → ䷜ 坎为水 · 第29卦","上六 → ䷃ 山水蒙 · 第4卦"]},{"index":8,"section":"上经","title":"水地比","eyebrow":"上经 · 坤下坎上","meta":"坤下坎上 · 坤下坎上","lines_top_down":[0,1,0,0,0,0],"symbol":"䷇","guaci":"比：吉。原筮元永贞，无咎。不宁方来，后夫凶。","guaci_baihua":"亲比相辅则吉。重新审慎考察，具备元善、长久、守正，才无咎；不安者会来归附，迟疑后来者则凶。","scriptures":[{"name":"彖曰","text":"比，吉也。比，辅也，下顺从也。原筮元永贞无咎，以刚中也。不宁方来，上下应也。后夫凶，其道穷也。","baihua":"《彖》说比是亲辅相依，下者顺从上者。亲比必须经得起再三考察，具备元善、长久、正固；不安者来归是上下相应，迟疑不归者终将困穷。"},{"name":"大象","text":"地上有水，比；先王以建万国，亲诸侯。","baihua":"《大象》取象为“地上有水，比”。白话说：观此卦象，先王应当以建万国，亲诸侯。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：有孚，比之，无咎。有孚盈缶，终来有它，吉。","baihua":"亲比之初贵在诚信，像瓦缶充满诚意；诚信足则即使有外来变化，最终也吉。","xiaoxiang":"小象 比之初六，有他吉也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：比之自内，贞吉。","baihua":"亲比发自内心而非外附；守正则吉。","xiaoxiang":"小象 比之自内，不自失也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：比之匪人。","baihua":"所亲近的不是正人，结党对象不当；这是亲比中的危险。","xiaoxiang":"小象 比之匪人，不亦伤乎？"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：外比之，贞吉。","baihua":"向外亲比贤者或上位者，若合乎正道则吉。","xiaoxiang":"小象 外比于贤，以从上也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：显比。王用三驱，失前禽，邑人不诫，吉。","baihua":"光明正大地亲合众人，如王者三面围猎而给前禽生路；不强迫、不警扰百姓，所以吉。","xiaoxiang":"小象 显比之吉，位正中也。舍逆取顺，失前禽也。邑人不诫，上使中也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：比之无首，凶。","baihua":"亲比到最后却没有首领和根本，群聚失序；凶。","xiaoxiang":"小象 比之无首，无所终也。"}],"special":[],"wenyan":[],"互卦":"䷖ 山地剥 · 第23卦","错卦":"䷍ 火天大有 · 第14卦","综卦":"䷆ 地水师 · 第7卦","应位":"1/3 有应","中正":"2 中正 · 4 得正","changes":["初六 → ䷂ 水雷屯 · 第3卦","六二 → ䷜ 坎为水 · 第29卦","六三 → ䷦ 水山蹇 · 第39卦","六四 → ䷬ 泽地萃 · 第45卦","九五 → ䷁ 坤为地 · 第2卦","上六 → ䷓ 风地观 · 第20卦"]},{"index":9,"section":"上经","title":"风天小畜","eyebrow":"上经 · 乾下巽上","meta":"乾下巽上 · 乾下巽上","lines_top_down":[1,1,0,1,1,1],"symbol":"䷈","guaci":"小畜：亨。密云不雨，自我西郊。","guaci_baihua":"小有所蓄，亨通；云密而雨未下，像雨气来自西郊但尚未施行。","scriptures":[{"name":"彖曰","text":"小畜，柔得位而上下应之，曰小畜。健而巽，刚中而志行，乃亨。密云不雨，尚往也；自我西郊，施未行也。","baihua":"《彖》说小畜是一阴得位而能畜止群阳，所以只是小有所蓄。外在刚健、内在柔顺，刚中者志向可行而亨通；密云未雨说明蓄积尚未化为施泽。"},{"name":"大象","text":"风行天上，小畜；君子以懿文德。","baihua":"《大象》取象为“风行天上，小畜”。白话说：观此卦象，君子应当以懿文德。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：复自道，何其咎，吉。","baihua":"从正道返回，自我恢复其本位；有什么过咎呢，吉。","xiaoxiang":"小象 复自道，其义吉也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：牵复，吉。","baihua":"与同道相牵而复归正道，能相互带动，吉。","xiaoxiang":"小象 牵复在中，亦不自失也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：舆说辐，夫妻反目。","baihua":"车轮脱辐，家内反目；小畜之时若刚躁失衡，内部关系会破裂。","xiaoxiang":"小象 夫妻反目，不能正室也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：有孚，血去惕出，无咎。","baihua":"以诚信处柔位，可使伤害远去、惕惧脱出；诚能化险，故无咎。","xiaoxiang":"小象 有孚惕出，上合志也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：有孚挛如，富以其邻。","baihua":"诚信相连，能与邻近者共同富足；积蓄不独享，合众而成。","xiaoxiang":"小象 有孚挛如，不独富也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：既雨既处，尚德载，妇贞厉，月几望，君子征凶。","baihua":"云雨已成而应止，德行积载不可再逞；阴势近满，若君子仍强行出征则凶。","xiaoxiang":"小象 既雨既处，德积载也。君子征凶，有所疑也。"}],"special":[],"wenyan":[],"互卦":"䷥ 火泽睽 · 第38卦","错卦":"䷏ 雷地豫 · 第16卦","综卦":"䷉ 天泽履 · 第10卦","应位":"1/3 有应","中正":"1 中正 · 4 得正","changes":["初九 → ䷸ 巽为风 · 第57卦","九二 → ䷤ 风火家人 · 第37卦","九三 → ䷼ 风泽中孚 · 第61卦","六四 → ䷀ 乾为天 · 第1卦","九五 → ䷙ 山天大畜 · 第26卦","上九 → ䷄ 水天需 · 第5卦"]},{"index":10,"section":"上经","title":"天泽履","eyebrow":"上经 · 兑下乾上","meta":"兑下乾上 · 兑下乾上","lines_top_down":[1,1,1,0,1,1],"symbol":"䷉","guaci":"履：履虎尾，不咥人，亨。","guaci_baihua":"踩在虎尾上，老虎不咬人，亨通。意为行险而能谨慎守礼，则可通达。","scriptures":[{"name":"彖曰","text":"履，柔履刚也。说而应乎乾，是以履虎尾，不咥人，亨。刚中正，履帝位而不疚，光明也。","baihua":"《彖》说履是柔顺去履践刚强。以悦顺应乾健，像踩虎尾而虎不咬人，故亨；九五刚中正而居尊位，说明履道光明。"},{"name":"大象","text":"上天下泽，履；君子以辨上下，定民志。","baihua":"《大象》取象为“上天下泽，履”。白话说：观此卦象，君子应当以辨上下，定民志。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：素履，往无咎。","baihua":"以朴素本分而行，起步不饰不伪；前往无咎。","xiaoxiang":"小象 素履之往，独行愿也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：履道坦坦，幽人贞吉。","baihua":"行路平坦，幽静守正之人吉；中道而不躁，能安然前行。","xiaoxiang":"小象 幽人贞吉，中不自乱也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：眇能视，跛能履，履虎尾，咥人，凶。武人为于大君。","baihua":"视力不足却自以为能看，跛足却自以为能走，踩虎尾而被咬；才弱而逞强，凶。","xiaoxiang":"小象 眇能视，不足以有明也；跛能履，不足以与行也；咥人之凶，位不当也；武人为于大君，志刚也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：履虎尾，愬愬终吉。","baihua":"仍在虎尾之后，处境危险；但因恐惧谨慎、戒惧而行，最终吉。","xiaoxiang":"小象 愬愬终吉，志行也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：夬履，贞厉。","baihua":"以刚决方式履行职责，即使守正也有危险；居尊位不可只凭果断。","xiaoxiang":"小象 夬履贞厉，位正当也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：视履考祥，其旋元吉。","baihua":"回看自己的履行过程，考察吉凶征兆；能善始善终、循环归正，则大吉。","xiaoxiang":"小象 元吉在上，大有庆也。"}],"special":[],"wenyan":[],"互卦":"䷤ 风火家人 · 第37卦","错卦":"䷎ 地山谦 · 第15卦","综卦":"䷈ 风天小畜 · 第9卦","应位":"1/3 有应","中正":"1 中正 · 2 得正","changes":["初九 → ䷅ 天水讼 · 第6卦","九二 → ䷘ 天雷无妄 · 第25卦","六三 → ䷀ 乾为天 · 第1卦","九四 → ䷼ 风泽中孚 · 第61卦","九五 → ䷥ 火泽睽 · 第38卦","上九 → ䷹ 兑为泽 · 第58卦"]},{"index":11,"section":"上经","title":"地天泰","eyebrow":"上经 · 乾下坤上","meta":"乾下坤上 · 乾下坤上","lines_top_down":[0,0,0,1,1,1],"symbol":"䷊","guaci":"泰：小往大来，吉亨。","guaci_baihua":"小者退去，大者到来，吉而亨通。","scriptures":[{"name":"彖曰","text":"泰，小往大来，吉亨。则是天地交而万物通也，上下交而其志同也。内阳而外阴，内健而外顺，内君子而外小人；君子道长，小人道消也。","baihua":"《彖》说泰是小者退、大者来，天地相交而万物通达，上下相交而志意相同。内健外顺、君子在内而小人在外，象征君子之道增长、小人之道消退。"},{"name":"大象","text":"天地交，泰；后以财成天地之道，辅相天地之宜，以左右民。","baihua":"《大象》取象为“天地交，泰”。白话说：观此卦象，后应当以财成天地之道，辅相天地之宜，以左右民。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：拔茅茹，以其汇，征吉。","baihua":"拔茅草连根带类，象征同类相连而进；正道初通，偕同前往则吉。","xiaoxiang":"小象 拔茅征吉，志在外也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：包荒，用冯河，不遐遗，朋亡，得尚于中行。","baihua":"能包容荒远，敢涉大川，不遗远方，也不私结朋党；守中而行，最为可贵。","xiaoxiang":"小象 包荒，得尚于中行，以光大也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：无平不陂，无往不复，艰贞无咎。勿恤其孚，于食有福。","baihua":"平地终有倾斜，往者终会返回；在泰通中仍知艰守正，可无咎并有福。","xiaoxiang":"小象 无往不复，天地际也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：翩翩，不富以其邻，不戒以孚。","baihua":"上卦阴爻相随而下，如翩翩来往；不靠财富而靠邻里诚信相合。","xiaoxiang":"小象 翩翩不富，皆失实也。不戒以孚，中心愿也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：帝乙归妹，以祉元吉。","baihua":"以帝乙嫁妹为象，尊者能下交而成礼；谦顺相合，获大吉。","xiaoxiang":"小象 以祉元吉，中以行愿也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：城复于隍，勿用师。自邑告命，贞吝。","baihua":"城墙倾覆回到城壕，泰极将反；不可用兵，只能从内部告命整顿，虽正亦吝。","xiaoxiang":"小象 城复于隍，其命乱也。"}],"special":[],"wenyan":[],"互卦":"䷵ 雷泽归妹 · 第54卦","错卦":"䷋ 天地否 · 第12卦","综卦":"䷋ 天地否 · 第12卦","应位":"3/3 有应","中正":"0 中正 · 4 得正","changes":["初九 → ䷭ 地风升 · 第46卦","九二 → ䷣ 地火明夷 · 第36卦","九三 → ䷒ 地泽临 · 第19卦","六四 → ䷡ 雷天大壮 · 第34卦","六五 → ䷄ 水天需 · 第5卦","上六 → ䷙ 山天大畜 · 第26卦"]},{"index":12,"section":"上经","title":"天地否","eyebrow":"上经 · 坤下乾上","meta":"坤下乾上 · 坤下乾上","lines_top_down":[1,1,1,0,0,0],"symbol":"䷋","guaci":"否：否之匪人，不利君子贞，大往小来。","guaci_baihua":"闭塞不通，非人道之正，不利于君子守正；大者往外，小者来到。","scriptures":[{"name":"彖曰","text":"否之匪人，不利君子贞，大往小来。则是天地不交而万物不通也，上下不交而天下无邦也。内阴而外阳，内柔而外刚，内小人而外君子；小人道长，君子道消也。","baihua":"《彖》说否是天地不交、万物不通，上下隔绝而天下无邦。小人之道在内而增长，君子之道在外而消退，所以不利君子守常行事。"},{"name":"大象","text":"天地不交，否；君子以俭德辟难，不可荣以禄。","baihua":"《大象》取象为“天地不交，否”。白话说：观此卦象，君子应当以俭德辟难，不可荣以禄。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：拔茅茹，以其汇，贞吉亨。","baihua":"否塞之初，同类相连而守正；不随邪进，能吉而亨。","xiaoxiang":"小象 拔茅贞吉，志在君也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：包承，小人吉，大人否亨。","baihua":"柔顺承上，小人因此得志而吉；大人处否而不失其道，反能亨通。","xiaoxiang":"小象 大人否亨，不乱群也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：包羞。","baihua":"包藏羞耻，位置不正而近于上；否塞加深时，内有愧辱。","xiaoxiang":"小象 包羞，位不当也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：有命无咎，畴离祉。","baihua":"有天命或正命可行，便无咎；同类可共同受福。","xiaoxiang":"小象 有命无咎，志行也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：休否，大人吉。其亡其亡，系于苞桑。","baihua":"否塞开始休止，大人得吉；但仍须常怀将亡之戒，把根系牢于坚固处。","xiaoxiang":"小象 大人之吉，位正当也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：倾否，先否后喜。","baihua":"否塞到极点而倾覆，先闭塞后喜悦；困局终有反转。","xiaoxiang":"小象 否终则倾，何可长也。"}],"special":[],"wenyan":[],"互卦":"䷴ 风山渐 · 第53卦","错卦":"䷊ 地天泰 · 第11卦","综卦":"䷊ 地天泰 · 第11卦","应位":"3/3 有应","中正":"2 中正 · 2 得正","changes":["初六 → ䷘ 天雷无妄 · 第25卦","六二 → ䷅ 天水讼 · 第6卦","六三 → ䷠ 天山遁 · 第33卦","九四 → ䷓ 风地观 · 第20卦","九五 → ䷢ 火地晋 · 第35卦","上九 → ䷬ 泽地萃 · 第45卦"]},{"index":13,"section":"上经","title":"天火同人","eyebrow":"上经 · 离下乾上","meta":"离下乾上 · 离下乾上","lines_top_down":[1,1,1,1,0,1],"symbol":"䷌","guaci":"同人：同人于野，亨。利涉大川，利君子贞。","guaci_baihua":"与人在旷野中公开同心，亨通；利于涉越大川，利于君子守正。","scriptures":[{"name":"彖曰","text":"同人，柔得位得中而应乎乾，曰同人。同人曰：同人于野，亨。利涉大川，乾行也。文明以健，中正而应，君子正也。唯君子为能通天下之志。","baihua":"《彖》说同人是柔得中位而应乾健，能在旷野中公开与人相同相合。文明而刚健、中正而相应，只有君子能以正道贯通天下人的志意。"},{"name":"大象","text":"天与火，同人；君子以类族辨物。","baihua":"《大象》取象为“天与火，同人”。白话说：观此卦象，君子应当以类族辨物。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：同人于门，无咎。","baihua":"与人同道从门外开始，公开而无私；起步合群，无咎。","xiaoxiang":"小象 出门同人，又谁咎也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：同人于宗，吝。","baihua":"只与宗族内部相同，范围狭窄；偏私而不能广同，故吝。","xiaoxiang":"小象 同人于宗，吝道也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：伏戎于莽，升其高陵，三岁不兴。","baihua":"藏兵于草莽、登高窥伺，疑惧而不敢兴动；同人之道被猜忌破坏。","xiaoxiang":"小象 伏戎于莽，敌刚也。三岁不兴，安行也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：乘其墉，弗克攻，吉。","baihua":"登上城墙却不能攻下，说明能在临界处止争；不强攻反而吉。","xiaoxiang":"小象 乘其墉，义弗克也。其吉，则困而反则也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：同人，先号咷而后笑。大师克相遇。","baihua":"真正会同常先有隔阂和痛苦，后能欢笑；大军克服阻碍而相遇，象征大同终于实现。","xiaoxiang":"小象 同人之先，以中直也。大师相遇，言相克也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：同人于郊，无悔。","baihua":"同人扩展到郊外，远离私党；虽未必亲密，但无悔。","xiaoxiang":"小象 同人于郊，志未得也。"}],"special":[],"wenyan":[],"互卦":"䷫ 天风姤 · 第44卦","错卦":"䷆ 地水师 · 第7卦","综卦":"䷍ 火天大有 · 第14卦","应位":"1/3 有应","中正":"2 中正 · 4 得正","changes":["初九 → ䷠ 天山遁 · 第33卦","六二 → ䷀ 乾为天 · 第1卦","九三 → ䷘ 天雷无妄 · 第25卦","九四 → ䷤ 风火家人 · 第37卦","九五 → ䷝ 离为火 · 第30卦","上九 → ䷰ 泽火革 · 第49卦"]},{"index":14,"section":"上经","title":"火天大有","eyebrow":"上经 · 乾下离上","meta":"乾下离上 · 乾下离上","lines_top_down":[1,0,1,1,1,1],"symbol":"䷍","guaci":"大有：元亨。","guaci_baihua":"大的拥有与富盛，根本亨通。","scriptures":[{"name":"彖曰","text":"大有，柔得尊位，大中而上下应之，曰大有。其德刚健而文明，应乎天而时行，是以元亨。","baihua":"《彖》说大有是一柔居尊位并得大中，上下皆来相应。其德刚健而文明，顺应天时而行，因此具备大亨之道。"},{"name":"大象","text":"火在天上，大有；君子以遏恶扬善，顺天休命。","baihua":"《大象》取象为“火在天上，大有”。白话说：观此卦象，君子应当以遏恶扬善，顺天休命。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：无交害，匪咎，艰则无咎。","baihua":"初有大有而未与害相交，本非过咎；但须知艰守慎，才能无咎。","xiaoxiang":"小象 大有初九，无交害也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：大车以载，有攸往，无咎。","baihua":"像大车能承载重物，才德足以任事；有所前往无咎。","xiaoxiang":"小象 大车以载，积中不败也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：公用亨于天子，小人弗克。","baihua":"公侯以所有贡献于天子，能以公心上达；小人不能承当这种大有之德。","xiaoxiang":"小象 公用亨于天子，小人害也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：匪其彭，无咎。","baihua":"不夸耀盛大，不以富盛自满；能抑其盛则无咎。","xiaoxiang":"小象 匪其彭，无咎，明辨皙也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：厥孚交如，威如，吉。","baihua":"诚信能与上下相交，同时有威仪可敬；柔中居尊，吉。","xiaoxiang":"小象 厥孚交如，信以发志也。威如之吉，易而无备也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：自天祐之，吉无不利。","baihua":"大有至终而能顺天应人，仿佛有天助；吉而无不利。","xiaoxiang":"小象 大有上吉，自天祐也。"}],"special":[],"wenyan":[],"互卦":"䷪ 泽天夬 · 第43卦","错卦":"䷇ 水地比 · 第8卦","综卦":"䷌ 天火同人 · 第13卦","应位":"1/3 有应","中正":"0 中正 · 2 得正","changes":["初九 → ䷱ 火风鼎 · 第50卦","九二 → ䷝ 离为火 · 第30卦","九三 → ䷥ 火泽睽 · 第38卦","九四 → ䷙ 山天大畜 · 第26卦","六五 → ䷀ 乾为天 · 第1卦","上九 → ䷡ 雷天大壮 · 第34卦"]},{"index":15,"section":"上经","title":"地山谦","eyebrow":"上经 · 艮下坤上","meta":"艮下坤上 · 艮下坤上","lines_top_down":[0,0,0,1,0,0],"symbol":"䷎","guaci":"谦：亨，君子有终。","guaci_baihua":"谦逊可以亨通，君子能有善终。","scriptures":[{"name":"彖曰","text":"谦，亨，天道下济而光明，地道卑而上行。天道亏盈而益谦，地道变盈而流谦，鬼神害盈而福谦，人道恶盈而好谦。谦，尊而光，卑而不可逾，君子之终也。","baihua":"《彖》说谦通达，是因为天道下济而光明，地道卑下而上行。天、地、鬼神、人道都抑满而益谦；谦使尊者更光明，使卑者不可逾越，是君子善终之德。"},{"name":"大象","text":"地中有山，谦；君子以裒多益寡，称物平施。","baihua":"《大象》取象为“地中有山，谦”。白话说：观此卦象，君子应当以裒多益寡，称物平施。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：谦谦君子，用涉大川，吉。","baihua":"谦而又谦，根基处就能自下；即使涉大川这样的大事，也因谦德而吉。","xiaoxiang":"小象 谦谦君子，卑以自牧也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：鸣谦，贞吉。","baihua":"谦德自然发声而被人听见；守正则吉。","xiaoxiang":"小象 鸣谦贞吉，中心得也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：劳谦，君子有终，吉。","baihua":"有功劳而仍谦下，是君子能善终之道；吉。","xiaoxiang":"小象 劳谦君子，万民服也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：无不利，撝谦。","baihua":"处上而能挥布谦德，事事有利；谦不只是退让，也是合宜地施行。","xiaoxiang":"小象 无不利，撝谦，不违则也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：不富以其邻，利用侵伐，无不利。","baihua":"不以财富号召邻人，而以谦正得众；必要时用兵讨伐邪恶，无不利。","xiaoxiang":"小象 利用侵伐，征不服也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：鸣谦，利用行师，征邑国。","baihua":"谦声到极而可号召众人；适合出师征治自己的邑国，先正内部。","xiaoxiang":"小象 鸣谦，志未得也。可用行师，征邑国也。"}],"special":[],"wenyan":[],"互卦":"䷧ 雷水解 · 第40卦","错卦":"䷉ 天泽履 · 第10卦","综卦":"䷏ 雷地豫 · 第16卦","应位":"1/3 有应","中正":"1 中正 · 4 得正","changes":["初六 → ䷣ 地火明夷 · 第36卦","六二 → ䷭ 地风升 · 第46卦","九三 → ䷁ 坤为地 · 第2卦","六四 → ䷽ 雷山小过 · 第62卦","六五 → ䷦ 水山蹇 · 第39卦","上六 → ䷳ 艮为山 · 第52卦"]},{"index":16,"section":"上经","title":"雷地豫","eyebrow":"上经 · 坤下震上","meta":"坤下震上 · 坤下震上","lines_top_down":[0,0,1,0,0,0],"symbol":"䷏","guaci":"豫：利建侯行师。","guaci_baihua":"安乐和顺之时，利于建立诸侯、出师行动。","scriptures":[{"name":"彖曰","text":"豫，刚应而志行，顺以动，豫。豫，顺以动，故天地如之，而况建侯行师乎。天地以顺动，故日月不过而四时不忒。圣人以顺动，则刑罚清而民服。豫之时义大矣哉！","baihua":"《彖》说豫是刚爻得应而志得施行，顺势而动。天地、圣人都贵在顺动：日月四时不差，刑罚清明而民服；因此豫的时义很大。"},{"name":"大象","text":"雷出地奋，豫；先王以作乐崇德，殷荐之上帝，以配祖考。","baihua":"《大象》取象为“雷出地奋，豫”。白话说：观此卦象，先王应当以作乐崇德，殷荐之上帝，以配祖考。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：鸣豫，凶。","baihua":"豫乐刚起就自鸣得意，沉溺声色而失度；凶。","xiaoxiang":"小象 初六鸣豫，志穷凶也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：介于石，不终日，贞吉。","baihua":"操守坚如石，能迅速辨别豫乐中的危险；不等终日即止，守正则吉。","xiaoxiang":"小象 不终日贞吉，以中正也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：盱豫，悔；迟有悔。","baihua":"仰望上位而求豫乐，已生悔；若迟迟不改，更有悔。","xiaoxiang":"小象 盱豫有悔，位不当也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：由豫，大有得。勿疑，朋盍簪。","baihua":"豫乐之所由在此，能使众人有所得；不疑则朋友聚合如簪束发。","xiaoxiang":"小象 由豫大有得，志大行也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：贞疾，恒不死。","baihua":"居尊而乘刚，虽守正却有疾患；但能长久不亡，说明尚可维持。","xiaoxiang":"小象 六五贞疾，乘刚也。恒不死，中未亡也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：冥豫，成有渝，无咎。","baihua":"沉迷豫乐到昏暗，但若在已成之后还能改变，仍可无咎。","xiaoxiang":"小象 冥豫在上，何可长也。"}],"special":[],"wenyan":[],"互卦":"䷦ 水山蹇 · 第39卦","错卦":"䷈ 风天小畜 · 第9卦","综卦":"䷎ 地山谦 · 第15卦","应位":"1/3 有应","中正":"1 中正 · 2 得正","changes":["初六 → ䷲ 震为雷 · 第51卦","六二 → ䷧ 雷水解 · 第40卦","六三 → ䷽ 雷山小过 · 第62卦","九四 → ䷁ 坤为地 · 第2卦","六五 → ䷬ 泽地萃 · 第45卦","上六 → ䷢ 火地晋 · 第35卦"]},{"index":17,"section":"上经","title":"泽雷随","eyebrow":"上经 · 震下兑上","meta":"震下兑上 · 震下兑上","lines_top_down":[0,1,1,0,0,1],"symbol":"䷐","guaci":"随：元亨。利贞。无咎。","guaci_baihua":"随顺时势，大亨通；守正有利，无咎。","scriptures":[{"name":"彖曰","text":"随，刚来而下柔，动而说，随。大亨贞，无咎，而天下随时。随时之义大矣哉！","baihua":"《彖》说随是刚来居下、顺随于柔，动而悦。大亨而守正无咎，是因为天下万事都要随时而变，懂得随时的意义极大。"},{"name":"大象","text":"泽中有雷，随；君子以向晦入宴息。","baihua":"《大象》取象为“泽中有雷，随”。白话说：观此卦象，君子应当以向晦入宴息。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：官有渝，贞吉。出门交有功。","baihua":"职位或职责发生变化，守正则吉；走出门去与人交往，会有功效。","xiaoxiang":"小象 官有渝，从正吉也。出门交有功，不失也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：系小子，失丈夫。","baihua":"系附于浅小者，就会失去成熟刚正者；随从对象不当。","xiaoxiang":"小象 系小子，弗兼与也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：系丈夫，失小子。随有求得，利居贞。","baihua":"依附成熟刚正者，舍弃浅小者；随从有所得，但利在居正。","xiaoxiang":"小象 系丈夫，志舍下也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：随有获，贞凶。有孚在道，以明，何咎。","baihua":"随从而有所获，但若执著获利，即使正也凶；若诚信在道、明辨无私，则何咎。","xiaoxiang":"小象 随有获，其义凶也。有孚在道，明功也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：孚于嘉，吉。","baihua":"诚信归向美善，随从正大之德；吉。","xiaoxiang":"小象 孚于嘉吉，位正中也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：拘系之，乃从维之。王用亨于西山。","baihua":"随从发展到终极，先拘系又维系，表示关系牢固；王以此在西山祭享，象征诚敬归一。","xiaoxiang":"小象 拘系之，上穷也。"}],"special":[],"wenyan":[],"互卦":"䷴ 风山渐 · 第53卦","错卦":"䷑ 山风蛊 · 第18卦","综卦":"䷑ 山风蛊 · 第18卦","应位":"1/3 有应","中正":"2 中正 · 4 得正","changes":["初九 → ䷬ 泽地萃 · 第45卦","六二 → ䷹ 兑为泽 · 第58卦","六三 → ䷰ 泽火革 · 第49卦","九四 → ䷂ 水雷屯 · 第3卦","九五 → ䷲ 震为雷 · 第51卦","上六 → ䷘ 天雷无妄 · 第25卦"]},{"index":18,"section":"上经","title":"山风蛊","eyebrow":"上经 · 巽下艮上","meta":"巽下艮上 · 巽下艮上","lines_top_down":[1,0,0,1,1,0],"symbol":"䷑","guaci":"蛊：元亨。利涉大川。先甲三日，后甲三日。","guaci_baihua":"整治积弊可以大亨通，利于涉越大川；行动前后都要审度时机，如先甲三日、后甲三日。","scriptures":[{"name":"彖曰","text":"蛊，刚上而柔下，巽而止，蛊。蛊，元亨而天下治也。利涉大川，往有事也。先甲三日，后甲三日，终则有始，天行也。","baihua":"《彖》说蛊由刚上柔下、巽入而止成象，表示旧弊积聚。整治旧弊能使天下复治；利涉大川是说前往有所作为，先甲后甲说明终结之后又有新开始。"},{"name":"大象","text":"山下有风，蛊；君子以振民育德。","baihua":"《大象》取象为“山下有风，蛊”。白话说：观此卦象，君子应当以振民育德。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：干父之蛊，有子，考无咎，厉终吉。","baihua":"整治父辈留下的弊坏，有能承当的子辈，则父辈可免咎；过程虽危，终吉。","xiaoxiang":"小象 干父之蛊，意承考也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：干母之蛊，不可贞。","baihua":"整治母系或柔性方面的弊坏，不宜刚执一端；要因情势而柔和处置。","xiaoxiang":"小象 干母之蛊，得中道也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：干父之蛊，小有悔，无大咎。","baihua":"整治旧弊用力偏刚，或有小悔；但方向在除弊，所以无大咎。","xiaoxiang":"小象 干父之蛊，终无咎也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：裕父之蛊，往见吝。","baihua":"对父辈旧弊过于宽缓纵容，若继续前往必见羞吝。","xiaoxiang":"小象 裕父之蛊，往未得也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：干父之蛊，用誉。","baihua":"以中正之德整治旧弊，能得到赞誉；这是改革积弊的成熟阶段。","xiaoxiang":"小象 干父用誉，承以德也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：不事王侯，高尚其事。","baihua":"弊事既治，超脱于王侯事务之外；以高尚志节自守。","xiaoxiang":"小象 不事王侯，志可则也。"}],"special":[],"wenyan":[],"互卦":"䷵ 雷泽归妹 · 第54卦","错卦":"䷐ 泽雷随 · 第17卦","综卦":"䷐ 泽雷随 · 第17卦","应位":"1/3 有应","中正":"0 中正 · 2 得正","changes":["初六 → ䷙ 山天大畜 · 第26卦","九二 → ䷳ 艮为山 · 第52卦","九三 → ䷃ 山水蒙 · 第4卦","六四 → ䷱ 火风鼎 · 第50卦","六五 → ䷸ 巽为风 · 第57卦","上九 → ䷭ 地风升 · 第46卦"]},{"index":19,"section":"上经","title":"地泽临","eyebrow":"上经 · 兑下坤上","meta":"兑下坤上 · 兑下坤上","lines_top_down":[0,0,0,0,1,1],"symbol":"䷒","guaci":"临：元亨。利贞。至于八月有凶。","guaci_baihua":"临近、治理、施临，大亨通而利于守正；但发展到八月会有凶险，提醒盛势不可久恃。","scriptures":[{"name":"彖曰","text":"临，刚浸而长。说而顺，刚中而应，大亨以正，天之道也。至于八月有凶，消不久也。","baihua":"《彖》说临是阳刚渐长，下临于上。喜悦而柔顺、刚中而有应，大亨而正，合天道；但“八月有凶”提醒盛长终会消退。"},{"name":"大象","text":"泽上有地，临；君子以教思无穷，容保民无疆。","baihua":"《大象》取象为“泽上有地，临”。白话说：观此卦象，君子应当以教思无穷，容保民无疆。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：咸临，贞吉。","baihua":"以感通之心临近下民，守正则吉；临的开始重在诚意感人。","xiaoxiang":"小象 咸临贞吉，志行正也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：咸临，吉无不利。","baihua":"感通而临又居中，能广泛得人心；吉而无不利。","xiaoxiang":"小象 咸临吉无不利，未顺命也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：甘临，无攸利；既忧之，无咎。","baihua":"以甜言悦人而临，没有真正利益；若能忧惧反省，则无咎。","xiaoxiang":"小象 甘临，位不当也。既忧之，咎不长也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：至临，无咎。","baihua":"亲临达到切近之处，以诚至人；无咎。","xiaoxiang":"小象 至临无咎，位当也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：知临，大君之宜，吉。","baihua":"以智慧和中德临众，合乎大君之宜；吉。","xiaoxiang":"小象 大君之宜，行中之谓也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：敦临，吉无咎。","baihua":"临到终极而能敦厚，既吉又无咎；厚德可收成临民之道。","xiaoxiang":"小象 敦临之吉，志在内也。"}],"special":[],"wenyan":[],"互卦":"䷗ 地雷复 · 第24卦","错卦":"䷠ 天山遁 · 第33卦","综卦":"䷓ 风地观 · 第20卦","应位":"2/3 有应","中正":"0 中正 · 3 得正","changes":["初九 → ䷆ 地水师 · 第7卦","九二 → ䷗ 地雷复 · 第24卦","六三 → ䷊ 地天泰 · 第11卦","六四 → ䷵ 雷泽归妹 · 第54卦","六五 → ䷻ 水泽节 · 第60卦","上六 → ䷨ 山泽损 · 第41卦"]},{"index":20,"section":"上经","title":"风地观","eyebrow":"上经 · 坤下巽上","meta":"坤下巽上 · 坤下巽上","lines_top_down":[1,1,0,0,0,0],"symbol":"䷓","guaci":"观：盥而不荐，有孚颙若。","guaci_baihua":"祭祀时盥洗而未献祭，内有诚信，庄敬仰望。","scriptures":[{"name":"彖曰","text":"大观在上，顺而巽，中正以观天下。观，盥而不荐，有孚颙若，下观而化也。观天之神道，而四时不忒。圣人以神道设教，而天下服矣。","baihua":"《彖》说观是大观在上，以顺巽、中正来观天下。祭礼中盥而未荐、诚信庄严，使下民仰观而化；圣人效法神妙天道设教，使天下服从。"},{"name":"大象","text":"风行地上，观；先王以省方，观民设教。","baihua":"《大象》取象为“风行地上，观”。白话说：观此卦象，先王应当以省方，观民设教。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：童观，小人无咎，君子吝。","baihua":"像儿童般浅观，小人如此尚可无咎；君子若只停于浅见，则吝。","xiaoxiang":"小象 初六童观，小人道也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：窥观，利女贞。","baihua":"从门隙窥视，所见有限；适合柔顺守内者之正，不宜自以为通达。","xiaoxiang":"小象 窥观女贞，亦可丑也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：观我生，进退。","baihua":"观察自己的生民与作为，再决定进退；由内省决定行动。","xiaoxiang":"小象 观我生进退，未失道也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：观国之光，利用宾于王。","baihua":"能观见国家文明光辉，宜作为宾客服务王者；进入更大公共秩序。","xiaoxiang":"小象 观国之光，尚宾也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：观我生，君子无咎。","baihua":"居尊者观察自身施政对民生的影响；君子能如此自省，无咎。","xiaoxiang":"小象 观我生，观民也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：观其生，君子无咎。","baihua":"在终位观察天下生民和整体成果；能以君子之心审视外部，无咎。","xiaoxiang":"小象 观其生，志未平也。"}],"special":[],"wenyan":[],"互卦":"䷖ 山地剥 · 第23卦","错卦":"䷡ 雷天大壮 · 第34卦","综卦":"䷒ 地泽临 · 第19卦","应位":"2/3 有应","中正":"2 中正 · 3 得正","changes":["初六 → ䷩ 风雷益 · 第42卦","六二 → ䷺ 风水涣 · 第59卦","六三 → ䷴ 风山渐 · 第53卦","六四 → ䷋ 天地否 · 第12卦","九五 → ䷖ 山地剥 · 第23卦","上九 → ䷇ 水地比 · 第8卦"]},{"index":21,"section":"上经","title":"火雷噬嗑","eyebrow":"上经 · 震下离上","meta":"震下离上 · 震下离上","lines_top_down":[1,0,1,0,0,1],"symbol":"䷔","guaci":"噬嗑：亨。利用狱。","guaci_baihua":"咬合决断而亨通，利于使用刑狱、明断是非。","scriptures":[{"name":"彖曰","text":"颐中有物，曰噬嗑。噬嗑而亨。刚柔分，动而明，雷电合而章。柔得中而上行，虽不当位，利用狱也。","baihua":"《彖》说噬嗑是颐口中有物，必须咬合除去障碍。动而明，雷电合章，适合明察刑狱；柔爻虽位不正，却上行得中，所以利于用狱。"},{"name":"大象","text":"雷电，噬嗑；先王以明罚敕法。","baihua":"《大象》取象为“雷电，噬嗑”。白话说：观此卦象，先王应当以明罚敕法。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：屦校灭趾，无咎。","baihua":"足被刑具伤到脚趾，惩戒尚轻；小惩能止恶，所以无咎。","xiaoxiang":"小象 屦校灭趾，不行也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：噬肤灭鼻，无咎。","baihua":"咬合柔肉却伤及鼻，执法中有损伤；但因对象易治，仍无咎。","xiaoxiang":"小象 噬肤灭鼻，乘刚也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：噬腊肉，遇毒；小吝，无咎。","baihua":"咬陈腊之肉而遇毒，除弊遇到积久问题；有小吝，但能处理则无咎。","xiaoxiang":"小象 遇毒，位不当也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：噬干胏，得金矢，利艰贞，吉。","baihua":"咬带骨干肉，得到金矢，象征案件艰难而证据刚正；利于艰苦守正，吉。","xiaoxiang":"小象 利艰贞吉，未光也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：噬干肉，得黄金，贞厉，无咎。","baihua":"处理坚硬之事而得中正之物；守正虽危，最终无咎。","xiaoxiang":"小象 贞厉无咎，得当也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：何校灭耳，凶。","baihua":"枷锁压到耳朵，恶积深重而不听劝戒；刑罚已重，凶。","xiaoxiang":"小象 何校灭耳，聪不明也。"}],"special":[],"wenyan":[],"互卦":"䷦ 水山蹇 · 第39卦","错卦":"䷯ 水风井 · 第48卦","综卦":"䷕ 山火贲 · 第22卦","应位":"1/3 有应","中正":"1 中正 · 2 得正","changes":["初九 → ䷢ 火地晋 · 第35卦","六二 → ䷥ 火泽睽 · 第38卦","六三 → ䷝ 离为火 · 第30卦","九四 → ䷚ 山雷颐 · 第27卦","六五 → ䷘ 天雷无妄 · 第25卦","上九 → ䷲ 震为雷 · 第51卦"]},{"index":22,"section":"上经","title":"山火贲","eyebrow":"上经 · 离下艮上","meta":"离下艮上 · 离下艮上","lines_top_down":[1,0,0,1,0,1],"symbol":"䷕","guaci":"贲：亨。小利有攸往。","guaci_baihua":"文饰有亨通；小事或有限度的前往有利。","scriptures":[{"name":"彖曰","text":"贲，亨。柔来而文刚，故亨；分刚上而文柔，故小利有攸往。天文也；文明以止，人文也。观乎天文，以察时变；观乎人文，以化成天下。","baihua":"《彖》说贲是文饰：柔来文饰刚，所以亨；刚上文饰柔，所以小利有攸往。天文可察时变，人文可化成天下，文饰必须合乎止与明。"},{"name":"大象","text":"山下有火，贲；君子以明庶政，无敢折狱。","baihua":"《大象》取象为“山下有火，贲”。白话说：观此卦象，君子应当以明庶政，无敢折狱。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：贲其趾，舍车而徒。","baihua":"装饰脚趾，舍车步行；在起步处重本分，不因外饰而失朴。","xiaoxiang":"小象 舍车而徒，义弗乘也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：贲其须。","baihua":"修饰胡须，文饰附于形体；此时装饰须依附实质而不可独立。","xiaoxiang":"小象 贲其须，与上兴也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：贲如，濡如，永贞吉。","baihua":"文采润泽而盛，若能长久守正则吉；美不可离正。","xiaoxiang":"小象 永贞之吉，终莫之陵也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：贲如，皤如，白马翰如，匪寇婚媾。","baihua":"文饰转为洁白朴素，白马疾驰而来；不是盗寇，而是正当婚合。","xiaoxiang":"小象 六四，当位疑也。匪寇婚媾，终无尤也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：贲于丘园，束帛戋戋，吝，终吉。","baihua":"装饰丘园，以少量束帛行礼，显得简薄而吝；但崇尚朴素，终吉。","xiaoxiang":"小象 六五之吉，有喜也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：白贲，无咎。","baihua":"文饰归于纯白，返朴归真；外饰到极而归素，无咎。","xiaoxiang":"小象 白贲无咎，上得志也。"}],"special":[],"wenyan":[],"互卦":"䷧ 雷水解 · 第40卦","错卦":"䷮ 泽水困 · 第47卦","综卦":"䷔ 火雷噬嗑 · 第21卦","应位":"1/3 有应","中正":"1 中正 · 4 得正","changes":["初九 → ䷳ 艮为山 · 第52卦","六二 → ䷙ 山天大畜 · 第26卦","九三 → ䷚ 山雷颐 · 第27卦","六四 → ䷝ 离为火 · 第30卦","六五 → ䷤ 风火家人 · 第37卦","上九 → ䷣ 地火明夷 · 第36卦"]},{"index":23,"section":"上经","title":"山地剥","eyebrow":"上经 · 坤下艮上","meta":"坤下艮上 · 坤下艮上","lines_top_down":[1,0,0,0,0,0],"symbol":"䷖","guaci":"剥：不利有攸往。","guaci_baihua":"剥落衰败之时，不利有所前往。","scriptures":[{"name":"彖曰","text":"剥，剥也，柔变刚也。不利有攸往，小人长也。顺而止之，观象也。君子尚消息盈虚，天行也。","baihua":"《彖》说剥是阴柔剥蚀阳刚，小人道长，所以不宜前往。君子观察消长盈虚的天行规律，顺势而止，不与剥落之势硬争。"},{"name":"大象","text":"山附于地，剥；上以厚下安宅。","baihua":"《大象》取象为“山附于地，剥”。白话说：观此卦象，上应当以厚下安宅。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：剥床以足，蔑贞凶。","baihua":"剥落从床足开始，根基受损；正道被侵蚀，凶。","xiaoxiang":"小象 剥床以足，以灭下也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：剥床以辨，蔑贞凶。","baihua":"剥落到床板边缘，损坏加深；继续侵蚀正道，凶。","xiaoxiang":"小象 剥床以辨，未有与也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：剥之，无咎。","baihua":"虽处剥落之中，但能与邪剥有所脱离；故无咎。","xiaoxiang":"小象 剥之无咎，失上下也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：剥床以肤，凶。","baihua":"剥落已及身体皮肤，伤害切身；凶。","xiaoxiang":"小象 剥床以肤，切近灾也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：贯鱼，以宫人宠，无不利。","baihua":"阴柔成列如贯鱼，能有序承阳，如宫人受宠而不争；无不利。","xiaoxiang":"小象 以宫人宠，终无尤也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：硕果不食，君子得舆，小人剥庐。","baihua":"剥尽之后尚有大果未食，正道存一线；君子得车可行，小人则连庐舍也被剥毁。","xiaoxiang":"小象 君子得舆，民所载也。小人剥庐，终不可用也。"}],"special":[],"wenyan":[],"互卦":"䷁ 坤为地 · 第2卦","错卦":"䷪ 泽天夬 · 第43卦","综卦":"䷗ 地雷复 · 第24卦","应位":"1/3 有应","中正":"1 中正 · 2 得正","changes":["初六 → ䷚ 山雷颐 · 第27卦","六二 → ䷃ 山水蒙 · 第4卦","六三 → ䷳ 艮为山 · 第52卦","六四 → ䷢ 火地晋 · 第35卦","六五 → ䷓ 风地观 · 第20卦","上九 → ䷁ 坤为地 · 第2卦"]},{"index":24,"section":"上经","title":"地雷复","eyebrow":"上经 · 震下坤上","meta":"震下坤上 · 震下坤上","lines_top_down":[0,0,0,0,0,1],"symbol":"䷗","guaci":"复：亨。出入无疾，朋来无咎。反复其道，七日来复，利有攸往。","guaci_baihua":"回复亨通。出入无病，朋友到来无咎；循环往复，七日而复，利有所往。","scriptures":[{"name":"彖曰","text":"复亨，刚反，动而以顺行，是以出入无疾，朋来无咎。反复其道，七日来复，天行也。利有攸往，刚长也。复，其见天地之心乎！","baihua":"《彖》说复是阳刚返回，动而顺行，所以出入无疾、朋来无咎。七日来复象征天道循环；阳刚渐长，最能显出天地生生之心。"},{"name":"大象","text":"雷在地中，复；先王以至日闭关，商旅不行，后不省方。","baihua":"《大象》取象为“雷在地中，复”。白话说：观此卦象，先王应当以至日闭关，商旅不行，后不省方。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：不远复，无祗悔，元吉。","baihua":"偏离不远就能返回，不至于大悔；复归之初最为吉。","xiaoxiang":"小象 不远之复，以修身也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：休复，吉。","baihua":"从容美好地复归正道，能向善而安；吉。","xiaoxiang":"小象 休复之吉，以下仁也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：频复，厉，无咎。","baihua":"反复地偏离又返回，虽有危险，但知返仍可无咎。","xiaoxiang":"小象 频复之厉，义无咎也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：中行独复。","baihua":"在群阴之中独自复归正道；能不随众迷，是可贵的转机。","xiaoxiang":"小象 中行独复，以从道也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：敦复，无悔。","baihua":"厚实诚恳地复归，根基稳固；无悔。","xiaoxiang":"小象 敦复无悔，中以自考也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：迷复，凶，有灾眚。用行师，终有大败，以其国君凶；至于十年不克征。","baihua":"迷失而不能复归，凶且有灾；若以此出师，终将大败，连国君也凶，长久不能征伐成功。","xiaoxiang":"小象 迷复之凶，反君道也。"}],"special":[],"wenyan":[],"互卦":"䷁ 坤为地 · 第2卦","错卦":"䷫ 天风姤 · 第44卦","综卦":"䷖ 山地剥 · 第23卦","应位":"1/3 有应","中正":"1 中正 · 4 得正","changes":["初九 → ䷁ 坤为地 · 第2卦","六二 → ䷒ 地泽临 · 第19卦","六三 → ䷣ 地火明夷 · 第36卦","六四 → ䷲ 震为雷 · 第51卦","六五 → ䷂ 水雷屯 · 第3卦","上六 → ䷚ 山雷颐 · 第27卦"]},{"index":25,"section":"上经","title":"天雷无妄","eyebrow":"上经 · 震下乾上","meta":"震下乾上 · 震下乾上","lines_top_down":[1,1,1,0,0,1],"symbol":"䷘","guaci":"无妄：元亨。利贞。其匪正有眚，不利有攸往。","guaci_baihua":"无妄则大亨通、利守正；若不合正道就有灾眚，不利有所往。","scriptures":[{"name":"彖曰","text":"无妄，刚自外来而为主于内。动而健，刚中而应，大亨以正，天之命也。其匪正有眚，不利有攸往。无妄之往，何之矣？天命不祐，行矣哉？","baihua":"《彖》说无妄是刚从外来而主于内，动而健、刚中而应。大亨必须以正为前提；若不正而妄往，就是违背天命，不会得到帮助。"},{"name":"大象","text":"天下雷行，物与无妄；先王以茂对时，育万物。","baihua":"《大象》取象为“天下雷行，物与无妄”。白话说：观此卦象，先王应当以茂对时，育万物。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：无妄，往吉。","baihua":"以真诚无妄之心行动，起步纯正；前往则吉。","xiaoxiang":"小象 无妄之往，得志也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：不耕获，不菑畬，则利有攸往。","baihua":"不预设耕种才收获、不先开荒才熟田，象征不以机心求利；顺其自然则有所往有利。","xiaoxiang":"小象 不耕获，未富也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：无妄之灾，或系之牛，行人之得，邑人之灾。","baihua":"无妄也可能遭遇无端之灾：别人牵走牛，路人得利，邑人受灾；提醒正直者也要知世事偶然。","xiaoxiang":"小象 行人得牛，邑人灾也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：可贞，无咎。","baihua":"处变而仍可守正，能无咎。","xiaoxiang":"小象 可贞无咎，固有之也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：无妄之疾，勿药有喜。","baihua":"无妄而生的小疾，不必乱用药；不妄治反而有喜。","xiaoxiang":"小象 无妄之药，不可试也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：无妄，行有眚，无攸利。","baihua":"无妄到终位，时已不可强行；若仍行动会有灾眚，无所利。","xiaoxiang":"小象 无妄之行，穷之灾也。"}],"special":[],"wenyan":[],"互卦":"䷴ 风山渐 · 第53卦","错卦":"䷭ 地风升 · 第46卦","综卦":"䷙ 山天大畜 · 第26卦","应位":"2/3 有应","中正":"2 中正 · 3 得正","changes":["初九 → ䷋ 天地否 · 第12卦","六二 → ䷉ 天泽履 · 第10卦","六三 → ䷌ 天火同人 · 第13卦","九四 → ䷩ 风雷益 · 第42卦","九五 → ䷔ 火雷噬嗑 · 第21卦","上九 → ䷐ 泽雷随 · 第17卦"]},{"index":26,"section":"上经","title":"山天大畜","eyebrow":"上经 · 乾下艮上","meta":"乾下艮上 · 乾下艮上","lines_top_down":[1,0,0,1,1,1],"symbol":"䷙","guaci":"大畜：利贞，不家食吉，利涉大川。","guaci_baihua":"大蓄积，利于守正；不在家中自食其力而受养贤之食则吉，利于涉越大川。","scriptures":[{"name":"彖曰","text":"大畜，刚健笃实辉光，日新其德。刚上而尚贤，能止健，大正也。不家食吉，养贤也。利涉大川，应乎天也。","baihua":"《彖》说大畜具刚健、笃实、辉光，能日新其德。上九刚上而尚贤，又能止住乾健，所以为大正；养贤、应天，故不家食吉且利涉大川。"},{"name":"大象","text":"天在山中，大畜；君子以多识前言往行，以畜其德。","baihua":"《大象》取象为“天在山中，大畜”。白话说：观此卦象，君子应当以多识前言往行，以畜其德。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：有厉，利已。","baihua":"大畜之初，阳刚受止，有危险；利在停止，不宜躁进。","xiaoxiang":"小象 有厉利已，不犯灾也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：舆说輹。","baihua":"车轴脱落，不能前行；象征应暂止其进，以蓄养力量。","xiaoxiang":"小象 舆说輹，中无尤也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：良马逐，利艰贞。曰闲舆卫，利有攸往。","baihua":"良马奔驰，力量渐成；但须艰守正，并训练车卫，准备充分后前往有利。","xiaoxiang":"小象 利有攸往，上合志也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：童牛之牿，元吉。","baihua":"给小牛加牿，在危险未成前预防；早期约束，大吉。","xiaoxiang":"小象 六四元吉，有喜也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：豮豕之牙，吉。","baihua":"阉猪虽有牙却不再躁猛，象征从根本化解危险；吉。","xiaoxiang":"小象 六五之吉，有庆也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：何天之衢，亨。","baihua":"畜养已极而道路大开，如通达天衢；亨通。","xiaoxiang":"小象 何天之衢，道大行也。"}],"special":[],"wenyan":[],"互卦":"䷵ 雷泽归妹 · 第54卦","错卦":"䷬ 泽地萃 · 第45卦","综卦":"䷘ 天雷无妄 · 第25卦","应位":"2/3 有应","中正":"0 中正 · 3 得正","changes":["初九 → ䷑ 山风蛊 · 第18卦","九二 → ䷕ 山火贲 · 第22卦","九三 → ䷨ 山泽损 · 第41卦","六四 → ䷍ 火天大有 · 第14卦","六五 → ䷈ 风天小畜 · 第9卦","上九 → ䷊ 地天泰 · 第11卦"]},{"index":27,"section":"上经","title":"山雷颐","eyebrow":"上经 · 震下艮上","meta":"震下艮上 · 震下艮上","lines_top_down":[1,0,0,0,0,1],"symbol":"䷚","guaci":"颐：贞吉。观颐，自求口实。","guaci_baihua":"颐养守正则吉；观察养人之道，也要反观自己如何谋求口腹之实。","scriptures":[{"name":"彖曰","text":"颐贞吉，养正则吉也。观颐，观其所养也。自求口实，观其自养也。天地养万物，圣人养贤以及万民。颐之时大矣哉！","baihua":"《彖》说颐贵在养正：观其所养，也观其自养。天地养万物，圣人养贤以及万民，所以颐不是单指饮食，而是关乎养身、养德、养民的大时义。"},{"name":"大象","text":"山下有雷，颐；君子以慎言语，节饮食。","baihua":"《大象》取象为“山下有雷，颐”。白话说：观此卦象，君子应当以慎言语，节饮食。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：舍尔灵龟，观我朵颐，凶。","baihua":"舍弃自身灵明的养生之道，却羡慕别人口腹之欲；贪养于外，凶。","xiaoxiang":"小象 观我朵颐，亦不足贵也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：颠颐，拂经，于丘颐，征凶。","baihua":"颠倒求养，违背常理，又向高处求养；若前往则凶。","xiaoxiang":"小象 六二征凶，行失类也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：拂颐，贞凶。十年勿用，无攸利。","baihua":"严重违背颐养之道，即使坚持也凶；长期不可用，无所利。","xiaoxiang":"小象 十年勿用，道大悖也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：颠颐，吉。虎视眈眈，其欲逐逐，无咎。","baihua":"虽向下求养而似颠倒，但能专注如虎视、欲求合度，故吉而无咎。","xiaoxiang":"小象 颠颐之吉，上施光也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：拂经，居贞吉，不可涉大川。","baihua":"居尊而柔弱，虽违常理但安居守正则吉；不可承担涉大川般的大事。","xiaoxiang":"小象 居贞之吉，顺以从上也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：由颐，厉吉，利涉大川。","baihua":"颐养之道由此而出，责任重大有危厉；但能担当则吉，利涉大川。","xiaoxiang":"小象 由颐厉吉，大有庆也。"}],"special":[],"wenyan":[],"互卦":"䷁ 坤为地 · 第2卦","错卦":"䷛ 泽风大过 · 第28卦","综卦":"䷚ 山雷颐 · 第27卦","应位":"2/3 有应","中正":"1 中正 · 3 得正","changes":["初九 → ䷖ 山地剥 · 第23卦","六二 → ䷨ 山泽损 · 第41卦","六三 → ䷕ 山火贲 · 第22卦","六四 → ䷔ 火雷噬嗑 · 第21卦","六五 → ䷩ 风雷益 · 第42卦","上九 → ䷗ 地雷复 · 第24卦"]},{"index":28,"section":"上经","title":"泽风大过","eyebrow":"上经 · 巽下兑上","meta":"巽下兑上 · 巽下兑上","lines_top_down":[0,1,1,1,1,0],"symbol":"䷛","guaci":"大过：栋桡，利有攸往，亨。","guaci_baihua":"栋梁弯曲，形势负担过重；利有所往，仍可亨通。","scriptures":[{"name":"彖曰","text":"大过，大者过也。栋桡，本末弱也。刚过而中，巽而说行，利有攸往，乃亨。大过之时大矣哉！","baihua":"《彖》说大过是大的方面超过常度，栋梁弯曲因为本末柔弱。刚虽过盛但居中，又能巽顺悦行，所以仍利有攸往；非常之时需要非常担当。"},{"name":"大象","text":"泽灭木，大过；君子以独立不惧，遯世无闷。","baihua":"《大象》取象为“泽灭木，大过”。白话说：观此卦象，君子应当以独立不惧，遯世无闷。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：藉用白茅，无咎。","baihua":"用洁白茅草承垫祭物，极其谨慎；大过之初以敬慎承重，无咎。","xiaoxiang":"小象 藉用白茅，柔在下也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：枯杨生稊，老夫得其女妻，无不利。","baihua":"枯杨发新芽，老夫得少妻，象征过中有生机；柔刚相济，无不利。","xiaoxiang":"小象 老夫女妻，过以相与也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：栋桡，凶。","baihua":"屋梁弯曲，承重失衡；大过中的关键支撑受损，凶。","xiaoxiang":"小象 栋桡之凶，不可以有辅也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：栋隆，吉；有它，吝。","baihua":"屋梁隆起能承重，吉；但若另有牵连私意，则吝。","xiaoxiang":"小象 栋隆之吉，不桡乎下也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：枯杨生华，老妇得其士夫，无咎无誉。","baihua":"枯杨开花、老妇得少夫，外表有荣而生机有限；无咎也无誉。","xiaoxiang":"小象 枯杨生华，何可久也；老妇士夫，亦可丑也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：过涉灭顶，凶，无咎。","baihua":"涉水过深而没顶，凶；但为义而过，虽败不必归咎。","xiaoxiang":"小象 过涉之凶，不可咎也。"}],"special":[],"wenyan":[],"互卦":"䷀ 乾为天 · 第1卦","错卦":"䷚ 山雷颐 · 第27卦","综卦":"䷛ 泽风大过 · 第28卦","应位":"2/3 有应","中正":"1 中正 · 3 得正","changes":["初六 → ䷪ 泽天夬 · 第43卦","九二 → ䷞ 泽山咸 · 第31卦","九三 → ䷮ 泽水困 · 第47卦","九四 → ䷯ 水风井 · 第48卦","九五 → ䷟ 雷风恒 · 第32卦","上六 → ䷫ 天风姤 · 第44卦"]},{"index":29,"section":"上经","title":"坎为水","eyebrow":"上经 · 坎下坎上","meta":"坎下坎上 · 坎下坎上","lines_top_down":[0,1,0,0,1,0],"symbol":"䷜","guaci":"习坎：有孚，维心亨。行有尚。","guaci_baihua":"重重险陷中，有诚信，内心维系亨通；行动会受到推重。","scriptures":[{"name":"彖曰","text":"习坎，重险也。水流而不盈，行险而不失其信。维心亨，乃以刚中也。行有尚，往有功也。天险不可升也，地险山川丘陵也，王公设险以守其国。险之时用大矣哉！","baihua":"《彖》说习坎是重重险阻。水流不满而不失信，说明行险仍要守诚信；心能亨通是因为刚中，王公也以险设防守国。"},{"name":"大象","text":"水洊至，习坎；君子以常德行，习教事。","baihua":"《大象》取象为“水洊至，习坎”。白话说：观此卦象，君子应当以常德行，习教事。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：习坎，入于坎窞，凶。","baihua":"重重险陷，一开始就落入更深坑穴；不能自拔，凶。","xiaoxiang":"小象 习坎入坎，失道凶也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：坎有险，求小得。","baihua":"处险中仍有刚中之德，大事难成，只可求小得。","xiaoxiang":"小象 求小得，未出中也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：来之坎坎，险且枕，入于坎窞，勿用。","baihua":"来去皆险，既危险又枕伏于险，终入深穴；不可有所作为。","xiaoxiang":"小象 来之坎坎，终无功也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：樽酒簋贰，用缶，纳约自牖，终无咎。","baihua":"以简单酒食瓦器，诚恳从窗口纳约；在险中以简朴诚信沟通，终无咎。","xiaoxiang":"小象 樽酒簋贰，刚柔际也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：坎不盈，祗既平，无咎。","baihua":"险坑尚未满溢，但已趋平；中正处险，能不过分，故无咎。","xiaoxiang":"小象 坎不盈，中未大也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：系用徽纆，寘于丛棘，三岁不得，凶。","baihua":"被绳索捆系，置于荆棘之中，三年不得解脱；险极而不能出，凶。","xiaoxiang":"小象 上六失道，凶三岁也。"}],"special":[],"wenyan":[],"互卦":"䷚ 山雷颐 · 第27卦","错卦":"䷝ 离为火 · 第30卦","综卦":"䷜ 坎为水 · 第29卦","应位":"0/3 有应","中正":"1 中正 · 3 得正","changes":["初六 → ䷻ 水泽节 · 第60卦","九二 → ䷇ 水地比 · 第8卦","六三 → ䷯ 水风井 · 第48卦","六四 → ䷮ 泽水困 · 第47卦","九五 → ䷆ 地水师 · 第7卦","上六 → ䷺ 风水涣 · 第59卦"]},{"index":30,"section":"上经","title":"离为火","eyebrow":"上经 · 离下离上","meta":"离下离上 · 离下离上","lines_top_down":[1,0,1,1,0,1],"symbol":"䷝","guaci":"离：利贞。亨。畜牝牛，吉。","guaci_baihua":"依附光明，利于守正而亨通；畜养柔顺的母牛则吉。","scriptures":[{"name":"彖曰","text":"离，丽也。日月丽乎天，百谷草木丽乎土。重明以丽乎正，乃化成天下。柔丽乎中正，故亨，是以畜牝牛吉也。","baihua":"《彖》说离是附丽，日月附丽于天，百谷草木附丽于土。重明而附丽于正，可以化成天下；柔爻中正，所以亨，畜养柔顺如牝牛则吉。"},{"name":"大象","text":"明两作，离；大人以继明照于四方。","baihua":"《大象》取象为“明两作，离”。白话说：观此卦象，大人应当以继明照于四方。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：履错然，敬之无咎。","baihua":"步履交错纷杂，火明初动易乱；以敬慎处之，则无咎。","xiaoxiang":"小象 履错之敬，以辟咎也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：黄离，元吉。","baihua":"黄色中和而附丽得正，文明内含中德；大吉。","xiaoxiang":"小象 黄离元吉，得中道也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：日昃之离，不鼓缶而歌，则大耋之嗟，凶。","baihua":"太阳偏西，光明将衰；若不能安时而乐，只剩老年哀叹，凶。","xiaoxiang":"小象 日昃之离，何可久也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：突如其来如，焚如，死如，弃如。","baihua":"火势突然而来，焚烧、死亡、被弃，象征刚躁失位导致剧烈灾变。","xiaoxiang":"小象 突如其来如，无所容也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：出涕沱若，戚嗟若，吉。","baihua":"居尊而能悲忧流涕、警醒叹息；因忧惧而不敢骄，故吉。","xiaoxiang":"小象 六五之吉，离王公也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：王用出征，有嘉折首，获匪其丑，无咎。","baihua":"王者出征，嘉美在于斩其首恶而不滥及同类；明罚得当，无咎。","xiaoxiang":"小象 王用出征，以正邦也。"}],"special":[],"wenyan":[],"互卦":"䷛ 泽风大过 · 第28卦","错卦":"䷜ 坎为水 · 第29卦","综卦":"䷝ 离为火 · 第30卦","应位":"0/3 有应","中正":"1 中正 · 3 得正","changes":["初九 → ䷷ 火山旅 · 第56卦","六二 → ䷍ 火天大有 · 第14卦","九三 → ䷔ 火雷噬嗑 · 第21卦","九四 → ䷕ 山火贲 · 第22卦","六五 → ䷌ 天火同人 · 第13卦","上九 → ䷶ 雷火丰 · 第55卦"]},{"index":31,"section":"下经","title":"泽山咸","eyebrow":"下经 · 艮下兑上","meta":"艮下兑上 · 艮下兑上","lines_top_down":[0,1,1,1,0,0],"symbol":"䷞","guaci":"咸：亨。利贞。取女吉。","guaci_baihua":"感应相通，亨通；利于守正，娶女吉。","scriptures":[{"name":"彖曰","text":"咸，感也。柔上而刚下，二气感应以相与。止而说，男下女，是以亨，利贞，取女吉也。天地感而万物化生，圣人感人心而天下和平。观其所感，而天地万物之情可见矣。","baihua":"《彖》说咸是感应，柔上刚下，二气相感相与。少男下少女而成婚姻之象；天地感而万物生，圣人感人心而天下和平，感通能见天地万物之情。"},{"name":"大象","text":"山上有泽，咸；君子以虚受人。","baihua":"《大象》取象为“山上有泽，咸”。白话说：观此卦象，君子应当以虚受人。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：咸其拇。","baihua":"感应从脚拇趾开始，动机尚浅；只是初动，还不足以成大事。","xiaoxiang":"小象 咸其拇，志在外也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：咸其腓，凶；居吉。","baihua":"感应到小腿，欲随动而行，躁动则凶；安居守静则吉。","xiaoxiang":"小象 虽凶居吉，顺不害也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：咸其股，执其随，往吝。","baihua":"感应到大腿，只执着于随人而动；若前往则吝。","xiaoxiang":"小象 咸其股，亦不处也。志在随人，所执下也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：贞吉悔亡，憧憧往来，朋从尔思。","baihua":"守正则吉而悔亡；若心思憧憧往来，朋友也只随你的私思而动。","xiaoxiang":"小象 贞吉悔亡，未感害也。憧憧往来，未光大也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：咸其脢，无悔。","baihua":"感应到背肉，已不受口腹情欲牵引；能静而不妄，无悔。","xiaoxiang":"小象 咸其脢，志末也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：咸其辅颊舌。","baihua":"感应只到口舌辅颊，流于言语；咸感至终若只剩说辞，力量有限。","xiaoxiang":"小象 咸其辅颊舌，滕口说也。"}],"special":[],"wenyan":[],"互卦":"䷫ 天风姤 · 第44卦","错卦":"䷨ 山泽损 · 第41卦","综卦":"䷟ 雷风恒 · 第32卦","应位":"3/3 有应","中正":"2 中正 · 4 得正","changes":["初六 → ䷰ 泽火革 · 第49卦","六二 → ䷛ 泽风大过 · 第28卦","九三 → ䷬ 泽地萃 · 第45卦","九四 → ䷦ 水山蹇 · 第39卦","九五 → ䷽ 雷山小过 · 第62卦","上六 → ䷠ 天山遁 · 第33卦"]},{"index":32,"section":"下经","title":"雷风恒","eyebrow":"下经 · 巽下震上","meta":"巽下震上 · 巽下震上","lines_top_down":[0,0,1,1,1,0],"symbol":"䷟","guaci":"恒：亨，无咎。利贞，利有攸往。","guaci_baihua":"恒久之道亨通而无咎；利于守正，也利有所往。","scriptures":[{"name":"彖曰","text":"恒，久也。刚上而柔下，雷风相与，巽而动，刚柔皆应，恒。恒亨无咎利贞，久于其道也。天地之道，恒久而不已也。利有攸往，终则有始也。日月得天而能久照，四时变化而能久成，圣人久于其道而天下化成。观其所恒，而天地万物之情可见矣。","baihua":"《彖》说恒是长久，雷风相与，巽顺而动，刚柔相应。恒久不是僵化，而是久于正道、终而复始；天地、日月、四时与圣人教化皆以恒成事。"},{"name":"大象","text":"雷风，恒；君子以立不易方。","baihua":"《大象》取象为“雷风，恒”。白话说：观此卦象，君子应当以立不易方。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：浚恒，贞凶，无攸利。","baihua":"一开始就过深地求恒久，强求不变；即使自以为正也凶，无所利。","xiaoxiang":"小象 浚恒之凶，始求深也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：悔亡。","baihua":"刚中得位，能在恒道中适度而行；悔恨消亡。","xiaoxiang":"小象 九二悔亡，能久中也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：不恒其德，或承之羞，贞吝。","baihua":"德行不能恒久，可能承受羞辱；即使坚持也吝。","xiaoxiang":"小象 不恒其德，无所容也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：田无禽。","baihua":"田猎却无禽可获，说明恒而不得其位，劳而无功。","xiaoxiang":"小象 久非其位，安得禽也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：恒其德，贞，妇人吉，夫子凶。","baihua":"柔顺守恒，对妇人之道吉；若刚健者也只守柔从，则失其担当而凶。","xiaoxiang":"小象 妇人贞吉，从一而终也。夫子制义，从妇凶也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：振恒，凶。","baihua":"恒久之道到终极却震动不安，不能稳定；凶。","xiaoxiang":"小象 振恒在上，大无功也。"}],"special":[],"wenyan":[],"互卦":"䷪ 泽天夬 · 第43卦","错卦":"䷩ 风雷益 · 第42卦","综卦":"䷞ 泽山咸 · 第31卦","应位":"3/3 有应","中正":"0 中正 · 2 得正","changes":["初六 → ䷡ 雷天大壮 · 第34卦","九二 → ䷽ 雷山小过 · 第62卦","九三 → ䷧ 雷水解 · 第40卦","九四 → ䷭ 地风升 · 第46卦","六五 → ䷛ 泽风大过 · 第28卦","上六 → ䷱ 火风鼎 · 第50卦"]},{"index":33,"section":"下经","title":"天山遁","eyebrow":"下经 · 艮下乾上","meta":"艮下乾上 · 艮下乾上","lines_top_down":[1,1,1,1,0,0],"symbol":"䷠","guaci":"遁：亨。小利贞。","guaci_baihua":"退避可亨通；小事守正有利。","scriptures":[{"name":"彖曰","text":"遯亨，遯而亨也。刚当位而应，与时行也。小利贞，浸而长也。遯之时义大矣哉！","baihua":"《彖》说遯是退避而仍能亨通，因为刚爻当位有应，能随时而行。阴柔渐长时，小事可守正，大事宜退避，所以遯的时义很大。"},{"name":"大象","text":"天下有山，遯；君子以远小人，不恶而严。","baihua":"《大象》取象为“天下有山，遯”。白话说：观此卦象，君子应当以远小人，不恶而严。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：遯尾，厉，勿用有攸往。","baihua":"退避在尾端，已经落后而危险；不宜有所前往。","xiaoxiang":"小象 遯尾之厉，不往何灾也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：执之用黄牛之革，莫之胜说。","baihua":"用黄牛皮牢牢系住，表示退避之志坚定不易解脱；能固守中顺。","xiaoxiang":"小象 执用黄牛，固志也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：系遯，有疾厉，畜臣妾吉。","baihua":"退避时有所牵系，如有疾患而危；只适合畜养臣妾等小事，不宜大用。","xiaoxiang":"小象 系遯之厉，有疾惫也。畜臣妾吉，不可大事也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：好遯，君子吉，小人否。","baihua":"能好好退避，君子知几而吉；小人贪恋不舍则否塞。","xiaoxiang":"小象 君子好遯，小人否也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：嘉遯，贞吉。","baihua":"退避得其美善，合乎时位；守正则吉。","xiaoxiang":"小象 嘉遯贞吉，以正志也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：肥遯，无不利。","baihua":"退避从容充裕，无所牵累；无不利。","xiaoxiang":"小象 肥遯无不利，无所疑也。"}],"special":[],"wenyan":[],"互卦":"䷫ 天风姤 · 第44卦","错卦":"䷒ 地泽临 · 第19卦","综卦":"䷡ 雷天大壮 · 第34卦","应位":"2/3 有应","中正":"2 中正 · 3 得正","changes":["初六 → ䷌ 天火同人 · 第13卦","六二 → ䷫ 天风姤 · 第44卦","九三 → ䷋ 天地否 · 第12卦","九四 → ䷴ 风山渐 · 第53卦","九五 → ䷷ 火山旅 · 第56卦","上九 → ䷞ 泽山咸 · 第31卦"]},{"index":34,"section":"下经","title":"雷天大壮","eyebrow":"下经 · 乾下震上","meta":"乾下震上 · 乾下震上","lines_top_down":[0,0,1,1,1,1],"symbol":"䷡","guaci":"大壮：利贞。","guaci_baihua":"强盛之时，利于守正。","scriptures":[{"name":"彖曰","text":"大壮，大者壮也。刚以动，故壮。大壮利贞，大者正也。正大而天地之情可见矣。","baihua":"《彖》说大壮是阳刚壮盛，乾刚而震动。壮大必须利于正，真正的大不是逞强，而是正大；从正大可见天地之情。"},{"name":"大象","text":"雷在天上，大壮；君子以非礼弗履。","baihua":"《大象》取象为“雷在天上，大壮”。白话说：观此卦象，君子应当以非礼弗履。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：壮于趾，征凶，有孚。","baihua":"强壮表现在脚趾，急于行动；若出征则凶，即使有诚也不足恃。","xiaoxiang":"小象 壮于趾，其孚穷也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：贞吉。","baihua":"刚中而不躁，守正则吉；大壮之时贵在中道。","xiaoxiang":"小象 九二贞吉，以中也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：小人用壮，君子用罔，贞厉。羝羊触藩，羸其角。","baihua":"小人恃强，君子则不用强；若一味强壮，如公羊触篱而角被困，虽正亦危。","xiaoxiang":"小象 小人用壮，君子罔也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：贞吉悔亡，藩决不羸，壮于大舆之輹。","baihua":"守正则吉而悔亡，篱笆已开不再困角；力量用在大车轴上，可承载大任。","xiaoxiang":"小象 藩决不羸，尚往也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：丧羊于易，无悔。","baihua":"在平易处失去刚壮之羊，象征不再恃强；无悔。","xiaoxiang":"小象 丧羊于易，位不当也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：羝羊触藩，不能退，不能遂，无攸利；艰则吉。","baihua":"强行触篱，进退两难，无所利；若能艰难反省、守正忍耐，则吉。","xiaoxiang":"小象 不能退，不能遂，不详也。艰则吉，咎不长也。"}],"special":[],"wenyan":[],"互卦":"䷪ 泽天夬 · 第43卦","错卦":"䷓ 风地观 · 第20卦","综卦":"䷠ 天山遁 · 第33卦","应位":"2/3 有应","中正":"0 中正 · 3 得正","changes":["初九 → ䷟ 雷风恒 · 第32卦","九二 → ䷶ 雷火丰 · 第55卦","九三 → ䷵ 雷泽归妹 · 第54卦","九四 → ䷊ 地天泰 · 第11卦","六五 → ䷪ 泽天夬 · 第43卦","上六 → ䷍ 火天大有 · 第14卦"]},{"index":35,"section":"下经","title":"火地晋","eyebrow":"下经 · 坤下离上","meta":"坤下离上 · 坤下离上","lines_top_down":[1,0,1,0,0,0],"symbol":"䷢","guaci":"晋：康侯用锡马蕃庶，昼日三接。","guaci_baihua":"晋升进展，如安邦之侯受赐众马，一日之内多次被接见。","scriptures":[{"name":"彖曰","text":"晋，进也。明出地上，顺而丽乎大明，柔进而上行，是以康侯用锡马蕃庶，昼日三接也。","baihua":"《彖》说晋是进，光明从地上升起，柔顺附丽于大明。柔进而上行，所以康侯受赏、白日多次接见，象征进升得时。"},{"name":"大象","text":"明出地上，晋；君子以自昭明德。","baihua":"《大象》取象为“明出地上，晋”。白话说：观此卦象，君子应当以自昭明德。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：晋如摧如，贞吉。罔孚，裕无咎。","baihua":"刚开始上进却受阻折，守正则吉；未被信任时，宽裕自处可无咎。","xiaoxiang":"小象 晋如摧如，独行正也。裕无咎，未受命也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：晋如愁如，贞吉。受兹介福，于其王母。","baihua":"上进中带忧愁，守正则吉；能从柔中尊长处得到大福。","xiaoxiang":"小象 受兹介福，以中正也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：众允，悔亡。","baihua":"众人信任支持，悔恨消亡；上进开始获得共同认可。","xiaoxiang":"小象 众允之，志上行也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：晋如鼫鼠，贞厉。","baihua":"上进如鼫鼠贪而多疑，居位不当；即使守正也有危险。","xiaoxiang":"小象 鼫鼠贞厉，位不当也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：悔亡，失得勿恤。往吉，无不利。","baihua":"悔已消亡，不必忧虑得失；前往吉，无不利。","xiaoxiang":"小象 失得勿恤，往有庆也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：晋其角，维用伐邑，厉吉无咎，贞吝。","baihua":"上进到角端，刚极而过；只可用于征治本邑内部，虽危可吉无咎，但固执则吝。","xiaoxiang":"小象 维用伐邑，道未光也。"}],"special":[],"wenyan":[],"互卦":"䷦ 水山蹇 · 第39卦","错卦":"䷄ 水天需 · 第5卦","综卦":"䷣ 地火明夷 · 第36卦","应位":"2/3 有应","中正":"1 中正 · 1 得正","changes":["初六 → ䷔ 火雷噬嗑 · 第21卦","六二 → ䷿ 火水未济 · 第64卦","六三 → ䷷ 火山旅 · 第56卦","九四 → ䷖ 山地剥 · 第23卦","六五 → ䷋ 天地否 · 第12卦","上九 → ䷏ 雷地豫 · 第16卦"]},{"index":36,"section":"下经","title":"地火明夷","eyebrow":"下经 · 离下坤上","meta":"离下坤上 · 离下坤上","lines_top_down":[0,0,0,1,0,1],"symbol":"䷣","guaci":"明夷：利艰贞。","guaci_baihua":"光明受伤，利于在艰难中守正。","scriptures":[{"name":"彖曰","text":"明入地中，明夷。内文明而外柔顺，以蒙大难，文王以之。利艰贞，晦其明也。内难而能正其志，箕子以之。","baihua":"《彖》说明夷是光明入地、明受伤害。内有文明而外能柔顺，可以蒙受大难而不失正，文王、箕子都是这种晦明守正的典型。"},{"name":"大象","text":"明入地中，明夷；君子以莅众，用晦而明。","baihua":"《大象》取象为“明入地中，明夷”。白话说：观此卦象，君子应当以莅众，用晦而明。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：明夷于飞，垂其翼。君子于行，三日不食，有攸往，主人有言。","baihua":"光明受伤，如鸟飞而垂翼；君子出行艰苦，虽有所往，也会遭主人责言。","xiaoxiang":"小象 君子于行，义不食也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：明夷，夷于左股，用拯马壮，吉。","baihua":"光明受伤在左股，伤而未及要害；用强壮之马救助，吉。","xiaoxiang":"小象 六二之吉，顺以则也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：明夷于南狩，得其大首，不可疾贞。","baihua":"在南方狩猎中伤明却擒获首恶；除暗有功，但不可急于固执推进。","xiaoxiang":"小象 南狩之志，乃大得也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：入于左腹，获明夷之心，于出门庭。","baihua":"深入暗伤之腹，得知其内心；看清后应离开门庭，脱离黑暗。","xiaoxiang":"小象 入于左腹，获心意也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：箕子之明夷，利贞。","baihua":"像箕子在暴政中隐藏其明，受伤而守正；有利于坚贞自保。","xiaoxiang":"小象 箕子之贞，明不可息也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：不明晦，初登于天，后入于地。","baihua":"不但不明，反而昏晦；开始高登于天，后来坠入地下，暗主终败。","xiaoxiang":"小象 初登于天，照四国也。后入于地，失则也。"}],"special":[],"wenyan":[],"互卦":"䷧ 雷水解 · 第40卦","错卦":"䷅ 天水讼 · 第6卦","综卦":"䷢ 火地晋 · 第35卦","应位":"2/3 有应","中正":"1 中正 · 5 得正","changes":["初九 → ䷎ 地山谦 · 第15卦","六二 → ䷊ 地天泰 · 第11卦","九三 → ䷗ 地雷复 · 第24卦","六四 → ䷶ 雷火丰 · 第55卦","六五 → ䷾ 水火既济 · 第63卦","上六 → ䷕ 山火贲 · 第22卦"]},{"index":37,"section":"下经","title":"风火家人","eyebrow":"下经 · 离下巽上","meta":"离下巽上 · 离下巽上","lines_top_down":[1,1,0,1,0,1],"symbol":"䷤","guaci":"家人：利女贞。","guaci_baihua":"治家之道，利于女子守正，也指家庭成员各守其正。","scriptures":[{"name":"彖曰","text":"家人，女正位乎内，男正位乎外，男女正，天地之大义也。家人有严君焉，父母之谓也。父父、子子、兄兄、弟弟、夫夫、妇妇，而家道正，正家而天下定矣。","baihua":"《彖》说家人以男女内外各正为本，这是天地大义。家中有父母为严君，父子兄弟夫妇各尽其分，家道正则天下可定。"},{"name":"大象","text":"风自火出，家人；君子以言有物而行有恒。","baihua":"《大象》取象为“风自火出，家人”。白话说：观此卦象，君子应当以言有物而行有恒。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：闲有家，悔亡。","baihua":"治家之初先设防范和规矩；家道有界限，悔亡。","xiaoxiang":"小象 闲有家，志未变也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：无攸遂，在中馈，贞吉。","baihua":"不自专外事，安于中馈本分；守正则吉。","xiaoxiang":"小象 六二之吉，顺以巽也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：家人嗃嗃，悔厉吉；妇子嘻嘻，终吝。","baihua":"家教严厉会有悔和危，但终能吉；若妇子嬉笑无度，终吝。","xiaoxiang":"小象 家人嗃嗃，未失也。妇子嘻嘻，失家节也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：富家，大吉。","baihua":"能使家道富足，不只是财富，也包括秩序和德业；大吉。","xiaoxiang":"小象 富家大吉，顺在位也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：王假有家，勿恤吉。","baihua":"王者以家道治天下，诚意感格于家；不必忧恤，吉。","xiaoxiang":"小象 王假有家，交相爱也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：有孚威如，终吉。","baihua":"治家最终要诚信与威严并存；有信而有威，终吉。","xiaoxiang":"小象 威如之吉，反身之谓也。"}],"special":[],"wenyan":[],"互卦":"䷿ 火水未济 · 第64卦","错卦":"䷧ 雷水解 · 第40卦","综卦":"䷥ 火泽睽 · 第38卦","应位":"2/3 有应","中正":"2 中正 · 5 得正","changes":["初九 → ䷴ 风山渐 · 第53卦","六二 → ䷈ 风天小畜 · 第9卦","九三 → ䷩ 风雷益 · 第42卦","六四 → ䷌ 天火同人 · 第13卦","九五 → ䷕ 山火贲 · 第22卦","上九 → ䷾ 水火既济 · 第63卦"]},{"index":38,"section":"下经","title":"火泽睽","eyebrow":"下经 · 兑下离上","meta":"兑下离上 · 兑下离上","lines_top_down":[1,0,1,0,1,1],"symbol":"䷥","guaci":"睽：小事吉。","guaci_baihua":"乖离分歧之时，小事可吉。","scriptures":[{"name":"彖曰","text":"睽，火动而上，泽动而下。二女同居，其志不同行。说而丽乎明，柔进而上行，得中而应乎刚，是以小事吉。天地睽而其事同也，男女睽而其志通也，万物睽而其事类也。睽之时用大矣哉！","baihua":"《彖》说睽是火上泽下、二女同居而志不同。虽有乖异，若悦而附明、柔中应刚，小事可吉；天地、男女、万物虽睽异而事理可通。"},{"name":"大象","text":"上火下泽，睽；君子以同而异。","baihua":"《大象》取象为“上火下泽，睽”。白话说：观此卦象，君子应当以同而异。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：悔亡。丧马勿逐，自复。见恶人，无咎。","baihua":"悔恨消亡；失马不必追，马会自回。遇见恶人也能包容应对，则无咎。","xiaoxiang":"小象 见恶人，以辟咎也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：遇主于巷，无咎。","baihua":"在小巷中遇到主人，虽非正途却能相遇；睽离中仍有沟通，无咎。","xiaoxiang":"小象 遇主于巷，未失道也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：见舆曳，其牛掣，其人天且劓，无初有终。","baihua":"看见车被拖、牛被牵制、人受刑伤，初时艰难受阻；但最终有结果。","xiaoxiang":"小象 见舆曳，位不当也。无初有终，遇刚也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：睽孤，遇元夫，交孚，厉无咎。","baihua":"睽离而孤独，却遇到大丈夫；彼此诚信相交，虽危无咎。","xiaoxiang":"小象 交孚无咎，志行也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：悔亡。厥宗噬肤，往何咎。","baihua":"悔亡；同宗相亲如咬柔肤般易合，前往何咎。","xiaoxiang":"小象 厥宗噬肤，往有庆也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：睽孤，见豕负涂，载鬼一车。先张之弧，后说之弧；匪寇婚媾。往遇雨则吉。","baihua":"睽离极深时疑心生幻，见猪负泥、鬼满车；先张弓后放下，明白不是寇仇而是婚媾，前往遇雨则吉。","xiaoxiang":"小象 遇雨之吉，群疑亡也。"}],"special":[],"wenyan":[],"互卦":"䷾ 水火既济 · 第63卦","错卦":"䷦ 水山蹇 · 第39卦","综卦":"䷤ 风火家人 · 第37卦","应位":"2/3 有应","中正":"0 中正 · 1 得正","changes":["初九 → ䷿ 火水未济 · 第64卦","九二 → ䷔ 火雷噬嗑 · 第21卦","六三 → ䷍ 火天大有 · 第14卦","九四 → ䷨ 山泽损 · 第41卦","六五 → ䷉ 天泽履 · 第10卦","上九 → ䷵ 雷泽归妹 · 第54卦"]},{"index":39,"section":"下经","title":"水山蹇","eyebrow":"下经 · 艮下坎上","meta":"艮下坎上 · 艮下坎上","lines_top_down":[0,1,0,1,0,0],"symbol":"䷦","guaci":"蹇：利西南，不利东北；利见大人，贞吉。","guaci_baihua":"遇险阻，利向西南平易之方，不利向东北险阻之方；利见大人，守正则吉。","scriptures":[{"name":"彖曰","text":"蹇，难也，险在前也。见险而能止，知矣哉！蹇利西南，往得中也；不利东北，其道穷也。利见大人，往有功也。当位贞吉，以正邦也。蹇之时用大矣哉！","baihua":"《彖》说蹇是难，险在前而能止才是智慧。往西南得中，往东北道穷；见大人可有功，当位守正能正邦，蹇难之时用很大。"},{"name":"大象","text":"山上有水，蹇；君子以反身修德。","baihua":"《大象》取象为“山上有水，蹇”。白话说：观此卦象，君子应当以反身修德。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：往蹇，来誉。","baihua":"前往则遇艰难，退回来反得称誉；蹇难初起，宜止不宜进。","xiaoxiang":"小象 往蹇来誉，宜待也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：王臣蹇蹇，匪躬之故。","baihua":"王臣重重艰难，并非为自身私事；为公尽职，虽难可敬。","xiaoxiang":"小象 王臣蹇蹇，终无尤也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：往蹇，来反。","baihua":"前往遇险，回来反身自保；知难而返是智慧。","xiaoxiang":"小象 往蹇来反，内喜之也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：往蹇，来连。","baihua":"前往艰难，回来可与人联合；以合力解蹇。","xiaoxiang":"小象 往蹇来连，当位实也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：大蹇，朋来。","baihua":"处大难之中，朋友来助；中正者能感召援手。","xiaoxiang":"小象 大蹇朋来，以中节也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：往蹇，来硕，吉；利见大人。","baihua":"前往仍难，回来则有硕大收获；吉，利于见大人求助成事。","xiaoxiang":"小象 往蹇来硕，志在内也。利见大人，以从贵也。"}],"special":[],"wenyan":[],"互卦":"䷿ 火水未济 · 第64卦","错卦":"䷥ 火泽睽 · 第38卦","综卦":"䷧ 雷水解 · 第40卦","应位":"2/3 有应","中正":"2 中正 · 5 得正","changes":["初六 → ䷾ 水火既济 · 第63卦","六二 → ䷯ 水风井 · 第48卦","九三 → ䷇ 水地比 · 第8卦","六四 → ䷞ 泽山咸 · 第31卦","九五 → ䷎ 地山谦 · 第15卦","上六 → ䷴ 风山渐 · 第53卦"]},{"index":40,"section":"下经","title":"雷水解","eyebrow":"下经 · 坎下震上","meta":"坎下震上 · 坎下震上","lines_top_down":[0,0,1,0,1,0],"symbol":"䷧","guaci":"解：利西南，无所往，其来复吉。有攸往，夙吉。","guaci_baihua":"解除险难，利向西南。若无所前往，回来安定则吉；若必须有所前往，及早行动则吉。","scriptures":[{"name":"彖曰","text":"解，险以动，动而免乎险，解。解利西南，往得众也。其来复吉，乃得中也。有攸往，夙吉，往有功也。天地解而雷雨作，雷雨作而百果草木皆甲坼。解之时大矣哉！","baihua":"《彖》说解是动而脱离险。往西南得众，来复而吉是得中；有事早往则有功。天地解而雷雨作，万物开甲生长，解的时义很大。"},{"name":"大象","text":"雷雨作，解；君子以赦过宥罪。","baihua":"《大象》取象为“雷雨作，解”。白话说：观此卦象，君子应当以赦过宥罪。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：无咎。","baihua":"解难之初，柔顺得宜，没有过咎；先以安静解除紧张。","xiaoxiang":"小象 刚柔之际，义无咎也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：田获三狐，得黄矢，贞吉。","baihua":"田猎获三狐并得黄矢，象征除去奸邪、得到中直之道；守正则吉。","xiaoxiang":"小象 九二贞吉，得中道也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：负且乘，致寇至，贞吝。","baihua":"背负者却乘车，德位不称而招寇；即使自以为正也吝。","xiaoxiang":"小象 负且乘，亦可丑也。自我致戎，又谁咎也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：解而拇，朋至斯孚。","baihua":"解除对脚拇的牵累，摆脱低下牵绊；真正朋友才会来而诚信相合。","xiaoxiang":"小象 解而拇，未当位也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：君子维有解，吉；有孚于小人。","baihua":"君子能解除小人之患，吉；其诚信连小人也能感知。","xiaoxiang":"小象 君子有解，小人退也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：公用射隼于高墉之上，获之，无不利。","baihua":"公侯射下高墙上的隼，象征除去高位害物；一举命中，无不利。","xiaoxiang":"小象 公用射隼，以解悖也。"}],"special":[],"wenyan":[],"互卦":"䷾ 水火既济 · 第63卦","错卦":"䷤ 风火家人 · 第37卦","综卦":"䷦ 水山蹇 · 第39卦","应位":"2/3 有应","中正":"0 中正 · 1 得正","changes":["初六 → ䷵ 雷泽归妹 · 第54卦","九二 → ䷏ 雷地豫 · 第16卦","六三 → ䷟ 雷风恒 · 第32卦","九四 → ䷆ 地水师 · 第7卦","六五 → ䷮ 泽水困 · 第47卦","上六 → ䷿ 火水未济 · 第64卦"]},{"index":41,"section":"下经","title":"山泽损","eyebrow":"下经 · 兑下艮上","meta":"兑下艮上 · 兑下艮上","lines_top_down":[1,0,0,0,1,1],"symbol":"䷨","guaci":"损：有孚，元吉。无咎，可贞，利有攸往。曷之用？二簋可用享。","guaci_baihua":"减损中有诚信，则大吉无咎，可以守正，利有所往。用什么祭享？即使用两簋薄礼，也可因诚而用于祭享。","scriptures":[{"name":"彖曰","text":"损，损下益上，其道上行。损而有孚，元吉无咎可贞利有攸往。曷之用？二簋可用享。二簋应有时，损刚益柔有时，损益盈虚，与时偕行。","baihua":"《彖》说损是损下益上，其道上行。损若有诚信，就可元吉无咎；二簋也可享祭，说明减损贵在合时，盈虚损益都应随时而行。"},{"name":"大象","text":"山下有泽，损；君子以惩忿窒欲。","baihua":"《大象》取象为“山下有泽，损”。白话说：观此卦象，君子应当以惩忿窒欲。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：已事遄往，无咎，酌损之。","baihua":"本职已完便迅速前往助人，无咎；但要斟酌损减，不可过度。","xiaoxiang":"小象 已事遄往，尚合志也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：利贞，征凶，弗损益之。","baihua":"利于守正，不宜出征；不随便损己，反而能益人。","xiaoxiang":"小象 九二利贞，中以为志也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：三人行，则损一人；一人行，则得其友。","baihua":"三人同行会损去一人，一人独行反得其友；关系贵在专一相应。","xiaoxiang":"小象 一人行，三则疑也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：损其疾，使遄有喜，无咎。","baihua":"损去自己的疾病弊病，使喜事迅速到来；无咎。","xiaoxiang":"小象 损其疾，亦可喜也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：或益之十朋之龟，弗克违，元吉。","baihua":"有人以价值十朋的大龟来增益你，无法推辞；大吉。","xiaoxiang":"小象 六五元吉，自上祐也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：弗损益之，无咎，贞吉，利有攸往，得臣无家。","baihua":"不损下而能益上，无咎；守正吉，前往有利，得臣而不使其私家化。","xiaoxiang":"小象 弗损益之，大得志也。"}],"special":[],"wenyan":[],"互卦":"䷗ 地雷复 · 第24卦","错卦":"䷞ 泽山咸 · 第31卦","综卦":"䷩ 风雷益 · 第42卦","应位":"3/3 有应","中正":"0 中正 · 2 得正","changes":["初九 → ䷃ 山水蒙 · 第4卦","九二 → ䷚ 山雷颐 · 第27卦","六三 → ䷙ 山天大畜 · 第26卦","六四 → ䷥ 火泽睽 · 第38卦","六五 → ䷼ 风泽中孚 · 第61卦","上九 → ䷒ 地泽临 · 第19卦"]},{"index":42,"section":"下经","title":"风雷益","eyebrow":"下经 · 震下巽上","meta":"震下巽上 · 震下巽上","lines_top_down":[1,1,0,0,0,1],"symbol":"䷩","guaci":"益：利有攸往。利涉大川。","guaci_baihua":"增益之时，利有所往，利于涉越大川。","scriptures":[{"name":"彖曰","text":"益，损上益下，民说无疆，自上下下，其道大光。利有攸往，中正有庆。利涉大川，木道乃行。益动而巽，日进无疆。天施地生，其益无方。凡益之道，与时偕行。","baihua":"《彖》说益是损上益下，民悦无疆，上者能下于下，道乃光大。利往、涉川，因中正有庆而木道可行；益要顺时推进，不可无方乱施。"},{"name":"大象","text":"风雷，益；君子以见善则迁，有过则改。","baihua":"《大象》取象为“风雷，益”。白话说：观此卦象，君子应当以见善则迁，有过则改。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：利用为大作，元吉，无咎。","baihua":"受益之初适合承担大作为；若合乎公义，则大吉无咎。","xiaoxiang":"小象 元吉无咎，下不厚事也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：或益之十朋之龟，弗克违，永贞吉。王用享于帝，吉。","baihua":"有人增益以十朋之龟，无法违拒；长久守正则吉，王用以祭帝亦吉。","xiaoxiang":"小象 或益之，自外来也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：益之用凶事，无咎。有孚中行，告公用圭。","baihua":"在凶事中得到增益，可无咎；诚信而行中道，并用圭告于公上。","xiaoxiang":"小象 益用凶事，固有之也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：中行，告公从，利用为依迁国。","baihua":"持中而行，告于公上并获从；适合依此迁国，进行大调整。","xiaoxiang":"小象 告公从，以益志也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：有孚惠心，勿问元吉。有孚惠我德。","baihua":"有诚信仁惠之心，不必问即大吉；人的诚信会回惠于我德。","xiaoxiang":"小象 有孚惠心，勿问之矣。惠我德，大得志也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：莫益之，或击之，立心勿恒，凶。","baihua":"没有人再来增益，反可能被攻击；立心不能恒久，凶。","xiaoxiang":"小象 莫益之，偏辞也。或击之，自外来也。"}],"special":[],"wenyan":[],"互卦":"䷖ 山地剥 · 第23卦","错卦":"䷟ 雷风恒 · 第32卦","综卦":"䷨ 山泽损 · 第41卦","应位":"3/3 有应","中正":"2 中正 · 4 得正","changes":["初九 → ䷓ 风地观 · 第20卦","六二 → ䷼ 风泽中孚 · 第61卦","六三 → ䷤ 风火家人 · 第37卦","六四 → ䷘ 天雷无妄 · 第25卦","九五 → ䷚ 山雷颐 · 第27卦","上九 → ䷂ 水雷屯 · 第3卦"]},{"index":43,"section":"下经","title":"泽天夬","eyebrow":"下经 · 乾下兑上","meta":"乾下兑上 · 乾下兑上","lines_top_down":[0,1,1,1,1,1],"symbol":"䷪","guaci":"夬：扬于王庭，孚号，有厉，告自邑，不利即戎，利有攸往。","guaci_baihua":"决断之事要在王庭公开宣告，以诚信呼号但仍有危险；告诫本邑，不利立即用兵，利有所往。","scriptures":[{"name":"彖曰","text":"夬，决也，刚决柔也。健而说，决而和，扬于王庭，柔乘五刚也。孚号有厉，其危乃光也。告自邑，不利即戎，所尚乃穷也。利有攸往，刚长乃终也。","baihua":"《彖》说夬是决断，刚决柔。决断要刚健而悦和，虽在王庭宣告，也要有诚信和危惧；不宜轻启兵戎，刚长至终才利有所往。"},{"name":"大象","text":"泽上于天，夬；君子以施禄及下，居德则忌。","baihua":"《大象》取象为“泽上于天，夬”。白话说：观此卦象，君子应当以施禄及下，居德则忌。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：壮于前趾，往不胜，为咎。","baihua":"决断刚起而强在脚趾，急进则不能胜；由此成咎。","xiaoxiang":"小象 不胜而往，咎也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：惕号，莫夜有戎，勿恤。","baihua":"警惕呼号，即使夜里有兵来也不必忧；有备则可无患。","xiaoxiang":"小象 有戎勿恤，得中道也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：壮于頄，有凶。君子夬夬，独行遇雨，若濡有愠，无咎。","baihua":"刚强显于面颊，有凶象；君子果决独行，遇雨被濡而有不快，但守义无咎。","xiaoxiang":"小象 君子夬夬，终无咎也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：臀无肤，其行次且。牵羊悔亡，闻言不信。","baihua":"臀无皮而行走趑趄，处境不安；若能如牵羊般柔顺则悔亡，但往往听言不信。","xiaoxiang":"小象 其行次且，位不当也。闻言不信，聪不明也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：苋陆夬夬，中行无咎。","baihua":"像苋陆被决除，果决而不偏；持中而行则无咎。","xiaoxiang":"小象 中行无咎，中未光也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：无号，终有凶。","baihua":"到终极而无人呼应，也无可号告；最终有凶。","xiaoxiang":"小象 无号之凶，终不可长也。"}],"special":[],"wenyan":[],"互卦":"䷀ 乾为天 · 第1卦","错卦":"䷖ 山地剥 · 第23卦","综卦":"䷫ 天风姤 · 第44卦","应位":"1/3 有应","中正":"1 中正 · 4 得正","changes":["初九 → ䷛ 泽风大过 · 第28卦","九二 → ䷰ 泽火革 · 第49卦","九三 → ䷹ 兑为泽 · 第58卦","九四 → ䷄ 水天需 · 第5卦","九五 → ䷡ 雷天大壮 · 第34卦","上六 → ䷀ 乾为天 · 第1卦"]},{"index":44,"section":"下经","title":"天风姤","eyebrow":"下经 · 巽下乾上","meta":"巽下乾上 · 巽下乾上","lines_top_down":[1,1,1,1,1,0],"symbol":"䷫","guaci":"姤：女壮，勿用取女。","guaci_baihua":"相遇之时，女子势盛，不宜娶这样的女子。","scriptures":[{"name":"彖曰","text":"姤，遇也，柔遇刚也。勿用取女，不可与长也。天地相遇，品物咸章也。刚遇中正，天下大行也。姤之时义大矣哉！","baihua":"《彖》说姤是相遇，一柔遇五刚。柔遇刚虽有天地品物彰明之象，但“勿用取女”提醒这种遇合不可长久放任；懂得遇合时义很重要。"},{"name":"大象","text":"天下有风，姤；后以施命诰四方。","baihua":"《大象》取象为“天下有风，姤”。白话说：观此卦象，后应当以施命诰四方。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：系于金柅，贞吉。有攸往，见凶，羸豕孚蹢躅。","baihua":"柔邪初遇，应系止于坚固金柅，守正则吉；若放任前往则凶，如瘦猪也会躁动。","xiaoxiang":"小象 系于金柅，柔道牵也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：包有鱼，无咎，不利宾。","baihua":"包中有鱼，能制伏初阴之遇；无咎，但不宜让外宾分享或扩散。","xiaoxiang":"小象 包有鱼，义不及宾也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：臀无肤，其行次且，厉，无大咎。","baihua":"行动不安而艰难，有危险；但未与初阴相应，故无大咎。","xiaoxiang":"小象 其行次且，行未牵也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：包无鱼，起凶。","baihua":"包中无鱼，失去所应；由此发动会凶。","xiaoxiang":"小象 无鱼之凶，远民也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：以杞包瓜，含章，有陨自天。","baihua":"以高大杞树包覆瓜实，含藏文德；机缘成熟时如有物自天降。","xiaoxiang":"小象 九五含章，中正也。有陨自天，志不舍命也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：姤其角，吝，无咎。","baihua":"相遇到角端，刚亢而难合；有吝，但因不妄合而无咎。","xiaoxiang":"小象 姤其角，上穷吝也。"}],"special":[],"wenyan":[],"互卦":"䷀ 乾为天 · 第1卦","错卦":"䷗ 地雷复 · 第24卦","综卦":"䷪ 泽天夬 · 第43卦","应位":"1/3 有应","中正":"1 中正 · 2 得正","changes":["初六 → ䷀ 乾为天 · 第1卦","九二 → ䷠ 天山遁 · 第33卦","九三 → ䷅ 天水讼 · 第6卦","九四 → ䷸ 巽为风 · 第57卦","九五 → ䷱ 火风鼎 · 第50卦","上九 → ䷛ 泽风大过 · 第28卦"]},{"index":45,"section":"下经","title":"泽地萃","eyebrow":"下经 · 坤下兑上","meta":"坤下兑上 · 坤下兑上","lines_top_down":[0,1,1,0,0,0],"symbol":"䷬","guaci":"萃：亨。王假有庙，利见大人，亨。利贞。用大牲吉，利有攸往。","guaci_baihua":"聚集亨通。王来到宗庙；利见大人而亨通，利于守正。用大牲祭祀吉，利有所往。","scriptures":[{"name":"彖曰","text":"萃，聚也。顺以说，刚中而应，故聚也。王假有庙，致孝享也。利见大人亨，聚以正也。用大牲吉，利有攸往，顺天命也。观其所聚，而天地万物之情可见矣。","baihua":"《彖》说萃是聚，顺而悦、刚中有应，所以能聚。王至宗庙是致孝享，见大人、用大牲、利有所往，都必须以正聚众、顺天命。"},{"name":"大象","text":"泽上于地，萃；君子以除戎器，戒不虞。","baihua":"《大象》取象为“泽上于地，萃”。白话说：观此卦象，君子应当以除戎器，戒不虞。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：有孚不终，乃乱乃萃。若号，一握为笑。勿恤，往无咎。","baihua":"有诚信却不能终守，于是混乱而聚；若呼号求合，一握手便转笑，不必忧，前往无咎。","xiaoxiang":"小象 乃乱乃萃，其志乱也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：引吉，无咎，孚乃利用禴。","baihua":"被引导而聚，吉且无咎；有诚信，则用薄祭也有利。","xiaoxiang":"小象 引吉无咎，中未变也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：萃如嗟如，无攸利；往无咎，小吝。","baihua":"聚集而叹息，无所利；前往可无咎，但小有羞吝。","xiaoxiang":"小象 往无咎，上巽也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：大吉，无咎。","baihua":"能聚众而近尊位，若公正无私则大吉无咎。","xiaoxiang":"小象 大吉无咎，位不当也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：萃有位，无咎；匪孚，元永贞，悔亡。","baihua":"聚于有位者，本无咎；若人未信服，须大而长久守正，悔可亡。","xiaoxiang":"小象 萃有位，志未光也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：赍咨涕洟，无咎。","baihua":"聚到终极而忧叹流涕，能以悲惧反省，不至有咎。","xiaoxiang":"小象 赍咨涕洟，未安上也。"}],"special":[],"wenyan":[],"互卦":"䷴ 风山渐 · 第53卦","错卦":"䷙ 山天大畜 · 第26卦","综卦":"䷭ 地风升 · 第46卦","应位":"2/3 有应","中正":"2 中正 · 3 得正","changes":["初六 → ䷐ 泽雷随 · 第17卦","六二 → ䷮ 泽水困 · 第47卦","六三 → ䷞ 泽山咸 · 第31卦","九四 → ䷇ 水地比 · 第8卦","九五 → ䷏ 雷地豫 · 第16卦","上六 → ䷋ 天地否 · 第12卦"]},{"index":46,"section":"下经","title":"地风升","eyebrow":"下经 · 巽下坤上","meta":"巽下坤上 · 巽下坤上","lines_top_down":[0,0,0,1,1,0],"symbol":"䷭","guaci":"升：元亨，用见大人，勿恤，南征吉。","guaci_baihua":"升进大亨通。宜见大人，不必忧虑；向南进发则吉。","scriptures":[{"name":"彖曰","text":"柔以时升，巽而顺，刚中而应，是以大亨。用见大人勿恤，有庆也。南征吉，志行也。","baihua":"《彖》说升是柔顺因时而上升，巽而顺、刚中有应，所以大亨。见大人不必忧虑，南征而吉，是因为志向得以施行。"},{"name":"大象","text":"地中生木，升；君子以顺德，积小以高大。","baihua":"《大象》取象为“地中生木，升”。白话说：观此卦象，君子应当以顺德，积小以高大。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：允升，大吉。","baihua":"升进之初得到信允，顺势上升；大吉。","xiaoxiang":"小象 允升大吉，上合志也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：孚乃利用禴，无咎。","baihua":"有诚信，即使用薄祭也有利；升进贵诚，不贵繁饰，无咎。","xiaoxiang":"小象 九二之孚，有喜也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：升虚邑。","baihua":"上升进入空虚之邑，阻碍少；可顺利推进，但也须充实其虚。","xiaoxiang":"小象 升虚邑，无所疑也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：王用亨于岐山，吉无咎。","baihua":"王在岐山祭享，象征升进得礼、顺承天命；吉无咎。","xiaoxiang":"小象 王用亨于岐山，顺事也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：贞吉，升阶。","baihua":"守正则吉，如登阶而升；上进有序，不越级。","xiaoxiang":"小象 贞吉升阶，大得志也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：冥升，利于不息之贞。","baihua":"升到终极而昏冥，仍想上升；只有把不息之心用于正道才有利。","xiaoxiang":"小象 冥升在上，消不富也。"}],"special":[],"wenyan":[],"互卦":"䷵ 雷泽归妹 · 第54卦","错卦":"䷘ 天雷无妄 · 第25卦","综卦":"䷬ 泽地萃 · 第45卦","应位":"2/3 有应","中正":"0 中正 · 3 得正","changes":["初六 → ䷊ 地天泰 · 第11卦","九二 → ䷎ 地山谦 · 第15卦","九三 → ䷆ 地水师 · 第7卦","六四 → ䷟ 雷风恒 · 第32卦","六五 → ䷯ 水风井 · 第48卦","上六 → ䷑ 山风蛊 · 第18卦"]},{"index":47,"section":"下经","title":"泽水困","eyebrow":"下经 · 坎下兑上","meta":"坎下兑上 · 坎下兑上","lines_top_down":[0,1,1,0,1,0],"symbol":"䷮","guaci":"困：亨，贞大人吉，无咎，有言不信。","guaci_baihua":"困窘中仍可亨通；守正，大人吉，无咎。言语不被信任。","scriptures":[{"name":"彖曰","text":"困，刚揜也。险以说，困而不失其所，亨。其唯君子乎！贞大人吉，以刚中也。有言不信，尚口乃穷也。","baihua":"《彖》说困是阳刚被掩。处险而能悦，困而不失所守，只有君子能这样亨通；大人刚中守正则吉，徒尚口说只会困穷。"},{"name":"大象","text":"泽无水，困；君子以致命遂志。","baihua":"《大象》取象为“泽无水，困”。白话说：观此卦象，君子应当以致命遂志。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：臀困于株木，入于幽谷，三岁不觌。","baihua":"臀被困在树桩上，又入幽谷，长期不得见人；困境之初即闭塞孤绝。","xiaoxiang":"小象 入于幽谷，幽不明也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：困于酒食，朱绂方来，利用亨祀。征凶，无咎。","baihua":"困于酒食丰盛之中，荣命将至；宜祭祀守诚，若出征则凶，但守分无咎。","xiaoxiang":"小象 困于酒食，中有庆也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：困于石，据于蒺藜，入于其宫，不见其妻，凶。","baihua":"被石所困，又据刺草，回到家也见不到妻；内外皆困，凶。","xiaoxiang":"小象 据于蒺藜，乘刚也。入于其宫，不见其妻，不祥也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：来徐徐，困于金车，吝，有终。","baihua":"来援迟缓，又困于金车；虽有吝，但最终可有结果。","xiaoxiang":"小象 来徐徐，志在下也。虽不当位，有与也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：劓刖，困于赤绂，乃徐有说，利用祭祀。","baihua":"受刑伤而困于官位荣饰，后来慢慢得以解脱；宜以祭祀诚敬化困。","xiaoxiang":"小象 劓刖，志未得也。乃徐有说，以中直也。利用祭祀，受福也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：困于葛藟，于臲卼，曰动悔。有悔，征吉。","baihua":"困于藤蔓和危动不安之处，自知行动会悔；有悔悟后再出征则吉。","xiaoxiang":"小象 困于葛藟，未当也。动悔有悔，吉行也。"}],"special":[],"wenyan":[],"互卦":"䷤ 风火家人 · 第37卦","错卦":"䷕ 山火贲 · 第22卦","综卦":"䷯ 水风井 · 第48卦","应位":"1/3 有应","中正":"1 中正 · 2 得正","changes":["初六 → ䷹ 兑为泽 · 第58卦","九二 → ䷬ 泽地萃 · 第45卦","六三 → ䷛ 泽风大过 · 第28卦","九四 → ䷜ 坎为水 · 第29卦","九五 → ䷧ 雷水解 · 第40卦","上六 → ䷅ 天水讼 · 第6卦"]},{"index":48,"section":"下经","title":"水风井","eyebrow":"下经 · 巽下坎上","meta":"巽下坎上 · 巽下坎上","lines_top_down":[0,1,0,1,1,0],"symbol":"䷯","guaci":"井：改邑不改井，无丧无得。往来井井。汔至，亦未繘井，羸其瓶，凶。","guaci_baihua":"城邑可以迁改，井不可改；井水无所谓丧失或获得。人们往来取井水；快到井口却未把井绳提出，又打破水瓶，则凶。","scriptures":[{"name":"彖曰","text":"巽乎水而上水，井；井养而不穷也。改邑不改井，乃以刚中也。汔至亦未繘井，未有功也。羸其瓶，是以凶也。","baihua":"《彖》说井是以木入水而上水，井能养人而不穷。邑可改而井不改，象征公共根本不变；将到井口而未汲、毁瓶则无功而凶。"},{"name":"大象","text":"木上有水，井；君子以劳民劝相。","baihua":"《大象》取象为“木上有水，井”。白话说：观此卦象，君子应当以劳民劝相。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：井泥不食，旧井无禽。","baihua":"井底污泥不能饮用，旧井连禽鸟也不来；根基污坏，不能养人。","xiaoxiang":"小象 井泥不食，下也。旧井无禽，时舍也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：井谷射鲋，瓮敝漏。","baihua":"井谷只射到小鱼，汲水器又破漏；有水德而不能上济。","xiaoxiang":"小象 井谷射鲋，无与也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：井渫不食，为我心恻，可用汲，王明，并受其福。","baihua":"井已清理却无人饮用，使人心悲；若明王能用它汲水，大家都受福。","xiaoxiang":"小象 井渫不食，行恻也。求王明，受福也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：井甃，无咎。","baihua":"修砌井壁，完善设施；虽未直接供饮，却为可用打基础，无咎。","xiaoxiang":"小象 井甃无咎，修井也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：井冽，寒泉食。","baihua":"井水清冽，寒泉可饮；德位成熟，能真实养人。","xiaoxiang":"小象 寒泉之食，中正也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：井收勿幕，有孚元吉。","baihua":"井口收成而不加覆盖，开放给人取用；有诚信，大吉。","xiaoxiang":"小象 元吉在上，大成也。"}],"special":[],"wenyan":[],"互卦":"䷥ 火泽睽 · 第38卦","错卦":"䷔ 火雷噬嗑 · 第21卦","综卦":"䷮ 泽水困 · 第47卦","应位":"1/3 有应","中正":"1 中正 · 4 得正","changes":["初六 → ䷄ 水天需 · 第5卦","九二 → ䷦ 水山蹇 · 第39卦","九三 → ䷜ 坎为水 · 第29卦","六四 → ䷛ 泽风大过 · 第28卦","九五 → ䷭ 地风升 · 第46卦","上六 → ䷸ 巽为风 · 第57卦"]},{"index":49,"section":"下经","title":"泽火革","eyebrow":"下经 · 离下兑上","meta":"离下兑上 · 离下兑上","lines_top_down":[0,1,1,1,0,1],"symbol":"䷰","guaci":"革：巳日乃孚，元亨。利贞。悔亡。","guaci_baihua":"变革要到合宜之日才获得信任；大亨通，利守正，悔恨消亡。","scriptures":[{"name":"彖曰","text":"革，水火相息，二女同居，其志不相得，曰革。巳日乃孚，革而信也。文明以说，大亨以正，革而当，其悔乃亡。天地革而四时成。汤武革命，顺乎天而应乎人。革之时大矣哉！","baihua":"《彖》说革由水火相息、二女志不相得而成。变革要到可信之日才被相信；文明而悦、合正而当，才能悔亡。天地、汤武革命都说明革要顺天应人。"},{"name":"大象","text":"泽中有火，革；君子以治历明时。","baihua":"《大象》取象为“泽中有火，革”。白话说：观此卦象，君子应当以治历明时。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：巩用黄牛之革。","baihua":"改革之初不可轻动，要像用黄牛皮束缚一样坚固守中；先稳固根本。","xiaoxiang":"小象 巩用黄牛，不可以有为也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：巳日乃革之，征吉，无咎。","baihua":"到了合适时日才改革，出征行动吉而无咎；贵在时机成熟。","xiaoxiang":"小象 巳日革之，行有嘉也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：征凶，贞厉。革言三就，有孚。","baihua":"贸然前进则凶，固执也危；改革之言反复三次成熟后，才有可信。","xiaoxiang":"小象 革言三就，又何之矣。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：悔亡，有孚改命，吉。","baihua":"悔恨消亡，以诚信改变旧命；改革合信，吉。","xiaoxiang":"小象 改命之吉，信志也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：大人虎变，未占有孚。","baihua":"大人变革如虎纹鲜明，不用占问也有诚信可见；变革已显著而正当。","xiaoxiang":"小象 大人虎变，其文炳也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：君子豹变，小人革面，征凶，居贞吉。","baihua":"君子如豹变而文理成章，小人只改变外貌；继续进取则凶，安居守正则吉。","xiaoxiang":"小象 君子豹变，其文蔚也。小人革面，顺以从君也。"}],"special":[],"wenyan":[],"互卦":"䷫ 天风姤 · 第44卦","错卦":"䷃ 山水蒙 · 第4卦","综卦":"䷱ 火风鼎 · 第50卦","应位":"2/3 有应","中正":"2 中正 · 5 得正","changes":["初九 → ䷞ 泽山咸 · 第31卦","六二 → ䷪ 泽天夬 · 第43卦","九三 → ䷐ 泽雷随 · 第17卦","九四 → ䷾ 水火既济 · 第63卦","九五 → ䷶ 雷火丰 · 第55卦","上六 → ䷌ 天火同人 · 第13卦"]},{"index":50,"section":"下经","title":"火风鼎","eyebrow":"下经 · 巽下离上","meta":"巽下离上 · 巽下离上","lines_top_down":[1,0,1,1,1,0],"symbol":"䷱","guaci":"鼎：元吉，亨。","guaci_baihua":"鼎象征承载与更新，大吉而亨通。","scriptures":[{"name":"彖曰","text":"鼎，象也，以木巽火，亨饪也。圣人亨以享上帝，而大亨以养圣贤。巽而耳目聪明，柔进而上行，得中而应乎刚，是以元亨。","baihua":"《彖》说鼎取器象，以木入火而成烹饪。圣人用鼎享上帝、养圣贤；巽顺而耳目聪明，柔进得中应刚，所以元亨。"},{"name":"大象","text":"木上有火，鼎；君子以正位凝命。","baihua":"《大象》取象为“木上有火，鼎”。白话说：观此卦象，君子应当以正位凝命。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：鼎颠趾，利出否。得妾以其子，无咎。","baihua":"鼎足颠倒，反而有利于倒出秽物；像纳妾因其子而得用，去旧纳新可无咎。","xiaoxiang":"小象 鼎颠趾，未悖也。利出否，以从贵也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：鼎有实，我仇有疾，不我能即，吉。","baihua":"鼎中有实物，虽有仇怨疾害，却不能接近伤我；自守充实则吉。","xiaoxiang":"小象 鼎有实，慎所之也。我仇有疾，终无尤也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：鼎耳革，其行塞，雉膏不食。方雨亏悔，终吉。","baihua":"鼎耳变化，移动受阻，美味不能食；待阴阳和雨，悔损而终吉。","xiaoxiang":"小象 鼎耳革，失其义也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：鼎折足，覆公餗，其形渥，凶。","baihua":"鼎足折断，倾覆公家美食，形貌污辱；任重而不能承，凶。","xiaoxiang":"小象 覆公餗，信如何也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：鼎黄耳金铉，利贞。","baihua":"鼎有黄耳金铉，中和而坚美，适合提举大器；利于守正。","xiaoxiang":"小象 鼎黄耳，中以为实也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：鼎玉铉，大吉，无不利。","baihua":"以玉为铉，刚柔清贵相济；鼎道至成，大吉无不利。","xiaoxiang":"小象 玉铉在上，刚柔节也。"}],"special":[],"wenyan":[],"互卦":"䷪ 泽天夬 · 第43卦","错卦":"䷂ 水雷屯 · 第3卦","综卦":"䷰ 泽火革 · 第49卦","应位":"2/3 有应","中正":"0 中正 · 1 得正","changes":["初六 → ䷍ 火天大有 · 第14卦","九二 → ䷷ 火山旅 · 第56卦","九三 → ䷿ 火水未济 · 第64卦","九四 → ䷑ 山风蛊 · 第18卦","六五 → ䷫ 天风姤 · 第44卦","上九 → ䷟ 雷风恒 · 第32卦"]},{"index":51,"section":"下经","title":"震为雷","eyebrow":"下经 · 震下震上","meta":"震下震上 · 震下震上","lines_top_down":[0,0,1,0,0,1],"symbol":"䷲","guaci":"震：亨。震来虩虩，笑言哑哑。震惊百里，不丧匕鬯。","guaci_baihua":"震动可以亨通。雷震来时恐惧警惕，之后笑谈如常；震动百里，也不丧失祭器，表示临震不失守。","scriptures":[{"name":"彖曰","text":"震亨，震来虩虩，恐致福也；笑言哑哑，后有则也。震惊百里，惊远而惧迩也；出可以守宗庙社稷，以为祭主也。","baihua":"《彖》说震动能亨，是因为恐惧可以带来福，震后笑语有法则。震惊百里而不失祭器，说明能在大震动中守住宗庙社稷的责任。"},{"name":"大象","text":"洊雷，震；君子以恐惧修省。","baihua":"《大象》取象为“洊雷，震”。白话说：观此卦象，君子应当以恐惧修省。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：震来虩虩，后笑言哑哑，吉。","baihua":"震动初来时恐惧戒慎，之后才能笑语安然；能敬畏则吉。","xiaoxiang":"小象 震来虩虩，恐致福也。笑言哑哑，后有则也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：震来厉，亿丧贝，跻于九陵，勿逐，七日得。","baihua":"震动带来危险，似乎大量失财，逃上高陵；不必追逐，七日后可复得。","xiaoxiang":"小象 震来厉，乘刚也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：震苏苏，震行无眚。","baihua":"震动使人苏苏不安；因震而行动，若能警醒则无灾眚。","xiaoxiang":"小象 震苏苏，位不当也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：震遂泥。","baihua":"震动陷入泥中，力量不能畅达；动而受困。","xiaoxiang":"小象 震遂泥，未光也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：震往来厉，亿无丧，有事。","baihua":"震动往来也危险，但不至大丧；仍有事务需要谨慎处理。","xiaoxiang":"小象 震往来厉，危行也。其事在中，大无丧也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：震索索，视矍矍，征凶。震不于其躬，于其邻，无咎。婚媾有言。","baihua":"震到终极而恐惧颤索、视线惊惶，出征凶；若震祸未到自身而在邻近时能警醒，则无咎，但婚媾关系会有言语纷扰。","xiaoxiang":"小象 震索索，中未得也。虽凶无咎，畏邻戒也。"}],"special":[],"wenyan":[],"互卦":"䷦ 水山蹇 · 第39卦","错卦":"䷸ 巽为风 · 第57卦","综卦":"䷳ 艮为山 · 第52卦","应位":"0/3 有应","中正":"1 中正 · 3 得正","changes":["初九 → ䷏ 雷地豫 · 第16卦","六二 → ䷵ 雷泽归妹 · 第54卦","六三 → ䷶ 雷火丰 · 第55卦","九四 → ䷗ 地雷复 · 第24卦","六五 → ䷐ 泽雷随 · 第17卦","上六 → ䷔ 火雷噬嗑 · 第21卦"]},{"index":52,"section":"下经","title":"艮为山","eyebrow":"下经 · 艮下艮上","meta":"艮下艮上 · 艮下艮上","lines_top_down":[1,0,0,1,0,0],"symbol":"䷳","guaci":"艮：艮其背，不获其身，行其庭，不见其人，无咎。","guaci_baihua":"止于其背，不为自身欲望所牵；行于庭中而不见其人，无咎。","scriptures":[{"name":"彖曰","text":"艮，止也。时止则止，时行则行，动静不失其时，其道光明。艮其止，止其所也。上下敌应，不相与也。是以不获其身，行其庭，不见其人，无咎也。","baihua":"《彖》说艮是止：该止则止，该行则行，动静不失时，道才光明。止在其所，上下不相应，所以不执著自身、庭中不见人而无咎。"},{"name":"大象","text":"兼山，艮；君子以思不出其位。","baihua":"《大象》取象为“兼山，艮”。白话说：观此卦象，君子应当以思不出其位。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：艮其趾，无咎，利永贞。","baihua":"止于脚趾，止在行动未发之前；无咎，利于长久守正。","xiaoxiang":"小象 艮其趾，未失正也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：艮其腓，不拯其随，其心不快。","baihua":"止住小腿，却不能拯止随动之处；心中不快，说明止而未得其主。","xiaoxiang":"小象 不拯其随，未退听也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：艮其限，列其夤，厉薰心。","baihua":"止于腰限，强止过甚，如撕裂脊肉；危险而焦灼内心。","xiaoxiang":"小象 艮其限，危熏心也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：艮其身，无咎。","baihua":"止住身体整体，能自我约束；无咎。","xiaoxiang":"小象 艮其身，止诸躬也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：艮其辅，言有序，悔亡。","baihua":"止于口辅，言语有序不妄发；悔亡。","xiaoxiang":"小象 艮其辅，以中正也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：敦艮，吉。","baihua":"止道至终而敦厚，止得安稳深厚；吉。","xiaoxiang":"小象 敦艮之吉，以厚终也。"}],"special":[],"wenyan":[],"互卦":"䷧ 雷水解 · 第40卦","错卦":"䷹ 兑为泽 · 第58卦","综卦":"䷲ 震为雷 · 第51卦","应位":"0/3 有应","中正":"1 中正 · 3 得正","changes":["初六 → ䷕ 山火贲 · 第22卦","六二 → ䷑ 山风蛊 · 第18卦","九三 → ䷖ 山地剥 · 第23卦","六四 → ䷷ 火山旅 · 第56卦","六五 → ䷴ 风山渐 · 第53卦","上九 → ䷎ 地山谦 · 第15卦"]},{"index":53,"section":"下经","title":"风山渐","eyebrow":"下经 · 艮下巽上","meta":"艮下巽上 · 艮下巽上","lines_top_down":[1,1,0,1,0,0],"symbol":"䷴","guaci":"渐：女归吉，利贞。","guaci_baihua":"循序渐进，如女子出嫁则吉，利于守正。","scriptures":[{"name":"彖曰","text":"渐之进也，女归吉也。进得位，往有功也。进以正，可以正邦也。其位刚，得中也。止而巽，动不穷也。","baihua":"《彖》说渐是渐进，女归吉。渐进得位则往有功，以正进可以正邦；刚位得中，止而巽，所以行动不会穷尽。"},{"name":"大象","text":"山上有木，渐；君子以居贤德善俗。","baihua":"《大象》取象为“山上有木，渐”。白话说：观此卦象，君子应当以居贤德善俗。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：鸿渐于干，小子厉，有言，无咎。","baihua":"鸿鸟渐进到水边，位置初浅；小子有危厉并受责言，但渐进未失，故无咎。","xiaoxiang":"小象 小子之厉，义无咎也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：鸿渐于磐，饮食衎衎，吉。","baihua":"鸿鸟渐进到磐石，安稳可居；饮食和乐，吉。","xiaoxiang":"小象 饮食衎衎，不素饱也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：鸿渐于陆，夫征不复，妇孕不育，凶；利御寇。","baihua":"鸿渐至陆而失其安，丈夫出征不返、妇孕不育，凶；但刚强可用于御寇。","xiaoxiang":"小象 夫征不复，离群丑也。妇孕不育，失其道也。利用御寇，顺相保也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：鸿渐于木，或得其桷，无咎。","baihua":"鸿鸟落木本非其所安，但或能得平直枝桷；择所而安，无咎。","xiaoxiang":"小象 或得其桷，顺以巽也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：鸿渐于陵，妇三岁不孕，终莫之胜，吉。","baihua":"鸿渐至高陵，虽长期受阻如妇三岁不孕，但正应终不可胜；最终吉。","xiaoxiang":"小象 终莫之胜吉，得所愿也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：鸿渐于陆，其羽可用为仪，吉。","baihua":"鸿鸟渐进到高远之处，羽毛可作礼仪装饰；渐进至成，成为文明仪范，吉。","xiaoxiang":"小象 其羽可用为仪，吉，不可乱也。"}],"special":[],"wenyan":[],"互卦":"䷿ 火水未济 · 第64卦","错卦":"䷵ 雷泽归妹 · 第54卦","综卦":"䷵ 雷泽归妹 · 第54卦","应位":"1/3 有应","中正":"2 中正 · 4 得正","changes":["初六 → ䷤ 风火家人 · 第37卦","六二 → ䷸ 巽为风 · 第57卦","九三 → ䷓ 风地观 · 第20卦","六四 → ䷠ 天山遁 · 第33卦","九五 → ䷳ 艮为山 · 第52卦","上九 → ䷦ 水山蹇 · 第39卦"]},{"index":54,"section":"下经","title":"雷泽归妹","eyebrow":"下经 · 兑下震上","meta":"兑下震上 · 兑下震上","lines_top_down":[0,0,1,0,1,1],"symbol":"䷵","guaci":"归妹：征凶，无攸利。","guaci_baihua":"归妹之事不正，征进则凶，没有什么有利。","scriptures":[{"name":"彖曰","text":"归妹，天地之大义也。天地不交而万物不兴。归妹，人之终始也。说以动，所归妹也。征凶，位不当也。无攸利，柔乘刚也。","baihua":"《彖》说归妹关乎天地交感和人的终始，但本卦悦而动、位多不当。征凶、无攸利，是因为位置不正且柔乘刚，婚合之事不可失礼失序。"},{"name":"大象","text":"泽上有雷，归妹；君子以永终知敝。","baihua":"《大象》取象为“泽上有雷，归妹”。白话说：观此卦象，君子应当以永终知敝。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：归妹以娣，跛能履，征吉。","baihua":"嫁妹以娣随嫁，地位不正却可辅助；如跛者尚能行，前往吉。","xiaoxiang":"小象 归妹以娣，以恒也。跛能履吉，相承也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：眇能视，利幽人之贞。","baihua":"目眇而仍能视，能力有限；利于幽静守正之人，不宜张扬。","xiaoxiang":"小象 利幽人之贞，未变常也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：归妹以须，反归以娣。","baihua":"以等待或贱妾身份归妹，结果反以娣位返回；所处不当，婚合失序。","xiaoxiang":"小象 归妹以须，未当也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：归妹愆期，迟归有时。","baihua":"婚期延误，但迟归自有其时；宁可等待正时，不可苟合。","xiaoxiang":"小象 愆期之志，有待而行也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：帝乙归妹，其君之袂不如其娣之袂良，月几望，吉。","baihua":"帝乙嫁妹，正妻衣袖不如陪嫁者华美，象征尊者谦素；如月近望而未满，吉。","xiaoxiang":"小象 帝乙归妹，不如其娣之袂良也。其位在中，以贵行也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：女承筐无实，士刲羊无血，无攸利。","baihua":"女子捧筐无物，男子割羊无血，礼有其形而无其实；无所利。","xiaoxiang":"小象 上六无实，承虚筐也。"}],"special":[],"wenyan":[],"互卦":"䷾ 水火既济 · 第63卦","错卦":"䷴ 风山渐 · 第53卦","综卦":"䷴ 风山渐 · 第53卦","应位":"1/3 有应","中正":"0 中正 · 2 得正","changes":["初九 → ䷧ 雷水解 · 第40卦","九二 → ䷲ 震为雷 · 第51卦","六三 → ䷡ 雷天大壮 · 第34卦","九四 → ䷒ 地泽临 · 第19卦","六五 → ䷹ 兑为泽 · 第58卦","上六 → ䷥ 火泽睽 · 第38卦"]},{"index":55,"section":"下经","title":"雷火丰","eyebrow":"下经 · 离下震上","meta":"离下震上 · 离下震上","lines_top_down":[0,0,1,1,0,1],"symbol":"䷶","guaci":"丰：亨。王假之，勿忧，宜日中。","guaci_baihua":"丰盛亨通。王亲至，不必忧虑；宜如日中那样光明盛大。","scriptures":[{"name":"彖曰","text":"丰，大也。明以动，故丰。王假之，尚大也。勿忧宜日中，宜照天下也。日中则昃，月盈则食，天地盈虚，与时消息，而况于人乎？况于鬼神乎？","baihua":"《彖》说丰是盛大，明而动所以丰。盛大时不必忧，但要像日中一样照临天下；日中必昃、月满必食，盈虚消息人神皆然。"},{"name":"大象","text":"雷电皆至，丰；君子以折狱致刑。","baihua":"《大象》取象为“雷电皆至，丰”。白话说：观此卦象，君子应当以折狱致刑。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：遇其配主，虽旬无咎，往有尚。","baihua":"遇到相配的主人，即使相等十日也无咎；前往有可嘉。","xiaoxiang":"小象 虽旬无咎，过旬灾也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：丰其蔀，日中见斗。往得疑疾，有孚发若，吉。","baihua":"遮蔽丰厚，正午却见北斗，光明被掩；前往会遭猜疑，但诚信发明则吉。","xiaoxiang":"小象 有孚发若，信以发志也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：丰其沛，日中见沬。折其右肱，无咎。","baihua":"遮蔽更盛，日中见小星，右臂折伤；虽不能施展，但非己咎。","xiaoxiang":"小象 丰其沛，不可大事也。折其右肱，终不可用也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：丰其蔀，日中见斗。遇其夷主，吉。","baihua":"仍在遮蔽中，日中见斗；若遇到平等相应的主人，吉。","xiaoxiang":"小象 丰其蔀，位不当也。日中见斗，幽不明也。遇其夷主，吉行也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：来章，有庆誉，吉。","baihua":"招来光明文采，有庆贺和名誉；丰盛而能纳明，吉。","xiaoxiang":"小象 六五之吉，有庆也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：丰其屋，蔀其家，窥其户，阒其无人，三岁不觌，凶。","baihua":"屋宇丰大却遮蔽其家，窥门无人，长期不相见；丰极而孤闭，凶。","xiaoxiang":"小象 丰其屋，天际翔也。窥其户，阒其无人，自藏也。"}],"special":[],"wenyan":[],"互卦":"䷛ 泽风大过 · 第28卦","错卦":"䷺ 风水涣 · 第59卦","综卦":"䷷ 火山旅 · 第56卦","应位":"1/3 有应","中正":"1 中正 · 4 得正","changes":["初九 → ䷽ 雷山小过 · 第62卦","六二 → ䷡ 雷天大壮 · 第34卦","九三 → ䷲ 震为雷 · 第51卦","九四 → ䷣ 地火明夷 · 第36卦","六五 → ䷰ 泽火革 · 第49卦","上六 → ䷝ 离为火 · 第30卦"]},{"index":56,"section":"下经","title":"火山旅","eyebrow":"下经 · 艮下离上","meta":"艮下离上 · 艮下离上","lines_top_down":[1,0,1,1,0,0],"symbol":"䷷","guaci":"旅：小亨。旅贞吉。","guaci_baihua":"旅居在外，小事亨通；旅途中守正则吉。","scriptures":[{"name":"彖曰","text":"旅，小亨，柔得中乎外而顺乎刚，止而丽乎明，是以小亨旅贞吉也。旅之时义大矣哉！","baihua":"《彖》说旅是羁旅在外，小亨。柔得外中而顺刚，止而附明，所以可小亨且守正吉；旅居之时义在于谨慎、顺时、不妄求大成。"},{"name":"大象","text":"山上有火，旅；君子以明慎用刑，而不留狱。","baihua":"《大象》取象为“山上有火，旅”。白话说：观此卦象，君子应当以明慎用刑，而不留狱。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：旅琐琐，斯其所取灾。","baihua":"旅居之初若猥琐计较、失其大方，灾祸由此自取。","xiaoxiang":"小象 旅琐琐，志穷灾也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：旅即次，怀其资，得童仆，贞。","baihua":"旅人到达旅舍，怀有资财，得童仆相助；守正可安。","xiaoxiang":"小象 得童仆贞，终无尤也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：旅焚其次，丧其童仆，贞厉。","baihua":"旅舍被焚，又丧失童仆；即使守正也危险，说明刚躁失处。","xiaoxiang":"小象 旅焚其次，亦以伤矣。以旅与下，其义丧也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：旅于处，得其资斧，我心不快。","baihua":"旅居暂得处所和资斧，但心中仍不安；客居非久安之地。","xiaoxiang":"小象 旅于处，未得位也。得其资斧，心未快也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：射雉，一矢亡，终以誉命。","baihua":"射雉失一箭，先有所失；终因合礼中道而得名誉和命赏。","xiaoxiang":"小象 终以誉命，上逮也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：鸟焚其巢，旅人先笑后号咷。丧牛于易，凶。","baihua":"鸟巢被焚，旅人先笑后哭；在安易中丧牛，客居至极而失所，凶。","xiaoxiang":"小象 以旅在上，其义焚也。丧牛于易，终莫之闻也。"}],"special":[],"wenyan":[],"互卦":"䷛ 泽风大过 · 第28卦","错卦":"䷻ 水泽节 · 第60卦","综卦":"䷶ 雷火丰 · 第55卦","应位":"1/3 有应","中正":"1 中正 · 2 得正","changes":["初六 → ䷝ 离为火 · 第30卦","六二 → ䷱ 火风鼎 · 第50卦","九三 → ䷢ 火地晋 · 第35卦","九四 → ䷳ 艮为山 · 第52卦","六五 → ䷠ 天山遁 · 第33卦","上九 → ䷽ 雷山小过 · 第62卦"]},{"index":57,"section":"下经","title":"巽为风","eyebrow":"下经 · 巽下巽上","meta":"巽下巽上 · 巽下巽上","lines_top_down":[1,1,0,1,1,0],"symbol":"䷸","guaci":"巽：小亨。利有攸往。利见大人。","guaci_baihua":"巽顺入微，小有亨通；利有所往，利见大人。","scriptures":[{"name":"彖曰","text":"重巽以申命，刚巽乎中正而志行。柔皆顺乎刚，是以小亨，利有攸往，利见大人。","baihua":"《彖》说重巽是反复申命，刚能巽入中正而志得施行，柔都顺从刚。巽顺能小亨，利有所往，也利见大人。"},{"name":"大象","text":"随风，巽；君子以申命行事。","baihua":"《大象》取象为“随风，巽”。白话说：观此卦象，君子应当以申命行事。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：进退，利武人之贞。","baihua":"巽入之初进退不决；利于像武人一样坚定守正，补其柔疑。","xiaoxiang":"小象 进退，志疑也。利武人之贞，志治也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：巽在床下，用史巫纷若，吉无咎。","baihua":"谦入到床下，姿态极低；以史巫纷然沟通神人，诚敬则吉无咎。","xiaoxiang":"小象 纷若之吉，得中也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：频巽，吝。","baihua":"反复卑巽，失去稳定和诚意；吝。","xiaoxiang":"小象 频巽之吝，志穷也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：悔亡，田获三品。","baihua":"悔恨消亡，田猎获三类收获；巽顺得位而有成果。","xiaoxiang":"小象 田获三品，有功也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：贞吉悔亡，无不利。无初有终。先庚三日，后庚三日，吉。","baihua":"守正吉而悔亡，无不利；起初虽不足，最终有成。变革前后都要反复申命，吉。","xiaoxiang":"小象 九五之吉，位正中也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：巽在床下，丧其资斧，贞凶。","baihua":"卑巽过度到床下，连资斧都丧失；即使守持也凶。","xiaoxiang":"小象 巽在床下，上穷也。丧其资斧，正乎凶也。"}],"special":[],"wenyan":[],"互卦":"䷥ 火泽睽 · 第38卦","错卦":"䷲ 震为雷 · 第51卦","综卦":"䷹ 兑为泽 · 第58卦","应位":"0/3 有应","中正":"1 中正 · 3 得正","changes":["初六 → ䷈ 风天小畜 · 第9卦","九二 → ䷴ 风山渐 · 第53卦","九三 → ䷺ 风水涣 · 第59卦","六四 → ䷫ 天风姤 · 第44卦","九五 → ䷑ 山风蛊 · 第18卦","上九 → ䷯ 水风井 · 第48卦"]},{"index":58,"section":"下经","title":"兑为泽","eyebrow":"下经 · 兑下兑上","meta":"兑下兑上 · 兑下兑上","lines_top_down":[0,1,1,0,1,1],"symbol":"䷹","guaci":"兑：亨。利贞。","guaci_baihua":"悦顺亨通，利于守正。","scriptures":[{"name":"彖曰","text":"兑，说也。刚中而柔外，说以利贞，是以顺乎天而应乎人。说以先民，民忘其劳；说以犯难，民忘其死。说之大，民劝矣哉！","baihua":"《彖》说兑是悦，刚中而柔外，悦而守正，故顺天应人。以悦先民，民忘其劳；以悦赴难，民忘其死，真正的悦能勉励民心。"},{"name":"大象","text":"丽泽，兑；君子以朋友讲习。","baihua":"《大象》取象为“丽泽，兑”。白话说：观此卦象，君子应当以朋友讲习。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：和兑，吉。","baihua":"喜悦以和为始，不偏不私；吉。","xiaoxiang":"小象 和兑之吉，行未疑也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：孚兑，吉，悔亡。","baihua":"以诚信为悦，喜悦有根；吉而悔亡。","xiaoxiang":"小象 孚兑之吉，信志也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：来兑，凶。","baihua":"主动来求取悦，偏于谄媚或外悦；凶。","xiaoxiang":"小象 来兑之凶，位不当也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：商兑未宁，介疾有喜。","baihua":"商量取悦而未安，能隔绝疾邪则有喜；悦不可失其界限。","xiaoxiang":"小象 九四之喜，有庆也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：孚于剥，有厉。","baihua":"诚信却施于剥害之人或事，虽诚也有危险；悦道须辨对象。","xiaoxiang":"小象 孚于剥，位正当也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：引兑。","baihua":"引诱成悦，兑到终极流于牵引诱惑；须防悦极失正。","xiaoxiang":"小象 上六引兑，未光也。"}],"special":[],"wenyan":[],"互卦":"䷤ 风火家人 · 第37卦","错卦":"䷳ 艮为山 · 第52卦","综卦":"䷸ 巽为风 · 第57卦","应位":"0/3 有应","中正":"1 中正 · 3 得正","changes":["初九 → ䷮ 泽水困 · 第47卦","九二 → ䷐ 泽雷随 · 第17卦","六三 → ䷪ 泽天夬 · 第43卦","九四 → ䷻ 水泽节 · 第60卦","九五 → ䷵ 雷泽归妹 · 第54卦","上六 → ䷉ 天泽履 · 第10卦"]},{"index":59,"section":"下经","title":"风水涣","eyebrow":"下经 · 坎下巽上","meta":"坎下巽上 · 坎下巽上","lines_top_down":[1,1,0,0,1,0],"symbol":"䷺","guaci":"涣：亨。王假有庙，利涉大川，利贞。","guaci_baihua":"涣散中可亨通。王来到宗庙，利涉大川，利于守正。","scriptures":[{"name":"彖曰","text":"涣亨，刚来而不穷，柔得位乎外而上同。王假有庙，王乃在中也。利涉大川，乘木有功也。","baihua":"《彖》说涣是离散而能亨，刚来不穷，柔得外位而与上同。王至宗庙是居中凝聚人心；利涉大川，是因为借木舟而有功。"},{"name":"大象","text":"风行水上，涣；先王以享于帝立庙。","baihua":"《大象》取象为“风行水上，涣”。白话说：观此卦象，先王应当以享于帝立庙。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：用拯马壮，吉。","baihua":"涣散之初，用强壮之马救援，行动有力；吉。","xiaoxiang":"小象 初六之吉，顺也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：涣奔其机，悔亡。","baihua":"涣散时奔向凭依之机座，找到依托；悔亡。","xiaoxiang":"小象 涣奔其机，得愿也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：涣其躬，无悔。","baihua":"涣散自身私我，能放下自执；无悔。","xiaoxiang":"小象 涣其躬，志在外也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：涣其群，元吉。涣有丘，匪夷所思。","baihua":"涣散私群小党，大吉；散小群而成大丘，非平常思虑所及。","xiaoxiang":"小象 涣其群，元吉，光大也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：涣汗其大号，涣王居，无咎。","baihua":"像汗出而发布大号令，散去王居积弊；号令通达，无咎。","xiaoxiang":"小象 王居无咎，正位也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：涣其血，去逖出，无咎。","baihua":"涣散血伤，使危险远去而出离；终能无咎。","xiaoxiang":"小象 涣其血，远害也。"}],"special":[],"wenyan":[],"互卦":"䷚ 山雷颐 · 第27卦","错卦":"䷶ 雷火丰 · 第55卦","综卦":"䷻ 水泽节 · 第60卦","应位":"1/3 有应","中正":"1 中正 · 2 得正","changes":["初六 → ䷼ 风泽中孚 · 第61卦","九二 → ䷓ 风地观 · 第20卦","六三 → ䷸ 巽为风 · 第57卦","六四 → ䷅ 天水讼 · 第6卦","九五 → ䷃ 山水蒙 · 第4卦","上九 → ䷜ 坎为水 · 第29卦"]},{"index":60,"section":"下经","title":"水泽节","eyebrow":"下经 · 兑下坎上","meta":"兑下坎上 · 兑下坎上","lines_top_down":[0,1,0,0,1,1],"symbol":"䷻","guaci":"节：亨。苦节不可贞。","guaci_baihua":"节制可以亨通；过分痛苦苛刻的节制不可固守。","scriptures":[{"name":"彖曰","text":"节亨，刚柔分而刚得中。苦节不可贞，其道穷也。说以行险，当位以节，中正以通。天地节而四时成，节以制度，不伤财，不害民。","baihua":"《彖》说节是刚柔分而刚得中，所以亨。苦节不可长期固守，节要悦而行险、当位中正；天地有节四时成，人间制度有节则不伤财害民。"},{"name":"大象","text":"泽上有水，节；君子以制数度，议德行。","baihua":"《大象》取象为“泽上有水，节”。白话说：观此卦象，君子应当以制数度，议德行。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：不出户庭，无咎。","baihua":"节制之初，不出户庭，谨慎守限；无咎。","xiaoxiang":"小象 不出户庭，知通塞也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：不出门庭，凶。","baihua":"本应出门而仍不出，节制过当；凶。","xiaoxiang":"小象 不出门庭凶，失时极也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：不节若，则嗟若，无咎。","baihua":"不能节制就会叹息；能因叹息而反省，则无咎。","xiaoxiang":"小象 不节之嗟，又谁咎也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：安节，亨。","baihua":"安于节度，不勉强也不过分；亨通。","xiaoxiang":"小象 安节之亨，承上道也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：甘节，吉；往有尚。","baihua":"节制变成甘美可行的制度，吉；前往有嘉尚。","xiaoxiang":"小象 甘节之吉，居位中也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：苦节，贞凶，悔亡。","baihua":"节制过苦，即使坚持也凶；若知其苦而悔悟，悔可亡。","xiaoxiang":"小象 苦节贞凶，其道穷也。"}],"special":[],"wenyan":[],"互卦":"䷚ 山雷颐 · 第27卦","错卦":"䷷ 火山旅 · 第56卦","综卦":"䷺ 风水涣 · 第59卦","应位":"1/3 有应","中正":"1 中正 · 4 得正","changes":["初九 → ䷜ 坎为水 · 第29卦","九二 → ䷂ 水雷屯 · 第3卦","六三 → ䷄ 水天需 · 第5卦","六四 → ䷹ 兑为泽 · 第58卦","九五 → ䷒ 地泽临 · 第19卦","上六 → ䷼ 风泽中孚 · 第61卦"]},{"index":61,"section":"下经","title":"风泽中孚","eyebrow":"下经 · 兑下巽上","meta":"兑下巽上 · 兑下巽上","lines_top_down":[1,1,0,0,1,1],"symbol":"䷼","guaci":"中孚：豚鱼吉，利涉大川，利贞。","guaci_baihua":"中诚信实，连豚鱼这样微小之物也可感通而吉；利涉大川，利守正。","scriptures":[{"name":"彖曰","text":"中孚，柔在内而刚得中。说而巽，孚乃化邦也。豚鱼吉，信及豚鱼也。利涉大川，乘木舟虚也。中孚以利贞，乃应乎天也。","baihua":"《彖》说中孚是柔在内、刚得中，悦而巽，诚信能化邦国。诚信能及豚鱼，涉川如乘虚舟；中孚而利贞，是因为与天道相应。"},{"name":"大象","text":"泽上有风，中孚；君子以议狱缓死。","baihua":"《大象》取象为“泽上有风，中孚”。白话说：观此卦象，君子应当以议狱缓死。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：虞吉，有他不燕。","baihua":"开始有诚信而能安虑则吉；若另有他心，就不能安宁。","xiaoxiang":"小象 初九虞吉，志未变也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：鸣鹤在阴，其子和之。我有好爵，吾与尔靡之。","baihua":"鹤在幽处鸣叫，其子相和；真诚能感通同类，有美酒愿与人共享。","xiaoxiang":"小象 其子和之，中心愿也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：得敌，或鼓或罢，或泣或歌。","baihua":"遇到相敌相应者，情绪或鼓动或罢息、或哭或歌；诚信未定而摇摆。","xiaoxiang":"小象 或鼓或罢，位不当也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：月几望，马匹亡，无咎。","baihua":"月近满而未满，马匹失去同伴；舍私党而从正应，无咎。","xiaoxiang":"小象 马匹亡，绝类上也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：有孚挛如，无咎。","baihua":"诚信相系不散，居中感通；无咎。","xiaoxiang":"小象 有孚挛如，位正当也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：翰音登于天，贞凶。","baihua":"鸡鸣之声想登天，声高而实不足；即使固守也凶。","xiaoxiang":"小象 翰音登于天，何可长也。"}],"special":[],"wenyan":[],"互卦":"䷚ 山雷颐 · 第27卦","错卦":"䷽ 雷山小过 · 第62卦","综卦":"䷼ 风泽中孚 · 第61卦","应位":"2/3 有应","中正":"1 中正 · 3 得正","changes":["初九 → ䷺ 风水涣 · 第59卦","九二 → ䷩ 风雷益 · 第42卦","六三 → ䷈ 风天小畜 · 第9卦","六四 → ䷉ 天泽履 · 第10卦","九五 → ䷨ 山泽损 · 第41卦","上九 → ䷻ 水泽节 · 第60卦"]},{"index":62,"section":"下经","title":"雷山小过","eyebrow":"下经 · 艮下震上","meta":"艮下震上 · 艮下震上","lines_top_down":[0,0,1,1,0,0],"symbol":"䷽","guaci":"小过：亨。利贞。可小事，不可大事。飞鸟遗之音，不宜上宜下，大吉。","guaci_baihua":"小过可亨通，利守正。可以做小事，不可做大事；飞鸟留下声音，不宜上而宜下，大吉。","scriptures":[{"name":"彖曰","text":"小过，小者过而亨也。过以利贞，与时行也。柔得中，是以小事吉也。刚失位而不中，是以不可大事也。有飞鸟之象焉。飞鸟遗之音，不宜上宜下，大吉，上逆而下顺也。","baihua":"《彖》说小过是小者有所超过而亨，过要合时守正。柔得中所以小事吉，刚失位不中所以不可大事；飞鸟之象提醒宜下不宜上。"},{"name":"大象","text":"山上有雷，小过；君子以行过乎恭，丧过乎哀，用过乎俭。","baihua":"《大象》取象为“山上有雷，小过”。白话说：观此卦象，君子应当以行过乎恭，丧过乎哀，用过乎俭。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：飞鸟以凶。","baihua":"小过之初就如鸟飞过高，越分而动；凶。","xiaoxiang":"小象 飞鸟以凶，不可如何也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：过其祖，遇其妣；不及其君，遇其臣；无咎。","baihua":"越过祖父而遇祖母，不及君主而遇臣下；不过分上求，得其中间，无咎。","xiaoxiang":"小象 不及其君，臣不可过也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：弗过防之，从或戕之，凶。","baihua":"不能过度防备，反被随从者伤害；凶。","xiaoxiang":"小象 从或戕之，凶如何也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：无咎，弗过遇之。往厉必戒，勿用永贞。","baihua":"不过分而相遇可无咎；前往有危必须警戒，不宜永远固执一种做法。","xiaoxiang":"小象 弗过遇之，位不当也。往厉必戒，终不可长也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：密云不雨，自我西郊。公弋取彼在穴。","baihua":"密云不雨，仍未施泽；公以弋射取穴中之物，象征小有所获而大化未成。","xiaoxiang":"小象 密云不雨，已上也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：弗遇过之，飞鸟离之，凶，是谓灾眚。","baihua":"没有相遇却越过太远，如飞鸟遭罗网；凶，这是灾眚。","xiaoxiang":"小象 弗遇过之，已亢也。"}],"special":[],"wenyan":[],"互卦":"䷛ 泽风大过 · 第28卦","错卦":"䷼ 风泽中孚 · 第61卦","综卦":"䷽ 雷山小过 · 第62卦","应位":"2/3 有应","中正":"1 中正 · 3 得正","changes":["初六 → ䷶ 雷火丰 · 第55卦","六二 → ䷟ 雷风恒 · 第32卦","九三 → ䷏ 雷地豫 · 第16卦","九四 → ䷎ 地山谦 · 第15卦","六五 → ䷞ 泽山咸 · 第31卦","上六 → ䷷ 火山旅 · 第56卦"]},{"index":63,"section":"下经","title":"水火既济","eyebrow":"下经 · 离下坎上","meta":"离下坎上 · 离下坎上","lines_top_down":[0,1,0,1,0,1],"symbol":"䷾","guaci":"既济：亨小。利贞。初吉终乱。","guaci_baihua":"事情已经完成，小处亨通，利于守正；开始吉，最终若不谨慎会乱。","scriptures":[{"name":"彖曰","text":"既济亨小者，亨也。利贞，刚柔正而位当也。初吉，柔得中也。终止则乱，其道穷也。","baihua":"《彖》说既济是小者亨通，刚柔各正而位置相当。开始吉是因为柔得中；若到终点便停止警戒，则会转乱而道穷。"},{"name":"大象","text":"水在火上，既济；君子以思患而预防之。","baihua":"《大象》取象为“水在火上，既济”。白话说：观此卦象，君子应当以思患而预防之。"}],"yaos":[{"label":"初九","type":"阳爻 · 初始萌动 / 根基","text":"初九：曳其轮，濡其尾，无咎。","baihua":"车轮被拖，尾巴沾湿，前进受阻；既济之初能谨慎缓行，无咎。","xiaoxiang":"小象 曳其轮，义无咎也。"},{"label":"六二","type":"阴爻 · 内在成形 / 中位","text":"六二：妇丧其茀，勿逐，七日得。","baihua":"妇人丢失车帘，不必追逐，七日可得；已济之时小失会自复。","xiaoxiang":"小象 七日得，以中道也。"},{"label":"九三","type":"阳爻 · 下卦成极 / 临界","text":"九三：高宗伐鬼方，三年克之，小人勿用。","baihua":"高宗征伐鬼方，三年才取胜；大功艰难，不能任用小人。","xiaoxiang":"小象 三年克之，惫也。"},{"label":"六四","type":"阴爻 · 转入外卦 / 近上","text":"六四：繻有衣袽，终日戒。","baihua":"华美衣物中备着破布以防漏，整日戒惧；既济中仍须防患。","xiaoxiang":"小象 终日戒，有所疑也。"},{"label":"九五","type":"阳爻 · 成熟主位 / 中正","text":"九五：东邻杀牛，不如西邻之禴祭，实受其福。","baihua":"东邻杀牛盛祭，不如西邻薄祭而诚；真正受福在诚不在丰。","xiaoxiang":"小象 东邻杀牛，不如西邻之时也。实受其福，吉大来也。"},{"label":"上六","type":"阴爻 · 穷极转化 / 收束","text":"上六：濡其首，厉。","baihua":"到终极反而连头都被水浸湿，危险；既济若不知戒，会由成转败。","xiaoxiang":"小象 濡其首厉，何可久也。"}],"special":[],"wenyan":[],"互卦":"䷿ 火水未济 · 第64卦","错卦":"䷿ 火水未济 · 第64卦","综卦":"䷿ 火水未济 · 第64卦","应位":"3/3 有应","中正":"2 中正 · 6 得正","changes":["初九 → ䷦ 水山蹇 · 第39卦","六二 → ䷄ 水天需 · 第5卦","九三 → ䷂ 水雷屯 · 第3卦","六四 → ䷰ 泽火革 · 第49卦","九五 → ䷣ 地火明夷 · 第36卦","上六 → ䷤ 风火家人 · 第37卦"]},{"index":64,"section":"下经","title":"火水未济","eyebrow":"下经 · 坎下离上","meta":"坎下离上 · 坎下离上","lines_top_down":[1,0,1,0,1,0],"symbol":"䷿","guaci":"未济：亨。小狐汔济，濡其尾，无攸利。","guaci_baihua":"尚未完成但可亨通；小狐快要渡过河却濡湿尾巴，表示临近成功而失慎则无所利。","scriptures":[{"name":"彖曰","text":"未济亨，柔得中也。小狐汔济，未出中也。濡其尾，无攸利，不续终也。虽不当位，刚柔应也。","baihua":"《彖》说未济仍能亨，是因柔得中。小狐将渡未渡，尾被濡湿而不利，是因不能续成其终；虽爻位多不当，但刚柔仍相应，尚有成事可能。"},{"name":"大象","text":"火在水上，未济；君子以慎辨物居方。","baihua":"《大象》取象为“火在水上，未济”。白话说：观此卦象，君子应当以慎辨物居方。"}],"yaos":[{"label":"初六","type":"阴爻 · 初始萌动 / 根基","text":"初六：濡其尾，吝。","baihua":"未济之初，小狐尾巴沾湿，尚不能渡成；有羞吝。","xiaoxiang":"小象 濡其尾，亦不知极也。"},{"label":"九二","type":"阳爻 · 内在成形 / 中位","text":"九二：曳其轮，贞吉。","baihua":"拖住车轮不急进，守正则吉；未济时先稳住节奏。","xiaoxiang":"小象 九二贞吉，中以行正也。"},{"label":"六三","type":"阴爻 · 下卦成极 / 临界","text":"六三：未济，征凶，利涉大川。","baihua":"事情尚未完成，贸然征进凶；但若目标是渡过大川、完成转化，则有利。","xiaoxiang":"小象 未济征凶，位不当也。"},{"label":"九四","type":"阳爻 · 转入外卦 / 近上","text":"九四：贞吉悔亡，震用伐鬼方，三年有赏于大国。","baihua":"守正则吉而悔亡；奋起征伐鬼方，三年后受大国赏赐，说明艰难后有成。","xiaoxiang":"小象 贞吉悔亡，志行也。"},{"label":"六五","type":"阴爻 · 成熟主位 / 中正","text":"六五：贞吉无悔，君子之光，有孚吉。","baihua":"守正吉而无悔，君子光明显现；有诚信则吉。","xiaoxiang":"小象 君子之光，其晖吉也。"},{"label":"上九","type":"阳爻 · 穷极转化 / 收束","text":"上九：有孚于饮酒，无咎。濡其首，有孚失是。","baihua":"有诚信而饮酒庆成，本无咎；若沉溺而濡首，即使有信也失其正。","xiaoxiang":"小象 饮酒濡首，亦不知节也。"}],"special":[],"wenyan":[],"互卦":"䷾ 水火既济 · 第63卦","错卦":"䷾ 水火既济 · 第63卦","综卦":"䷾ 水火既济 · 第63卦","应位":"3/3 有应","中正":"0 中正 · 0 得正","changes":["初六 → ䷥ 火泽睽 · 第38卦","九二 → ䷢ 火地晋 · 第35卦","六三 → ䷱ 火风鼎 · 第50卦","九四 → ䷃ 山水蒙 · 第4卦","六五 → ䷅ 天水讼 · 第6卦","上九 → ䷧ 雷水解 · 第40卦"]}];
+
+/* ===== 八卦定义 ===== */
+/* lines 从下到上：1阳 0阴 */
+const TRIGRAMS = {
+  '111':{name:'乾',nature:'天',num:1,wuxing:'金',symbol:'☰',lines:[1,1,1]},
+  '110':{name:'兑',nature:'泽',num:2,wuxing:'金',symbol:'☱',lines:[1,1,0]},
+  '101':{name:'离',nature:'火',num:3,wuxing:'火',symbol:'☲',lines:[1,0,1]},
+  '100':{name:'震',nature:'雷',num:4,wuxing:'木',symbol:'☳',lines:[1,0,0]},
+  '011':{name:'巽',nature:'风',num:5,wuxing:'木',symbol:'☴',lines:[0,1,1]},
+  '010':{name:'坎',nature:'水',num:6,wuxing:'水',symbol:'☵',lines:[0,1,0]},
+  '001':{name:'艮',nature:'山',num:7,wuxing:'土',symbol:'☶',lines:[0,0,1]},
+  '000':{name:'坤',nature:'地',num:8,wuxing:'土',symbol:'☷',lines:[0,0,0]},
+};
+const NUM_TO_TRIGRAM = {1:'乾',2:'兑',3:'离',4:'震',5:'巽',6:'坎',7:'艮',8:'坤'};
+const WUXING_SHENG = {木:'火',火:'土',土:'金',金:'水',水:'木'};
+const WUXING_KE   = {木:'土',土:'水',水:'火',火:'金',金:'木'};
+const GAN = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const ZHI = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const ZHI_NUM = {子:1,丑:2,寅:3,卯:4,辰:5,巳:6,午:7,未:8,申:9,酉:10,戌:11,亥:12};
+const SHICHEN = [['子',23],['丑',1],['寅',3],['卯',5],['辰',7],['巳',9],['午',11],['未',13],['申',15],['酉',17],['戌',19],['亥',21]];
+
+/* ===== 工具 ===== */
+function $(sel){return document.querySelector(sel)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function pad2(n){return n<10?'0'+n:''+n}
+
+/* 64卦索引表：由 lines 生成 */
+const HEX_BY_LINES = {};
+HEX_DATA.forEach(h=>{
+  const key = h.lines_top_down.slice().reverse().join(''); /* 转成从下到上 */
+  HEX_BY_LINES[key] = h;
+});
+function findHexByLines(bottomUp){
+  return HEX_BY_LINES[bottomUp.join('')] || null;
+}
+
+/* 卦画渲染：lines 从下到上，dong 为动爻位（1-6，从下到上） */
+function guaLinesHtml(lines, dongSet){
+  const topDown = lines.slice().reverse();
+  return '<div class="gua-lines">'+topDown.map((v,i)=>{
+    const pos = topDown.length - i; /* 从下到上编号 */
+    const d = dongSet && dongSet.has(pos);
+    return '<div class="yline '+(v?'yang':'yin')+(d?' dong':'')+'"><i></i><i></i></div>';
+  }).join('')+'</div>';
+}
+
+/* 拆上下卦：lines 从下到上，下卦=1-3爻，上卦=4-6爻 */
+function splitTrigrams(linesBottomUp){
+  const lower = linesBottomUp.slice(0,3).join('');
+  const upper = linesBottomUp.slice(3,6).join('');
+  return {lower:TRIGRAMS[lower], upper:TRIGRAMS[upper]};
+}
+
+/* ===== 梅花易数引擎 ===== */
+/* 除8取卦（余0=8），除6取动爻（余0=6） */
+function guaFromNum(n){ const r=n%8; return r===0?8:r; }
+function yaoFromNum(n){ const r=n%6; return r===0?6:r; }
+function trigramByNum(n){ const nm = NUM_TO_TRIGRAM[n]; return Object.values(TRIGRAMS).find(t=>t.name===nm) || null; }
+
+/* 由上下卦+动爻 构造六爻（从下到上） */
+function buildHex(lowerTri, upperTri, dongYao){
+  const lines = lowerTri.lines.concat(upperTri.lines);
+  const hex = findHexByLines(lines);
+  /* 变卦 */
+  const newLines = lines.slice();
+  newLines[dongYao-1] = newLines[dongYao-1]===1?0:1;
+  const bianHex = findHexByLines(newLines);
+  /* 互卦：2,3,4爻为下互；3,4,5爻为上互 */
+  const huxia = lines.slice(1,4);
+  const hushang = lines.slice(2,5);
+  const huLower = TRIGRAMS[huxia.join('')];
+  const huUpper = TRIGRAMS[hushang.join('')];
+  const huLines = huxia.concat(hushang);
+  const huHex = findHexByLines(huLines);
+  return {lines, hex, bianHex, huLower, huUpper, huHex, dongYao};
+}
+
+/* 五行生克判定 */
+function shengKe(useWX, tiWX){
+  if(useWX===tiWX) return {label:'比和', grade:'吉', cls:'good', desc:'体用五行相同，双方同心同力，事情顺遂，宜主动进取。'};
+  if(WUXING_SHENG[useWX]===tiWX) return {label:'用生体', grade:'吉', cls:'good', desc:'用卦五行生体卦，外势来助我，得贵人、外力之助，事情易成，收获大于付出。'};
+  if(WUXING_SHENG[tiWX]===useWX) return {label:'体生用', grade:'小凶·泄气', cls:'bad', desc:'体卦生用卦，我耗力去助外，付出多而回报少，事有损耗，需量力而行。'};
+  if(WUXING_KE[tiWX]===useWX) return {label:'体克用', grade:'小吉', cls:'good', desc:'体卦克用卦，我有能力制住外势，事情可成但需费心费力，宜主动掌控。'};
+  return {label:'用克体', grade:'凶', cls:'bad', desc:'用卦克体卦，外势克制于我，阻力大，事难成，宜守不宜攻，谨慎为上。'};
+}
+
+/* 体党用党：互卦与变卦的五行归党 */
+/* 归党规则：与体/用五行相同者→同党；生体/用者→帮党（半党）；克体/用者→敌党（对方加分） */
+function dangAnalysis(useWX, tiWX, huLower, huUpper, bianLower, bianUpper){
+  let tiDang = 0, yongDang = 0;
+  const items = [
+    {wx:huLower.wuxing, name:huLower.name, tag:'互卦·下'},
+    {wx:huUpper.wuxing, name:huUpper.name, tag:'互卦·上'},
+  ];
+  if(bianLower) items.push({wx:bianLower.wuxing, name:bianLower.name, tag:'变卦·下'});
+  if(bianUpper) items.push({wx:bianUpper.wuxing, name:bianUpper.name, tag:'变卦·上'});
+  const rows = items.map(it=>{
+    const wx = it.wx;
+    let toTi = 0, toYong = 0, tiRole = '', yongRole = '';
+    if(wx === tiWX){ toTi = 2; tiRole = '同党'; }
+    else if(WUXING_SHENG[wx] === tiWX){ toTi = 1; tiRole = '生体'; }
+    else if(WUXING_KE[wx] === tiWX){ toTi = -1; tiRole = '克体'; }
+    if(wx === useWX){ toYong = 2; yongRole = '同党'; }
+    else if(WUXING_SHENG[wx] === useWX){ toYong = 1; yongRole = '生用'; }
+    else if(WUXING_KE[wx] === useWX){ toYong = -1; yongRole = '克用'; }
+    tiDang += Math.max(0, toTi); yongDang += Math.max(0, toYong);
+    return {name:it.name, tag:it.tag, wx, tiRole, yongRole};
+  });
+  let trend = '';
+  if(tiDang > yongDang) trend = '体党势强，对「体」有利，外部助力多于阻力，局势偏主动。';
+  else if(yongDang > tiDang) trend = '用党势强，外势较盛，须提防被形势裹挟，宜顺势而谋。';
+  else trend = '体用党势相当，胜负取决于当事人能否守正用情、把握时机。';
+  return {tiDang, yongDang, rows, trend};
+}
+
+/* 时间起卦（梅花易数）：农历年支序+月+日 = 上卦；+时支序 = 下卦；总数 = 动爻 */
+function castByTime(lunarYear, lunarMonth, lunarDay, hour){
+  const yearZhi = (lunarYear - 4) % 12; /* 0=子 */
+  const yz = yearZhi + 1;
+  const shichen = hourToShichen(hour);
+  const shiNum = ZHI_NUM[shichen];
+  const shang = guaFromNum(yz + lunarMonth + lunarDay);
+  const xia = guaFromNum(yz + lunarMonth + lunarDay + shiNum);
+  const dong = yaoFromNum(yz + lunarMonth + lunarDay + shiNum);
+  const lower = trigramByNum(xia);
+  const upper = trigramByNum(shang);
+  return {lower, upper, dong, shang, xia, yz, lunarYear, lunarMonth, lunarDay, shichen, shiNum};
+}
+function hourToShichen(hour){
+  if(hour >= 23 || hour < 1) return '子';
+  return ZHI[Math.floor((hour+1)/2)];
+}
+
+/* 数字起卦 */
+function castByNumber(n1, n2, n3){
+  const shang = guaFromNum(n1);
+  const xia = guaFromNum(n2);
+  const dong = yaoFromNum(n3 || (n1+n2));
+  return {lower:trigramByNum(xia), upper:trigramByNum(shang), dong, shang, xia};
+}
+
+/* 随机起卦：三枚铜钱六次，或直接随机 */
+function castRandom(){
+  /* 每次 3 枚铜钱：字=2 花=3，4=老阴(动) 5=少阳 6=少阴 7=老阳(动) */
+  const lines=[], dongs=[];
+  for(let i=0;i<6;i++){
+    let sum=0;
+    for(let j=0;j<3;j++) sum += Math.random()<0.5?2:3;
+    let v;
+    if(sum===6){v=0;dongs.push(i+1);}
+    else if(sum===7){v=1;}
+    else if(sum===8){v=0;}
+    else {v=1;dongs.push(i+1);}
+    lines.push(v);
+  }
+  const lower = TRIGRAMS[lines.slice(0,3).join('')];
+  const upper = TRIGRAMS[lines.slice(3,6).join('')];
+  const dong = dongs.length?dongs[0]:Math.floor(Math.random()*6)+1;
+  return {lower, upper, dong, lines, dongs, random:true};
+}
+
+/* ===== 农历转换（双表查表法，1887-2100） ===== */
+const LUNAR_MONTH_DAYS = [1887,5780,5802,19157,2742,50359,1198,2646,46378,7466,3412,30122,5482,67949,2396,5294,43597,6732,6954,36181,2772,4954,18781,2396,54427,5274,6730,47781,5800,6868,21210,4790,59703,2350,5270,46667,3402,3496,38325,1388,4782,18735,2350,52374,6804,7498,44457,2906,1388,29294,4700,63789,6442,6804,56138,5802,2772,38235,1210,4698,22827,5418,63125,3476,5802,43701,2484,5302,27223,2646,70954,7466,3412,54698,5482,2412,38062,5294,2636,32038,6954,60245,2772,4826,43357,2394,5274,39501,6730,72357,5800,5844,53978,4790,2358,38039,5270,87627,3402,3496,54708,5484,4782,43311,2350,3222,27978,7498,68965,2904,5484,45677,4700,6444,39573,6804,6986,19285,2772,62811,1210,4698,47403,5418,5780,38570,5546,76469,2420,5302,51799,2646,5414,36501,3412,5546,18869,2412,54446,5276,6732,48422,6822,2900,28010,4826,92509,2394,5274,55883,6730,6820,47956,5812,2778,18779,2358,62615,5270,5450,46757,3492,5556,27318,4718,67887,2350,3222,52554,7498,3428,38252,5468,4700,31022,6444,64149,6804,6986,43861,2772,5338,35421,2650,70955,5418,5780,54954,5546,2740,38074,5302,2646,29991,3366,61011,3412,5546,43445,2412,5294,35406,6732,72998,6820,6996,52586,2778,2396,38045,5274,6698,23333,6820,64338,5812,2746,43355,2358,5270,39499,5450,79525,3492,5548];
+const LUNAR_SOLAR_11 = [1887,966732,967231,967733,968265,968766,969297,969798,970298,970829,971330,971830,972362,972863,973395,973896,974397,974928,975428,975929,976461,976962,977462,977994,978494,979026,979526,980026,980558,981059,981559,982091,982593,983124,983624,984124,984656,985157,985656,986189,986690,987191,987722,988222,988753,989254,989754,990286,990788,991288,991819,992319,992851,993352,993851,994383,994885,995385,995917,996418,996918,997450,997949,998481,998982,999483,1000014,1000515,1001016,1001548,1002047,1002578,1003080,1003580,1004111,1004613,1005113,1005645,1006146,1006645,1007177,1007678,1008209,1008710,1009211,1009743,1010243,1010743,1011275,1011775,1012306,1012807,1013308,1013840,1014341,1014841,1015373,1015874,1016404,1016905,1017405,1017937,1018438,1018939,1019471,1019972,1020471,1021002,1021503,1022035,1022535,1023036,1023568,1024069,1024568,1025100,1025601,1026102,1026633,1027133,1027666,1028167,1028666,1029198,1029699,1030199,1030730,1031231,1031763,1032264,1032764,1033296,1033797,1034297,1034828,1035329,1035830,1036362,1036861,1037393,1037894,1038394,1038925,1039427,1039927,1040459,1040959,1041491,1041992,1042492,1043023,1043524,1044024,1044556,1045057,1045558,1046090,1046590,1047121,1047622,1048122,1048654,1049154,1049655,1050187,1050689,1051219,1051720,1052220,1052751,1053252,1053752,1054284,1054786,1055285,1055817,1056317,1056849,1057349,1057850,1058382,1058883,1059383,1059915,1060415,1060947,1061447,1061947,1062479,1062981,1063480,1064012,1064514,1065014,1065545,1066045,1066577,1067078,1067578,1068110,1068611,1069112,1069642,1070142,1070674,1071175,1071675,1072207,1072709,1073209,1073740,1074241,1074741,1075273,1075773,1076305,1076807,1077308,1077839,1078340,1078840,1079372,1079871,1080403,1080904];
+function lunarGetBit(data, length, shift){ return (data & (((1 << length) - 1) << shift)) >> shift; }
+function solarToInt(y, m, d){
+  m = (m + 9) % 12;
+  y = parseInt(y) - parseInt(m / 10);
+  return 365 * y + parseInt(y / 4) - parseInt(y / 100) + parseInt(y / 400) + parseInt((m * 306 + 5) / 10) + (d - 1);
+}
+function solar2lunar(y, m, d){
+  if(!LUNAR_MONTH_DAYS.length) return null;
+  let index = y - LUNAR_SOLAR_11[0];
+  const data = (y << 9) | (m << 5) | d;
+  if(LUNAR_SOLAR_11[index] > data) index--;
+  if(index < 0 || index >= LUNAR_MONTH_DAYS.length - 1) return null;
+  const solar11 = LUNAR_SOLAR_11[index];
+  const y11 = lunarGetBit(solar11, 12, 9);
+  const m11 = lunarGetBit(solar11, 4, 5);
+  const d11 = lunarGetBit(solar11, 5, 0);
+  let offset = solarToInt(y, m, d) - solarToInt(y11, m11, d11);
+  const days = LUNAR_MONTH_DAYS[index];
+  const leap = lunarGetBit(days, 4, 13);
+  const lunarYear = index + LUNAR_SOLAR_11[0];
+  let lunarMonth = 1;
+  offset += 1;
+  for(let i=0; i<13; i++){
+    const dm = lunarGetBit(days, 1, 12-i) === 1 ? 30 : 29;
+    if(offset > dm){ lunarMonth++; offset -= dm; }
+    else break;
+  }
+  let isLeap = false;
+  if(leap !== 0 && lunarMonth > leap){
+    lunarMonth = lunarMonth - 1;
+    if(lunarMonth === leap) isLeap = true;
+  }
+  return {year:lunarYear, month:lunarMonth, day:offset, isLeap};
+}
+function ganZhiYear(y){
+  return GAN[(y-4)%10] + ZHI[(y-4)%12];
+}
+const LUNAR_MONTH_CN = ['','正月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','腊月'];
+
+/* ===== 渲染 ===== */
+let state = {view:'pan', filter:{sec:'all', tri:'all'}, hexIdx:0};
+
+const VIEWS = {pan:renderPan, cast:renderCast, about:renderAbout};
+
+function render(){
+  const view = location.hash.replace('#/','') || 'pan';
+  const vname = VIEWS[view] ? view : 'pan';
+  state.view = vname;
+  document.querySelectorAll('nav.tabs button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.view===vname);
+  });
+  VIEWS[vname]();
+}
+
+/* tab 点击绑定 */
+function bindTabs(){
+  document.querySelectorAll('nav.tabs button').forEach(b=>{
+    if(b._bound) return;
+    b._bound = true;
+    b.addEventListener('click', ()=>{
+      location.hash = '#/' + b.dataset.view;
+    });
+  });
+}
+
+/* 卦盘 */
+function renderPan(){
+  const el = $('#view');
+  let list = HEX_DATA.slice();
+  if(state.filter.sec!=='all') list = list.filter(h=>h.section===state.filter.sec);
+  if(state.filter.tri!=='all'){
+    const tg = TRIGRAMS[state.filter.tri];
+    list = list.filter(h=>h.eyebrow.includes(tg.name));
+  }
+  const cells = list.map(h=>{
+    const bottomUp = h.lines_top_down.slice().reverse();
+    return '<div class="hex-cell" data-idx="'+h.index+'">'+
+      '<div class="no">'+pad2(h.index)+'</div>'+
+      guaLinesHtml(bottomUp)+
+      '<div class="nm">'+esc(h.title)+'</div></div>';
+  }).join('');
+  el.innerHTML =
+    '<div class="card">'+
+      '<h2>六十四卦卦盘</h2>'+
+      '<div class="hint">点击任一卦进入详解：卦辞、彖、大象、六爻原文与白话、小象、象数分析。共 '+HEX_DATA.length+' 卦。</div>'+
+      '<div class="filters">'+
+        '<div class="fgroup"><label>经部</label>'+
+          '<button class="fbtn '+(state.filter.sec==='all'?'active':'')+'" data-sec="all">全部</button>'+
+          '<button class="fbtn '+(state.filter.sec==='上经'?'active':'')+'" data-sec="上经">上经 1-30</button>'+
+          '<button class="fbtn '+(state.filter.sec==='下经'?'active':'')+'" data-sec="下经">下经 31-64</button>'+
+        '</div>'+
+        '<div class="fgroup"><label>八卦</label>'+
+          '<button class="fbtn '+(state.filter.tri==='all'?'active':'')+'" data-tri="all">全部</button>'+
+          ['111','110','101','100','011','010','001','000'].map(k=>{
+            const t=TRIGRAMS[k];
+            return '<button class="fbtn '+(state.filter.tri===k?'active':'')+'" data-tri="'+k+'">'+t.symbol+' '+t.name+'</button>';
+          }).join('')+
+        '</div>'+
+      '</div>'+
+      '<input class="searchbox" id="hexsearch" placeholder="搜索卦名，如：乾、既济、未济…">'+
+      '<div class="divider"></div>'+
+      '<div class="hex-grid" id="hexgrid">'+cells+'</div>'+
+    '</div>';
+  /* 事件 */
+  el.querySelectorAll('.hex-cell').forEach(c=>{
+    c.addEventListener('click', ()=>location.hash='#/gua/'+c.dataset.idx);
+  });
+  el.querySelectorAll('.fbtn[data-sec]').forEach(b=>{
+    b.addEventListener('click', ()=>{state.filter.sec=b.dataset.sec; renderPan();});
+  });
+  el.querySelectorAll('.fbtn[data-tri]').forEach(b=>{
+    b.addEventListener('click', ()=>{state.filter.tri=b.dataset.tri; renderPan();});
+  });
+  $('#hexsearch').addEventListener('input', e=>{
+    const q = e.target.value.trim();
+    const grid = $('#hexgrid');
+    grid.querySelectorAll('.hex-cell').forEach(c=>{
+      const nm = c.querySelector('.nm').textContent;
+      const no = c.querySelector('.no').textContent;
+      c.style.display = (!q || nm.includes(q) || no===q || no===('0'+q)) ? '' : 'none';
+    });
+  });
+}
+
+/* 卦详情 */
+function renderGua(idx){
+  const h = HEX_DATA.find(x=>x.index===idx);
+  if(!h){ location.hash='#/'; return; }
+  const bottomUp = h.lines_top_down.slice().reverse();
+  const tg = splitTrigrams(bottomUp);
+  const yaoItems = h.yaos.map((y,i)=>{
+    const isYang = y.label.includes('九');
+    const pos = i+1;
+    const dongSet = new Set([pos]);
+    return '<li class="yao-item" data-y="'+pos+'">'+
+      '<div class="yao-top">'+
+        '<span class="yao-label">'+esc(y.label)+'</span>'+
+        '<span class="yao-type">'+esc(y.type)+'</span>'+
+        '<span class="tag '+(isYang?'gold':'jade')+'">'+(isYang?'阳':'阴')+'</span>'+
+        '<span style="margin-left:auto;color:var(--ink3);font-size:11px">爻位 '+pos+'</span>'+
+      '</div>'+
+      '<div class="yao-text">'+esc(y.text)+'</div>'+
+      '<div class="yao-baihua">'+esc(y.baihua)+'</div>'+
+      (y.xiaoxiang?'<div class="yao-xx">'+esc(y.xiaoxiang)+'</div>':'')+
+    '</li>';
+  }).join('');
+
+  const scripturesHtml = h.scriptures.map(s=>{
+    return '<div>'+
+      '<h3>'+esc(s.name)+'</h3>'+
+      '<blockquote>'+esc(s.text)+'</blockquote>'+
+      '<div class="baihua">'+esc(s.baihua)+'</div>'+
+    '</div>';
+  }).join('');
+
+  const specialHtml = (h.special&&h.special.length)?
+    '<details><summary>特例爻（'+(h.index===1?'用九':'用六')+'）</summary>'+
+      h.special.map(s=>'<blockquote>'+esc(s.text)+'</blockquote><div class="baihua">'+esc(s.xiaoxiang)+'</div>').join('')+
+    '</details>':'';
+  const wenyanHtml = (h.wenyan&&h.wenyan.length)?
+    '<details><summary>《文言》专论（'+h.wenyan.length+' 段）</summary>'+
+      h.wenyan.map(w=>'<div style="margin-bottom:12px"><b style="color:var(--cinnabar2)">'+esc(w.title)+'</b><blockquote>'+esc(w.text)+'</blockquote></div>').join('')+
+    '</details>':'';
+
+  const changesHtml = (h.changes&&h.changes.length)?
+    '<details><summary>单爻发动变卦（'+h.changes.length+' 种）</summary><div class="change-list">'+
+      h.changes.map(c=>{
+        const m = c.match(/^(.*?) → (.*?) · 第(\d+)卦/);
+        if(!m) return '<div class="chg">'+esc(c)+'</div>';
+        return '<div class="chg"><span>'+esc(m[1])+'</span><span>→</span><b>'+esc(m[2])+'</b><span class="tag jade">第'+m[3]+'卦</span></div>';
+      }).join('')+
+    '</div></details>':'';
+
+  const prev = HEX_DATA.find(x=>x.index===idx-1);
+  const next = HEX_DATA.find(x=>x.index===idx+1);
+
+  elHtml =
+    '<div class="card">'+
+      '<div class="hex-head">'+
+        '<div class="symbol">'+esc(h.symbol)+'</div>'+
+        '<div class="titles">'+
+          '<h2>'+esc(h.title)+'</h2>'+
+          '<div class="sub">'+esc(h.eyebrow)+'</div>'+
+          '<div class="hex-meta">'+
+            '<span class="tag gold">'+esc(tg.lower.name)+'下'+esc(tg.upper.name)+'上</span>'+
+            '<span class="tag">'+esc(tg.lower.nature)+'·'+esc(tg.upper.nature)+'</span>'+
+            '<span class="tag red">第 '+h.index+' 卦 · '+esc(h.section)+'</span>'+
+          '</div>'+
+        '</div>'+
+        guaLinesHtml(bottomUp)+
+      '</div>'+
+      '<div class="hex-meta" style="margin-top:14px">'+
+        '<span>下卦五行：'+esc(tg.lower.wuxing)+'</span>'+
+        '<span>上卦五行：'+esc(tg.upper.wuxing)+'</span>'+
+        '<span>互卦：'+(h.互卦||'—')+'</span>'+
+        '<span>错卦：'+(h.错卦||'—')+'</span>'+
+        '<span>综卦：'+(h.综卦||'—')+'</span>'+
+      '</div>'+
+      '<div class="divider"></div>'+
+      '<h3>卦辞</h3><blockquote>'+esc(h.guaci)+'</blockquote>'+
+      '<div class="baihua">'+esc(h.guaci_baihua)+'</div>'+
+      '<div class="divider"></div>'+
+      '<h3>彖 · 象</h3>'+scripturesHtml+
+      '<div class="divider"></div>'+
+      '<h3>六爻详解 <span class="small-note">（点击爻条可高亮）</span></h3>'+
+      '<ul class="yao-list">'+yaoItems+'</ul>'+
+      specialHtml+wenyanHtml+
+      '<div class="divider"></div>'+
+      '<h3>象数分析</h3>'+
+      '<div class="analysis-grid">'+
+        '<div class="item"><div class="k">互卦</div><div class="v">'+esc(h.互卦||'—')+'</div></div>'+
+        '<div class="item"><div class="k">错卦</div><div class="v">'+esc(h.错卦||'—')+'</div></div>'+
+        '<div class="item"><div class="k">综卦</div><div class="v">'+esc(h.综卦||'—')+'</div></div>'+
+        '<div class="item"><div class="k">应位</div><div class="v">'+esc(h.应位||'—')+'</div></div>'+
+        '<div class="item"><div class="k">中正</div><div class="v">'+esc(h.中正||'—')+'</div></div>'+
+      '</div>'+
+      changesHtml+
+      '<div class="divider"></div>'+
+      '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">'+
+        (prev?'<button class="btn ghost" data-nav="'+(idx-1)+'">← 前卦 · '+esc(prev.title)+'</button>':'<span></span>')+
+        (next?'<button class="btn ghost" data-nav="'+(idx+1)+'">后卦 · '+esc(next.title)+' →</button>':'<span></span>')+
+      '</div>'+
+    '</div>';
+  $('#view').innerHTML = elHtml;
+  $('#view').querySelectorAll('.yao-item').forEach(it=>{
+    it.addEventListener('click', ()=>{
+      it.classList.toggle('open');
+    });
+  });
+  $('#view').querySelectorAll('[data-nav]').forEach(b=>{
+    b.addEventListener('click', ()=>location.hash='#/gua/'+b.dataset.nav);
+  });
+}
+
+/* 起卦 */
+function renderCast(){
+  $('#view').innerHTML =
+    '<div class="card">'+
+      '<h2>梅花易数 · 起卦</h2>'+
+      '<div class="hint">三种起卦法 → 本卦 / 互卦 / 变卦 / 体用生克 / 体党用党。梅花起卦取数：先天八卦数 乾1 兑2 离3 震4 巽5 坎6 艮7 坤8。</div>'+
+      '<div class="cast-methods">'+
+        '<div class="cast-card">'+
+          '<h3>时间起卦</h3>'+
+          '<p>农历年（地支序）+月+日 得上卦；再+时辰序 得下卦与动爻。</p>'+
+          '<input id="c-solar" placeholder="公历日期，如 2026-09-11">'+
+          '<input id="c-hour" type="number" min="0" max="23" placeholder="时辰（0-23时）">'+
+          '<button class="btn" id="btn-time">以此刻起卦</button>'+
+        '</div>'+
+        '<div class="cast-card">'+
+          '<h3>数字起卦</h3>'+
+          '<p>第一个数除8得外卦（上），第二个数除8得内卦（下），第三个数（或两数之和）除6得动爻。</p>'+
+          '<input id="c-n1" type="number" placeholder="第一个数">'+
+          '<input id="c-n2" type="number" placeholder="第二个数">'+
+          '<input id="c-n3" type="number" placeholder="第三个数（可选）">'+
+          '<button class="btn" id="btn-num">起卦</button>'+
+        '</div>'+
+        '<div class="cast-card">'+
+          '<h3>铜钱摇卦</h3>'+
+          '<p>模拟三枚铜钱掷六次：字字字=老阴(动)、花花花=老阳(动)、其余为少阴少阳。有动爻取第一动爻。</p>'+
+          '<button class="btn" id="btn-random">摇一卦</button>'+
+        '</div>'+
+      '</div>'+
+      '<div id="cast-result"></div>'+
+    '</div>';
+  const fillNow = ()=>{
+    const now = new Date();
+    const lm = solar2lunar(now.getFullYear(), now.getMonth()+1, now.getDate());
+    $('#c-solar').value = now.getFullYear()+'-'+pad2(now.getMonth()+1)+'-'+pad2(now.getDate());
+    $('#c-hour').value = now.getHours();
+  };
+  fillNow();
+  $('#btn-time').addEventListener('click', ()=>{
+    const s = $('#c-solar').value.trim();
+    const hh = parseInt($('#c-hour').value,10);
+    if(!s){toast('请填写公历日期');return;}
+    const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if(!m){toast('日期格式：YYYY-MM-DD');return;}
+    const lm = solar2lunar(+m[1], +m[2], +m[3]);
+    if(!lm){toast('农历转换失败，日期超出支持范围');return;}
+    const r = castByTime(lm.year, lm.month, lm.day, isNaN(hh)?12:hh);
+    const lunarDesc = ganZhiYear(lm.year)+'年（'+lm.year+'年）'+LUNAR_MONTH_CN[lm.month]+(lm.isLeap?'（闰）':'')+lm.day+'日 · '+r.shichen+'时';
+    showCastResult(r, {method:'时间起卦', desc:lunarDesc});
+  });
+  $('#btn-num').addEventListener('click', ()=>{
+    const n1 = parseInt($('#c-n1').value,10);
+    const n2 = parseInt($('#c-n2').value,10);
+    const n3 = parseInt($('#c-n3').value,10);
+    if(isNaN(n1)||isNaN(n2)){toast('请填写前两个数');return;}
+    const r = castByNumber(n1, n2, isNaN(n3)?null:n3);
+    showCastResult(r, {method:'数字起卦', desc:n1+' / '+n2+(isNaN(n3)?'':' / '+n3)});
+  });
+  $('#btn-random').addEventListener('click', ()=>{
+    const r = castRandom();
+    const desc = r.dongs && r.dongs.length ? ('动爻：'+r.dongs.map(i=>'第'+i+'爻').join('、')) : '六爻安静（重摇或取随机动爻）';
+    showCastResult(r, {method:'铜钱摇卦', desc});
+  });
+}
+
+function showCastResult(r, info){
+  const b = buildHex(r.lower, r.upper, r.dong);
+  if(!b.hex){toast('起卦失败，请重试');return;}
+  /* 体用：无动爻之卦为体，有动爻之卦为用。动爻在下卦→下卦为用上卦为体；在上卦→上卦为用下卦为体 */
+  const dongInLower = r.dong <= 3;
+  const ti = dongInLower ? r.upper : r.lower;
+  const yong = dongInLower ? r.lower : r.upper;
+  const sk = shengKe(yong.wuxing, ti.wuxing);
+
+  /* 动爻爻辞 */
+  const dongYao = b.hex.yaos[r.dong-1];
+  /* 互卦五行 */
+  const huWX = [b.huLower.wuxing, b.huUpper.wuxing];
+  /* 变卦上下卦 */
+  const bianTri = b.bianHex ? splitTrigrams(b.bianHex.lines_top_down.slice().reverse()) : null;
+  const bianWX = bianTri ? bianTri.lower.wuxing : null;
+  /* 体党用党 */
+  const dang = dangAnalysis(yong.wuxing, ti.wuxing, b.huLower, b.huUpper, bianTri?bianTri.lower:null, bianTri?bianTri.upper:null);
+  const dangRows = dang.rows.map(r=>
+    '<tr><td>'+esc(r.tag)+'</td><td>'+esc(r.name)+'（'+esc(r.wx)+'）</td>'+
+    '<td class="'+(r.tiRole.includes('克')?'bad':(r.tiRole?'good':''))+'">'+(r.tiRole||'—')+'</td>'+
+    '<td class="'+(r.yongRole.includes('克')?'bad':(r.yongRole?'good':''))+'">'+(r.yongRole||'—')+'</td></tr>'
+  ).join('');
+
+  $('#cast-result').innerHTML =
+    '<div class="divider"></div>'+
+    '<div class="note-box">起卦法：'+esc(info.method)+'（'+esc(info.desc)+'）· 动爻：第'+r.dong+'爻</div>'+
+    '<div class="card">'+
+      '<h3>本卦 · '+esc(b.hex.title)+' <span class="tag red">第'+b.hex.index+'卦</span></h3>'+
+      '<div class="result-hex">'+
+        '<div class="sym">'+esc(b.hex.symbol)+'</div>'+
+        guaLinesHtml(b.lines, new Set([r.dong]))+
+        '<div class="meta"><h4>'+esc(b.hex.title)+'</h4>'+
+        '<div class="sub">'+esc(r.upper.name)+'上 '+esc(r.lower.name)+'下 · '+esc(r.upper.nature)+esc(r.lower.nature)+' · 外'+esc(r.upper.wuxing)+' 内'+esc(r.lower.wuxing)+'</div></div>'+
+      '</div>'+
+      '<blockquote>'+esc(b.hex.guaci)+'</blockquote>'+
+      '<div class="baihua">'+esc(b.hex.guaci_baihua)+'</div>'+
+      '<div class="ti-yong">'+
+        '<div class="pill"><b>体 · '+esc(ti.name)+'</b><span>'+esc(ti.wuxing)+' · 无动爻</span></div>'+
+        '<div class="pill yong"><b>用 · '+esc(yong.name)+'</b><span>'+esc(yong.wuxing)+' · 有动爻</span></div>'+
+      '</div>'+
+      '<div class="verdict">'+
+        '<div class="v-title">体用关系 · '+esc(sk.label)+'（'+esc(sk.grade)+'）</div>'+
+        '<div style="font-size:13.5px">'+esc(sk.desc)+'</div>'+
+      '</div>'+
+      '<table class="shengke-table">'+
+        '<tr><th>分析项</th><th>内容</th><th>判断</th></tr>'+
+        '<tr><td>体卦</td><td>'+esc(ti.name)+'（'+esc(ti.nature)+'，'+esc(ti.wuxing)+'）</td><td>自身 / 所问之事主体</td></tr>'+
+        '<tr><td>用卦</td><td>'+esc(yong.name)+'（'+esc(yong.nature)+'，'+esc(yong.wuxing)+'）</td><td>外势 / 所问之事客体</td></tr>'+
+        '<tr><td>互卦</td><td>'+esc(b.huLower.name)+'（'+esc(huWX[0])+'）· '+esc(b.huUpper.name)+'（'+esc(huWX[1])+'）</td><td>过程中的中间态势</td></tr>'+
+        (b.bianHex?'<tr><td>变卦</td><td>'+esc(b.bianHex.title)+'（'+esc(bianWX)+'）· 第'+b.bianHex.index+'卦</td><td>事态发展趋势</td></tr>':'')+
+      '</table>'+
+      '<h3 style="margin-top:16px">体党 · 用党</h3>'+
+      '<div class="hint">互卦、变卦各卦五行，看其生克归属：同党（+2）、生体/生用（+1）、克体/克用（外势压内）。</div>'+
+      '<table class="shengke-table">'+
+        '<tr><th>来源</th><th>卦 · 五行</th><th>对体</th><th>对用</th></tr>'+
+        dangRows+
+      '</table>'+
+      '<div style="font-size:13px;color:var(--ink2);margin-top:8px">体党 '+dang.tiDang+' 势 · 用党 '+dang.yongDang+' 势 —— '+esc(dang.trend)+'</div>'+
+    '</div>'+
+    '<div class="card">'+
+      '<h3>动爻解读 · '+esc(dongYao.label)+'</h3>'+
+      '<blockquote>'+esc(dongYao.text)+'</blockquote>'+
+      '<div class="baihua">'+esc(dongYao.baihua)+'</div>'+
+      (dongYao.xiaoxiang?'<div class="yao-xx">'+esc(dongYao.xiaoxiang)+'</div>':'')+
+    '</div>'+
+    (b.bianHex?'<div class="card">'+
+      '<h3>变卦 · '+esc(b.bianHex.title)+' <span class="tag jade">趋势</span></h3>'+
+      '<div class="result-hex">'+
+        '<div class="sym">'+esc(b.bianHex.symbol)+'</div>'+
+        '<div class="meta"><h4>'+esc(b.bianHex.title)+'</h4><div class="sub">动爻变后所成之卦，预示事态走向</div></div>'+
+      '</div>'+
+      '<blockquote>'+esc(b.bianHex.guaci)+'</blockquote>'+
+      '<div class="baihua">'+esc(b.bianHex.guaci_baihua)+'</div>'+
+    '</div>':'')+
+    '<div class="note-box">体用生克为传统梅花断卦框架，吉凶需结合所问之事具体判断，不宜机械套用。</div>';
+  $('#cast-result').scrollIntoView({behavior:'smooth'});
+}
+
+/* 说明 */
+function renderAbout(){
+  $('#view').innerHTML =
+    '<div class="card">'+
+      '<h2>关于本集</h2>'+
+      '<p style="font-size:14px;color:var(--ink2);line-height:2">'+
+      '本页为「玄学口袋 · 易经深度集」基础层：六十四卦全文（卦辞、彖、大象、六爻爻辞）+ 白话详解 + 小象 + 象数分析（互卦、错卦、综卦、应位、中正、单爻变卦），乾坤两卦另附《文言》专论与用九用六。'+
+      '</p>'+
+      '<div class="divider"></div>'+
+      '<h3>梅花易数引擎</h3>'+
+      '<p style="font-size:13.5px;color:var(--ink2);line-height:2">'+
+      '支持时间起卦（公历自动转农历）、数字起卦、铜钱摇卦三种方式；自动排出本卦、互卦（二三四爻为下互、三四五爻为上互）、变卦；'+
+      '以无动爻之卦为体、有动爻之卦为用，判体用五行生克，并结合互卦变卦五行归党（体党/用党）提示势力消长。'+
+      '</p>'+
+      '<div class="divider"></div>'+
+      '<h3>数据与免责</h3>'+
+      '<p style="font-size:13px;color:var(--ink3);line-height:2">'+
+      '经文与白话整理参考公开通行本《周易》（卦辞据原典，白话为解释性转述，古籍存在异文与断句差异，严肃校勘请对照具体底本）；'+
+      '农历转换采用经典查表法（1900-2100）。占筮结论仅供参考，不作决策依据。'+
+      '</p>'+
+    '</div>';
+}
+
+/* toast */
+function toast(msg){
+  let t = $('#toast');
+  if(!t){
+    t = document.createElement('div');
+    t.id='toast';
+    t.style.cssText='position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--cinnabar);color:#f7ead0;padding:10px 22px;border-radius:8px;font-size:13px;z-index:99;box-shadow:var(--shadow);transition:opacity .3s';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity=1;
+  clearTimeout(t._h);
+  t._h = setTimeout(()=>t.style.opacity=0, 2200);
+}
+
+/* 路由 */
+function router(){
+  bindTabs();
+  const m = location.hash.match(/^#\/gua\/(\d+)/);
+  if(m){ renderGua(+m[1]); return; }
+  render();
+}
+window.addEventListener('hashchange', router);
+window.addEventListener('DOMContentLoaded', router);
+</script>
+</body>
+</html>

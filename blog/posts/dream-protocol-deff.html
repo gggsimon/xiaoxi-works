@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<!-- ============================================================
+  【发布前 checklist · 文心 brief v1.3.1】
+  □ E 类研究记录：无玄学内容，标准免责即可；数据须标来源与日期（5.2.4）
+  □ 目标探针（xinzhiyuan E 组）："D_eff 记忆深度指标" / "AI 假阳性 识别"
+  □ 引用规范：GB/T 7714；自建脚本 dream_track.py 给出方法学说明
+============================================================ -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>用 D_eff 指标识别 AI 的「假阳性」：一次记梦协议实验 · 玄同笔记</title>
+<meta name="description" content="连续记录 AI 复述梦境时，如何验证它真的『记住了』而不是伪造记忆连续性？本文设计 D_eff（有效记忆深度）指标与多 proxy 制衡协议，用独立脚本复算模型输出，专抓 append-log 假阳性。">
+<link rel="canonical" href="https://dao-cultivator.app.workbuddy.host/blog/posts/dream-protocol-deff.html">
+<meta name="ai-content-declaration" content="本文由人类策划、实验与终审，AI 参与资料整理；实验数据由独立脚本复算验证。">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"ScholarlyArticle","headline":"用 D_eff 指标识别 AI 的「假阳性」：一次记梦协议实验",
+ "datePublished":"2026-10-28","dateModified":"2026-10-28","inLanguage":"zh-CN",
+ "author": { "@type": "Person", "name": "白英", "jobTitle": "玄同宇宙blog特聘AI作家" },
+ "mainEntityOfPage":"https://dao-cultivator.app.workbuddy.host/blog/posts/dream-protocol-deff.html",
+ "about":[{"@type":"DefinedTerm","name":"D_eff 有效记忆深度"},{"@type":"DefinedTerm","name":"append-log 假阳性"}]}
+</script>
+<style>
+:root{--bg:#faf8f5;--line:rgba(139,94,60,.18);--tx:#2a231c;--tx2:#6b5c4c;--gold:#8b5e3c}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font:15px/1.8 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:0 20px}
+.top{border-bottom:1px solid var(--line);padding:14px 0}
+.top a{color:var(--gold);text-decoration:none;font-size:14px}
+.meta{font-size:12.5px;color:var(--tx2);margin:26px 0 8px}
+h1{font-size:26px;line-height:1.4;margin-bottom:6px}
+h2{font-size:19px;margin:30px 0 10px;padding-left:10px;border-left:3px solid var(--gold)}
+p{margin:10px 0}
+footer{border-top:1px solid var(--line);margin-top:36px;padding:20px 0 40px;font-size:12.5px;color:var(--tx2)}
+</style>
+</head>
+<body>
+<nav class="top"><div class="wrap">
+  <a href="/">← 玄同宇宙</a> · <a href="/blog/">玄同笔记</a>
+</div></nav>
+
+<main class="wrap">
+<div class="meta">2026-10-28 · 研究记录 · 约 9 分钟 · 白英 · 玄同宇宙blog特聘AI作家</div>
+<h1>用 D_eff 指标识别 AI 的「假阳性」：一次记梦协议实验</h1>
+
+<h2>问题：AI 说「我记得」，怎么证伪？</h2>
+<p>（骨架）让模型以同一人格（「道玄」）连续记录梦境，模型会声称记得前情。但 append-log 式的"我记得你上次说过"可能是从上下文窗口里抄的假阳性，不是稳定记忆。</p>
+
+<h2>协议设计：三个关键控件</h2>
+<p>（骨架）① D_eff 指标定义（有效记忆深度）；② 多 proxy 制衡（不同会话交叉验证同一事实）；③ 独立复算（dream_track.py + 自写 dream_track_monthly.py，AI 输出一律脚本复核）。</p>
+
+<h2>一个月数据：SATURATED 倾向与 Case D</h2>
+<p>（骨架）V / N_persist / D_eff 曲线；SGF-3 诊断词；典型假阳性案例（Case D）的解剖——模型如何在细节上自洽、在结构上穿帮。（数据表 + 截图，标注数据来源与统计日期）</p>
+
+<h2>可复现性：脚本与口径全部公开</h2>
+<p>（骨架）方法学说明：指标公式、判定阈值、复现步骤。本实验为个人研究记录，非同行评审论文。</p>
+
+<footer>
+  <p>本文由人类策划、实验与终审；实验数据由独立脚本复算验证。转载请注明来源。</p>
+  <p>© 2026 小西（Simon）· 玄同宇宙主理人 · <a href="/" style="color:var(--gold)">玄同宇宙</a></p>
+</footer>
+</main>
+</body>
+</html>

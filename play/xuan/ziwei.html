@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 本地版已移除平台注入脚本 /page/page_comm/inject.js：该脚本仅在线托管环境需要，本地打开不影响功能 -->
+<meta charset="UTF-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>紫微斗数 · 六层叠盘 · 活盘 v1.0（标准化产品版）</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* 「道」风格设计令牌 —— 暖灰 / 米白 / 炭黑 / 东方禅意 */
+  --bg-main:#efece6;          /* 暖灰米白底 */
+  --bg-surface:#f7f5f0;       /* 卡片表面 */
+  --bg-sunken:#e7e3db;        /* 凹陷表面（输入区/侧栏） */
+  --ink:#2b2823;              /* 主文字 炭黑 */
+  --ink-soft:#5a554c;         /* 次级文字 */
+  --ink-muted:#928c80;        /* 弱化文字 */
+  --accent:#8a5a2b;           /* 深棕主色（替代原 gold） */
+  --accent-soft:#a9803f;      /* 浅棕强调 */
+  --card-radius:10px;
+  --ctrl-radius:8px;
+  --btn-radius:999px;
+  --card-bg:var(--bg-surface);
+  --border-subtle:rgba(43,40,35,0.10);
+  --border-strong:rgba(43,40,35,0.18);
+  --shadow-soft:0 1px 3px rgba(43,40,35,0.06),0 6px 18px rgba(43,40,35,0.05);
+  --shadow-card:0 2px 10px rgba(43,40,35,0.07);
+  /* 六层区分色：低饱和温和色（在浅底上可辨识） */
+  --layer1:#9c6b2f;
+  --layer2:#b07d3a;
+  --layer3:#7d9b6a;
+  --layer4:#5f8aa6;
+  --layer5:#8a6fae;
+  --layer6:#b06b5a;
+  --text-title:var(--ink);
+  --text-body:var(--ink-soft);
+  --text-muted:var(--ink-muted);
+  --danger-red:#b34a3f;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:"Noto Sans SC",system-ui,sans-serif;
+  background:var(--bg-main);
+  color:var(--text-body);
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  overflow-x:hidden;position:relative;
+}
+/* 极弱化的纸纹底，替代原星空动画，保持「道」的静谧质感 */
+.paper-grain{
+  position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0.5;
+  background-image:radial-gradient(rgba(43,40,35,0.025) 1px,transparent 1px);
+  background-size:22px 22px;
+}
+.wrapper{position:relative;z-index:1;display:flex;flex-direction:column;flex:1}
+
+/* 合规开场声明 */
+.compliance-banner{
+  background:rgba(138,90,43,0.08);
+  border-bottom:1px solid rgba(138,90,43,0.22);
+  padding:6px 16px;font-size:10px;color:var(--ink-soft);
+  text-align:center;letter-spacing:0.5px;line-height:1.6;
+}
+.compliance-banner b{color:var(--accent)}
+
+/* 输入面板 */
+.input-panel{
+  background:var(--bg-sunken);
+  border-bottom:1px solid var(--border-subtle);
+  padding:10px 16px;
+  display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-end;
+  font-size:11px;
+}
+.input-group{display:flex;flex-direction:column;gap:3px}
+.input-group label{color:var(--text-muted);font-size:9px;letter-spacing:1px}
+.input-group select,.input-group input{
+  background:var(--bg-surface);color:var(--ink);
+  border:1px solid var(--border-strong);border-radius:var(--ctrl-radius);
+  padding:4px 8px;font-size:11px;font-family:inherit;
+  outline:none;cursor:pointer;box-shadow:var(--shadow-soft);
+}
+.input-group select:focus{border-color:var(--accent)}
+.input-group select option{background:var(--bg-surface);color:var(--ink)}
+/* 深色实心主按钮（排盘）——「道」主色 */
+.btn-calc{
+  border-radius:var(--btn-radius);border:1px solid var(--accent);
+  color:#f3ede3;background:var(--accent);
+  padding:5px 18px;font-size:11px;cursor:pointer;
+  font-family:inherit;letter-spacing:2px;font-weight:500;
+  transition:all 0.25s;box-shadow:var(--shadow-soft);
+}
+.btn-calc:hover{background:#7a4e25;border-color:#7a4e25}
+/* 浅色描边次级按钮（生成报告 / 知识库） */
+.btn-action{
+  border-radius:var(--btn-radius);border:1px solid var(--border-strong);
+  color:var(--ink-soft);background:var(--bg-surface);
+  padding:5px 14px;font-size:10px;cursor:pointer;font-family:inherit;
+  transition:all 0.25s;box-shadow:var(--shadow-soft);
+}
+.btn-action:hover{border-color:var(--accent);color:var(--accent)}
+
+.header{text-align:center;padding:14px 16px 10px;border-bottom:1px solid var(--border-subtle)}
+.header h1{font-family:"Noto Serif SC",serif;font-size:18px;color:var(--ink);letter-spacing:4px;font-weight:700}
+.header .sub{color:var(--text-muted);font-size:11px;margin-top:3px;letter-spacing:0.5px}
+.header .ver{color:var(--accent-soft);font-size:9px;margin-top:2px;letter-spacing:1px}
+
+.layer-nav{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px 12px 4px;align-items:stretch}
+.lbtn{padding:6px 4px;border-radius:var(--btn-radius);border:1px solid var(--border-strong);background:var(--bg-surface);color:var(--text-muted);font-size:12px;font-family:inherit;cursor:pointer;transition:all 0.25s;white-space:nowrap;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:var(--shadow-soft);line-height:1.25}
+.lbtn .lname{display:inline-flex;align-items:center;gap:5px;font-weight:600}
+.lbtn .lsub{font-size:9px;opacity:0.75;transform:scale(0.92);transform-origin:center}
+.lbtn .star{color:var(--accent);font-size:11px;margin-left:1px}
+.lbtn.on{color:var(--ink)}
+.lbtn.hi{color:#f3ede3;font-weight:600;border-color:transparent}
+.lbtn.hi .ldot{box-shadow:0 0 0 2px rgba(255,255,255,0.35)}
+.lbtn.hi .lsub{opacity:0.9}
+.lbtn.off{color:var(--text-muted);opacity:0.6;border-style:dashed;border-color:var(--border-subtle);background:var(--bg-sunken)}
+.lbtn.off .ldot{opacity:0.4}
+.lbtn.off .lsub{opacity:0.55}
+.lbtn:hover{transform:translateY(-1px)}
+.lbtn.reset{grid-column:1 / -1;flex-direction:row;padding:5px;color:var(--accent);border-color:var(--accent);background:rgba(138,90,43,0.06);font-weight:600;font-size:11px}
+.nav-hint{grid-column:1 / -1;text-align:center;font-size:9px;color:var(--text-muted);opacity:0.75;margin-top:2px;padding:0 4px}
+.legend{display:flex;justify-content:center;gap:12px;padding:4px 12px 10px;font-size:10px;color:var(--text-muted);flex-wrap:wrap}
+.lg-item{display:inline-flex;align-items:center;opacity:0.7;transition:opacity 0.2s}
+.lg-item.hi{opacity:1;color:var(--ink);font-weight:600}
+.lg-item.off{opacity:0.35;text-decoration:line-through}
+.ldot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle;border:1px solid rgba(43,40,35,0.15)}
+
+.main{display:flex;flex:1;gap:14px;padding:8px 16px 16px;min-height:0}
+.rings{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+#ringCanvas{display:block;cursor:pointer;border-radius:var(--card-radius);max-width:100%;height:auto}
+.readout{flex:1;min-width:260px;max-width:380px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;max-height:calc(100vh - 200px)}
+.readout::-webkit-scrollbar{width:5px}
+.readout::-webkit-scrollbar-track{background:transparent}
+.readout::-webkit-scrollbar-thumb{background:rgba(43,40,35,0.15);border-radius:3px}
+
+.rcard{background:var(--card-bg);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:14px 16px;box-shadow:var(--shadow-card)}
+.rcard h3{font-family:"Noto Serif SC",serif;color:var(--accent);font-size:13px;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--border-subtle);font-weight:600}
+.ehint{color:var(--text-muted);font-size:11px;line-height:1.8}
+
+.lstrip{margin-bottom:6px;border-radius:var(--card-radius);overflow:hidden;border:1px solid var(--border-subtle);border-left-width:3px;background:var(--bg-surface);box-shadow:var(--shadow-soft)}
+.lhead{display:flex;align-items:center;gap:6px;padding:8px 11px 6px;cursor:pointer;user-select:none;flex-wrap:wrap}
+.ltag{font-size:9px;font-weight:700;padding:1px 7px;border-radius:var(--btn-radius);color:#fff;flex-shrink:0}
+.lp{font-size:10px;color:var(--text-muted)}
+.ls{font-size:12px;font-weight:600;font-family:"Noto Serif SC",serif;color:var(--ink)}
+.lexp{font-size:9px;color:var(--text-muted);margin-left:auto}
+.lbody{padding:2px 11px 10px;font-size:11px;line-height:1.7;display:none}
+.lstrip.open .lbody{display:block}
+.lstrip:not(.open) .lexp::after{content:' ▼'}
+.lstrip.open .lexp::after{content:' ▲'}
+.sug{margin-top:6px;padding:7px 9px;border-radius:var(--ctrl-radius);background:rgba(138,90,43,0.06);border:1px solid rgba(138,90,43,0.12);font-size:11px;line-height:1.7;color:var(--ink-soft)}
+.sug-mark{color:var(--accent);font-weight:600;margin-right:4px}
+
+.resonance{background:rgba(179,74,63,0.08);border:1px solid var(--danger-red);border-radius:var(--card-radius);padding:9px 13px;font-size:11px;color:#9c4a40;line-height:1.7;display:none;box-shadow:var(--shadow-soft)}
+.resonance.show{display:block}
+.resonance strong{color:var(--danger-red);font-family:"Noto Serif SC",serif}
+
+.cross{background:var(--card-bg);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:14px 16px;box-shadow:var(--shadow-card)}
+.cross h3{font-family:"Noto Serif SC",serif;color:var(--accent);font-size:13px;margin-bottom:8px;font-weight:600}
+.cr{display:flex;align-items:center;gap:5px;padding:5px 0;font-size:11px;border-bottom:1px solid rgba(43,40,35,0.05)}
+.cr:last-child{border:none}
+.ctag{font-size:9px;font-weight:700;padding:1px 6px;border-radius:var(--ctrl-radius);color:#fff;text-align:center;flex-shrink:0}
+.carr{color:var(--text-muted);font-size:9px}
+.cp{font-weight:600;font-family:"Noto Serif SC",serif;color:var(--ink)}
+.cs{color:var(--text-muted);margin-left:auto;font-size:10px}
+
+.info{text-align:center;padding:9px 12px;font-size:10px;color:var(--text-muted);border-top:1px solid var(--border-subtle);letter-spacing:0.5px;background:var(--bg-sunken)}
+@keyframes pulse-red{0%,100%{box-shadow:0 0 0 0 rgba(179,74,63,0.25)}50%{box-shadow:0 0 0 4px rgba(179,74,63,0.12)}}
+.evil-pulse{animation:pulse-red 2.2s infinite}
+
+/* 产品化外壳：侧边栏 / 浮层 */
+.product-drawer{
+  position:fixed;top:0;right:0;height:100%;width:400px;max-width:94vw;
+  background:var(--bg-surface);border-left:1px solid var(--border-strong);
+  transform:translateX(100%);transition:transform 0.35s ease;z-index:50;
+  display:flex;flex-direction:column;box-shadow:-10px 0 40px rgba(43,40,35,0.12);
+}
+.product-drawer.open{transform:translateX(0)}
+.product-drawer .ph{padding:16px 18px;border-bottom:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:space-between}
+.product-drawer .ph h2{font-family:"Noto Serif SC",serif;color:var(--ink);font-size:15px;letter-spacing:2px}
+.product-drawer .closex{cursor:pointer;color:var(--text-muted);font-size:18px;border:none;background:none}
+.product-drawer .closex:hover{color:var(--accent)}
+.product-drawer .pbody{padding:16px 18px;overflow-y:auto;flex:1;font-size:11px;line-height:1.8;color:var(--ink-soft)}
+.product-drawer .pbody h4{color:var(--ink);font-size:12px;margin:14px 0 6px;font-family:"Noto Serif SC",serif;border-left:2px solid var(--accent);padding-left:7px}
+.kb-item{background:var(--bg-main);border:1px solid var(--border-subtle);border-radius:var(--ctrl-radius);padding:9px 11px;margin-bottom:6px;cursor:pointer;transition:all 0.2s}
+.kb-item:hover{border-color:var(--accent);background:rgba(138,90,43,0.04)}
+.kb-item .kt{color:var(--accent);font-size:11px;font-weight:600}
+.kb-item .kd{color:var(--text-muted);font-size:10px;margin-top:2px;line-height:1.6}
+.tier-card{border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:11px 13px;margin-bottom:8px;background:var(--bg-main)}
+.tier-card.t1{border-left:3px solid var(--layer4)}
+.tier-card.t2{border-left:3px solid var(--accent)}
+.tier-card.t3{border-left:3px solid var(--layer6)}
+.tier-card .tn{font-size:11px;font-weight:600;color:var(--ink)}
+.tier-card .tp{font-size:10px;color:var(--text-muted);margin-top:3px}
+.hook-box{background:rgba(138,90,43,0.05);border:1px dashed var(--accent);border-radius:var(--card-radius);padding:11px 13px;margin-top:12px;font-size:10px;color:var(--ink-soft);line-height:1.7}
+.mask{position:fixed;inset:0;background:rgba(43,40,35,0.32);z-index:40;opacity:0;pointer-events:none;transition:opacity 0.3s}
+.mask.show{opacity:1;pointer-events:auto}
+
+/* ===== 报告卡片化排版（Task 2/3） ===== */
+.report-wrap{font-size:11px;line-height:1.7;color:var(--ink-soft)}
+.report-head{background:var(--bg-main);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow-soft)}
+.report-head h3{font-family:"Noto Serif SC",serif;color:var(--accent);font-size:13px;font-weight:600;margin-bottom:6px}
+.report-head p{color:var(--ink-soft);line-height:1.8}
+.report-meta{margin-top:8px;font-size:9px;color:var(--text-muted);letter-spacing:0.5px}
+.sec-title{color:var(--ink);font-size:12px;margin:16px 0 8px;font-family:"Noto Serif SC",serif;border-left:2px solid var(--accent);padding-left:7px}
+.palace-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:9px}
+.pcard{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:10px 11px;transition:border-color 0.2s,transform 0.2s;box-shadow:var(--shadow-soft)}
+.pcard:hover{transform:translateY(-1px)}
+.pcard.hl{border-color:rgba(179,74,63,0.5);background:rgba(179,74,63,0.05)}
+.pc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.pc-name{font-family:"Noto Serif SC",serif;font-weight:700;color:var(--ink);font-size:12px}
+.pc-sihua{font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;color:#fff}
+.pc-sihua.s-ji{background:#b34a3f}.pc-sihua.s-lu{background:#5f8a4e}.pc-sihua.s-quan{background:#b07d3a}.pc-sihua.s-ke{background:#5f8aa6}
+.pc-kw{font-size:10px;color:var(--accent);margin-bottom:4px;min-height:14px;font-family:"Noto Serif SC",serif}
+.pc-concl{font-size:10px;color:var(--ink-soft);line-height:1.6}
+.resonance-box{display:flex;flex-direction:column;gap:6px}
+.res-item{font-size:10px;padding:8px 11px;border-radius:var(--ctrl-radius);line-height:1.6}
+.res-item b{font-family:"Noto Serif SC",serif;margin-right:4px}
+.res-item.ji{background:rgba(179,74,63,0.08);border:1px solid rgba(179,74,63,0.35);color:#9c4a40}
+.res-item.lu{background:rgba(95,138,78,0.08);border:1px solid rgba(95,138,78,0.32);color:#4e7340}
+.res-item{background:var(--bg-surface);border:1px solid var(--border-subtle);color:var(--ink-soft)}
+/* 行动清单 */
+.actions-block{margin-top:16px;border-top:1px dashed var(--border-subtle);padding-top:14px}
+.act-title{color:var(--accent);font-size:12px;font-family:"Noto Serif SC",serif;margin-bottom:9px}
+.act-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+.act-card{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:9px 10px;box-shadow:var(--shadow-soft)}
+.act-head{font-family:"Noto Serif SC",serif;font-weight:700;color:var(--ink);font-size:12px;margin-bottom:7px;display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--border-subtle);padding-bottom:5px}
+.act-sub{font-size:8px;color:var(--text-muted);font-weight:400;font-family:"Noto Sans SC",sans-serif}
+.act-list{list-style:none}
+.act-list li{display:flex;align-items:flex-start;gap:5px;font-size:9.5px;color:var(--ink-soft);margin-bottom:5px;line-height:1.5}
+.act-flag{flex:0 0 auto;width:15px;height:15px;border-radius:4px;font-size:9px;font-weight:700;color:#fff;display:inline-flex;align-items:center;justify-content:center;margin-top:1px}
+.act-flag.f-避{background:#b34a3f}.act-flag.f-进{background:#5f8a4e}.act-flag.f-主{background:#b07d3a}.act-flag.f-学{background:#5f8aa6}.act-flag.f-做{background:#8a6fae}
+.act-pal{flex:0 0 auto;color:var(--accent);font-weight:600;font-family:"Noto Serif SC",serif}
+.act-txt{flex:1}
+.act-empty{color:var(--text-muted);font-style:italic}
+.act-note{margin-top:9px;font-size:9px;color:var(--text-muted);line-height:1.7;background:rgba(138,90,43,0.04);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:8px 10px}
+.act-note b{color:var(--accent)}
+
+/* ===== 打印 / 导出 PDF 独立排版（Task 2） ===== */
+@media print{
+  @page{margin:14mm}
+  body{background:#fff!important;color:#1a1a1a!important;overflow:visible!important}
+  .paper-grain,.mask,.product-drawer .ph .closex,.rotate-tip,.layer-nav,.legend,.main,.info,.btn-action,.hook-box{display:none!important}
+  .product-drawer{position:static!important;transform:none!important;width:100%!important;max-width:none!important;background:#fff!important;border:none!important;box-shadow:none!important;height:auto!important}
+  .product-drawer .pbody{padding:0!important;overflow:visible!important;color:#1a1a1a!important;font-size:11pt!important}
+  .report-wrap,.report-head,.pcard,.act-card,.res-item,.kb-item,.lstrip,.tier-card{background:#fff!important;border-color:#ccc!important;color:#1a1a1a!important;box-shadow:none!important}
+  .report-head h3,.sec-title,.act-title,.pc-name,.pc-kw{color:#7a4d00!important}
+  .pc-concl,.act-txt,.report-head p,.report-meta{color:#333!important}
+  .pcard.hl{border-color:#b34a3f!important;background:#fdf3f1!important}
+  .palace-grid{grid-template-columns:repeat(3,1fr)!important}
+  .act-grid{grid-template-columns:1fr 1fr 1fr!important}
+  .act-flag{color:#fff!important}
+  .pc-sihua{color:#fff!important}
+  *{box-shadow:none!important;animation:none!important}
+}
+
+@media(max-width:1100px){
+  .main{flex-direction:column;align-items:center}
+  .rings{flex:none;max-width:100%}
+  .readout{max-width:none;width:100%;max-height:none}
+  #ringCanvas{max-width:min(500px,90vw)}
+}
+@media(max-width:600px){
+  .header h1{font-size:16px;letter-spacing:2px}
+  .layer-nav{grid-template-columns:repeat(2,1fr);gap:5px;padding:8px 10px 4px}
+  .layer-nav::-webkit-scrollbar{display:none}
+  .lbtn{padding:5px 2px;font-size:11px}
+  .lbtn.reset{flex-direction:row}
+  .nav-hint{white-space:normal;text-align:left;font-size:8px}
+  .legend{gap:8px;font-size:9px}
+  .main{flex-direction:column;align-items:center;padding:6px 8px 14px}
+  .rings{flex:none;max-width:100%;width:100%}
+  #ringCanvas{max-width:min(440px,94vw);margin:0 auto}
+  .readout{max-width:none;width:100%;max-height:none;min-width:0}
+  .input-panel{gap:6px 8px}
+}
+/* 手机竖屏：提示可横屏获得更大盘面；并排双视图由「圆盘 + 右侧六层清单」在横屏下自动切换 */
+@media(max-width:600px) and (orientation:portrait){
+  .rotate-tip{display:flex}
+}
+.rotate-tip{display:none;align-items:center;justify-content:center;gap:6px;font-size:9px;color:var(--ink-soft);
+  background:rgba(138,90,43,0.05);border:1px dashed rgba(138,90,43,0.3);border-radius:var(--card-radius);
+  padding:5px 10px;margin:0 8px 6px}
+@media(max-width:600px) and (orientation:landscape){
+  .main{flex-direction:row;align-items:flex-start;gap:8px}
+  .rings{flex:0 0 auto}
+  #ringCanvas{max-width:min(56vh,420px)}
+  .readout{flex:1;max-height:88vh}
+}
+@media(prefers-reduced-motion:reduce){
+  .evil-pulse{animation:none!important}
+}
+
+
+
+
+</style>
+</head>
+<body>
+<div class="paper-grain"></div>
+<div class="wrapper">
+
+<!-- 合规开场声明 -->
+<div class="compliance-banner">
+  ⚠️ <b>仅供娱乐与文化研究参考</b> · 本工具基于传统命理学规则确定性排盘，属<b>趋势分析</b>与<b>心性解读</b>，不构成任何医疗、投资或人生决策建议。理性看待，顺势而为。
+</div>
+
+<!-- ===== 输入面板 ===== -->
+<div class="input-panel" id="inputPanel">
+  <div class="input-group">
+    <label>出生年</label>
+    <select id="in_birthYear"></select>
+  </div>
+  <div class="input-group">
+    <label>农历月</label>
+    <select id="in_birthMonth"></select>
+  </div>
+  <div class="input-group">
+    <label>农历日</label>
+    <select id="in_birthDay"></select>
+  </div>
+  <div class="input-group">
+    <label>时辰</label>
+    <select id="in_birthHour"></select>
+  </div>
+  <div class="input-group">
+    <label>性别</label>
+    <select id="in_gender"><option value="male">男</option><option value="female">女</option></select>
+  </div>
+  <div style="width:1px; height:28px; background:var(--border-subtle); margin:0 4px"></div>
+  <div class="input-group">
+    <label>查询流年</label>
+    <select id="in_queryYear"></select>
+  </div>
+  <div class="input-group">
+    <label>流月</label>
+    <select id="in_queryMonth"></select>
+  </div>
+  <div class="input-group">
+    <label>流日</label>
+    <select id="in_queryDay"></select>
+  </div>
+  <div class="input-group">
+    <label>流时</label>
+    <select id="in_queryHour"></select>
+  </div>
+  <button class="btn-calc" id="btnCalc">排盘</button>
+  <button class="btn-action" id="btnReport">生成报告</button>
+  <button class="btn-action" id="btnKB">玄学知识库</button>
+</div>
+
+<div class="header">
+  <h1>紫微斗数 · 六层叠盘</h1>
+  <div class="sub" id="subInfo"></div>
+</div>
+<div class="layer-nav" id="nav"></div>
+<div class="legend" id="legend"></div>
+<div class="rotate-tip">📱 竖屏空间有限，可横屏获得更大盘面；圆盘与六层清单将并排显示。</div>
+
+<div class="main">
+  <div class="rings"><canvas aria-label="紫微斗数六层叠盘" height="680" id="ringCanvas" width="680"></canvas></div>
+  <div class="readout" id="readout">
+    <div class="rcard" id="mc"></div>
+    <div class="resonance" id="ra"><strong>化忌共振</strong><div id="rt" style="margin-top:5px"></div></div>
+    <div class="cross" id="cc"><h3>各层宫位对照</h3><div id="cr"></div></div>
+  </div>
+</div>
+<div class="info" id="infoBar"></div>
+</div>
+
+<!-- 产品化浮层：报告 / 知识库 -->
+<div class="mask" id="mask"></div>
+<div class="product-drawer" id="drawer">
+  <div class="ph">
+    <h2 id="drawerTitle">产品能力</h2>
+    <button class="closex" id="drawerClose">✕</button>
+  </div>
+  <div class="pbody" id="drawerBody"></div>
+
+<script>
+
+/* ================================================================
+ * 紫微斗数排盘引擎 — 活盘版（标准化产品 v1.0）
+ * 完整实现：命宫/身宫/十二宫/宫干/五行局/14主星/大限/流年流月流日流时/四化
+ * 新增：报告生成、分享图导出、合规框架、知识库检索入口
+ * ================================================================ */
+
+/* ===== 天干地支常量 ===== */
+var GAN=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+var ZHI=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+var BR=ZHI;
+var PN=['命宫','兄弟','夫妻','子女','财帛','疾厄','迁移','交友','官禄','田宅','福德','父母'];
+var PS=['命','兄','夫','子','财','疾','迁','友','官','田','福','父'];
+
+/* ===== 六十甲子纳音五行 ===== */
+var NAYIN=[
+  '金','金','火','火','木','木','土','土','金','金',
+  '火','火','水','水','土','土','金','金','木','木',
+  '水','水','土','土','火','火','木','木','水','水',
+  '金','金','火','火','木','木','土','土','金','金',
+  '火','火','水','水','土','土','金','金','木','木',
+  '水','水','土','土','火','火','木','木','水','水'
+];
+var JU_NUM={'金':4,'木':3,'水':2,'火':6,'土':5};
+var JU_NAME={'金':'金四局','木':'木三局','水':'水二局','火':'火六局','土':'土五局'};
+
+/* ===== 五虎遁 / 五鼠遁 ===== */
+var WU_HU={0:2,5:2,1:4,6:4,2:6,7:6,3:8,8:8,4:0,9:0};
+var WU_SHU={0:0,5:0,1:2,6:2,2:4,7:4,3:6,8:6,4:8,9:8};
+
+/* ===== 农历数据表（1900-2099） ===== */
+var LUNAR_INFO=[
+0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,
+0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,
+0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x1ab54,0x02b60,0x09570,0x052f2,0x04970,
+0x06566,0x0d4a0,0x0ea50,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,
+0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a5b4,0x025d0,0x092d0,0x0d2b2,0x0a950,0x0b557,
+0x06ca0,0x0b550,0x15355,0x04da0,0x0a5b0,0x14573,0x052b0,0x0a9a8,0x0e950,0x06aa0,
+0x0aea6,0x0ab50,0x04b60,0x0aae4,0x0a570,0x05260,0x0f263,0x0d950,0x05b57,0x056a0,
+0x096d0,0x04dd5,0x04ad0,0x0a4d0,0x0d4d4,0x0d250,0x0d558,0x0b540,0x0b6a0,0x195a6,
+0x095b0,0x049b0,0x0a974,0x0a4b0,0x0b27a,0x06a50,0x06d40,0x0af46,0x0ab60,0x09570,
+0x04af5,0x04970,0x064b0,0x074a3,0x0ea50,0x06b58,0x055c0,0x0ab60,0x096d5,0x092e0,
+0x0c960,0x0d954,0x0d4a0,0x0da50,0x07552,0x056a0,0x0abb7,0x025d0,0x092d0,0x0cab5,
+0x0a950,0x0b4a0,0x0baa4,0x0ad50,0x055d9,0x04ba0,0x0a5b0,0x15176,0x052b0,0x0a930,
+0x07954,0x06aa0,0x0ad50,0x05b52,0x04b60,0x0a6e6,0x0a4e0,0x0d260,0x0ea65,0x0d530,
+0x05aa0,0x076a3,0x096d0,0x04afb,0x04ad0,0x0a4d0,0x1d0b6,0x0d250,0x0d520,0x0dd45,
+0x0b5a0,0x056d0,0x055b2,0x049b0,0x0a577,0x0a4b0,0x0aa50,0x1b255,0x06d20,0x0ada0,
+0x14b63,0x09370,0x049f8,0x04970,0x064b0,0x168a6,0x0ea50,0x06b20,0x1a6c4,0x0aae0,
+0x0a2e0,0x0d2e3,0x0c960,0x0d557,0x0d4a0,0x0da50,0x05d55,0x056a0,0x0a6d0,0x055d4,
+0x052d0,0x0a9b8,0x0a950,0x0b4a0,0x0b6a6,0x0ad50,0x055a0,0x0aba4,0x0a5b0,0x052b0,
+0x0b273,0x06930,0x07337,0x06aa0,0x0ad50,0x14b55,0x04b60,0x0a570,0x054e4,0x0d160,
+0x0e968,0x0d520,0x0daa0,0x16aa6,0x056d0,0x04ae0,0x0a9d4,0x0a2d0,0x0d150,0x0f252
+];
+function leapMonth(y){return LUNAR_INFO[y-1900]&0xf;}
+function leapDays(y){if(leapMonth(y)===0)return 0;return(LUNAR_INFO[y-1900]&0x10000)?30:29;}
+function monthDays(y,m){return(LUNAR_INFO[y-1900]&(0x10000>>m))?30:29;}
+function yearDays(y){var s=348;for(var i=0x8000;i>0x8;i>>=1)s+=(LUNAR_INFO[y-1900]&i)?1:0;return s+leapDays(y);}
+function lunarToSolar(ly,lm,ld){
+  var offset=0;
+  for(var i=1900;i<ly;i++)offset+=yearDays(i);
+  for(var i=1;i<lm;i++)offset+=monthDays(ly,i);
+  var lp=leapMonth(ly);
+  if(lp>0&&lp<lm)offset+=leapDays(ly);
+  offset+=ld-1;
+  var d=new Date(1900,0,31);
+  d.setDate(d.getDate()+offset);
+  return d;
+}
+function gregToJDN(y,m,d){
+  var a=Math.floor((14-m)/12);
+  var yy=y+4800-a;
+  var mm=m+12*a-3;
+  return d+Math.floor((153*mm+2)/5)+365*yy+Math.floor(yy/4)-Math.floor(yy/100)+Math.floor(yy/400)-32045;
+}
+function getDayGanZhi(sy,sm,sd){
+  var jdn=gregToJDN(sy,sm,sd);
+  var idx=((jdn+49)%60+60)%60;
+  return{g:idx%10,z:idx%12};
+}
+var SIHUA={
+  0:{lu:'廉贞',quan:'破军',ke:'武曲',ji:'太阳'},
+  1:{lu:'天机',quan:'天梁',ke:'紫微',ji:'太阴'},
+  2:{lu:'天同',quan:'天机',ke:'文昌',ji:'廉贞'},
+  3:{lu:'太阴',quan:'天同',ke:'天机',ji:'巨门'},
+  4:{lu:'贪狼',quan:'太阴',ke:'右弼',ji:'天机'},
+  5:{lu:'武曲',quan:'贪狼',ke:'天梁',ji:'文曲'},
+  6:{lu:'太阳',quan:'武曲',ke:'太阴',ji:'天同'},
+  7:{lu:'巨门',quan:'太阳',ke:'文曲',ji:'文昌'},
+  8:{lu:'天梁',quan:'紫微',ke:'左辅',ji:'武曲'},
+  9:{lu:'破军',quan:'巨门',ke:'太阴',ji:'贪狼'}
+};
+var HUA_LABEL={lu:'禄',quan:'权',ke:'科',ji:'忌'};
+var STAR_NAMES=['紫微','天机','太阳','武曲','天同','廉贞','天府','太阴','贪狼','巨门','天相','天梁','七杀','破军'];
+var STAR_DB={
+  '紫微':{core:'帝王星，格局大，自尊心强，谋定后动',trait:'领导力强但内心封闭',advice:'找信得过的人合作，别什么都自己扛'},
+  '天机':{core:'智慧星，聪明善谋，反应快',trait:'脑力过人但容易想太多',advice:'想清楚就行动，别过度纠结'},
+  '太阳':{core:'博爱星，热情付出，光明磊落',trait:'乐于助人但容易过度消耗',advice:'付出有度，给自己留底，帮完放下期待'},
+  '武曲':{core:'财星，刚毅务实，执行力强',trait:'靠实力赚钱，财来财去',advice:'专业能力是根本，考证深造是直接投资'},
+  '天同':{core:'福星，乐观随和，享受生活',trait:'福气好但容易懒散',advice:'别因底子好就放纵，规律作息比补品管用'},
+  '廉贞':{core:'次桃花，精明能干，内心拉扯',trait:'欲望与理性反复博弈',advice:'内耗时去做事，用理性占住脑子，空想就少一半'},
+  '天府':{core:'财库星，稳重大方，保守可靠',trait:'守成有余开创不足',advice:'稳中求进，守住已有，别贪快'},
+  '太阴':{core:'月亮星，温柔细腻，重感情',trait:'感性丰富但情绪波动',advice:'关注情绪健康，妈妈很需要你关注'},
+  '贪狼':{core:'桃花星，欲望强，多才多艺',trait:'兴趣广泛但容易分散',advice:'欲望化为学习动力，大额消费放三天再决定'},
+  '巨门':{core:'口舌星，善于表达但易招是非',trait:'口才好但容易得罪人',advice:'说话留余地，别较真，听过就算'},
+  '天相':{core:'印星，辅佐之才，随和稳重',trait:'善于协调但缺乏主见',advice:'借力比硬扛强，找对人合作'},
+  '天梁':{core:'荫星，长辈缘好，逢凶化吉',trait:'有贵人运但容易操心',advice:'遇到困难找前辈聊，一句话省半年弯路'},
+  '七杀':{core:'将星，独立果断，冲劲十足',trait:'越难越稳但容易冲动',advice:'选能独立负责的方向，单人深耕最出成绩'},
+  '破军':{core:'耗星，破旧立新，变动不居',trait:'敢闯敢拼但难以安稳',advice:'变动前想清楚方向，别为了变而变'},
+  '文昌':{core:'文星，学问才华，考运好',trait:'善于学习但容易空谈',advice:'把知识落地为实际行动'},
+  '文曲':{core:'艺星，才华横溢，浪漫',trait:'感性丰富但容易不切实际',advice:'发挥创意但别脱离现实'},
+  '左辅':{core:'辅星，助力多，人缘好',trait:'有贵人但依赖心',advice:'感恩助力但保持独立'},
+  '右弼':{core:'弼星，桃花助力，交际广',trait:'人脉广但感情复杂',advice:'人脉用在对的事上'}
+};
+var PALACE_FIELD={
+  '命宫':'自身性格和整体格局','兄弟':'同辈、朋友、合伙人','夫妻':'感情和婚姻',
+  '子女':'晚辈、下属、投资','财帛':'财运和理财方式','疾厄':'身体健康',
+  '迁移':'外出、变动、出行运','交友':'人际社交','官禄':'事业和工作',
+  '田宅':'家庭、房产、积蓄','福德':'精神状态和内心','父母':'长辈和原生家庭'
+};
+/* ===== 14主星×12宫位 解读矩阵（节选核心，原版完整保留） ===== */
+var SP={
+'紫微':{
+'命宫':{m:'帝王星坐命，天生气场强，格局大，自尊心重，天生的领导者',a:'学会放权，别事必躬亲，找信得过的搭档分担'},
+'兄弟':{m:'手足中有能力出众者，朋友圈层次高，但彼此不太亲近',a:'对兄弟朋友别太端架子，放低姿态关系更融洽'},
+'夫妻':{m:'配偶气质高贵有主见，婚姻中对方强势，你需适应配合',a:'尊重伴侣的主见，别争主导权，婚姻会更稳'},
+'子女':{m:'子女优秀有主见，管教需讲道理，硬碰硬适得其反',a:'给孩子空间和尊重，以引导代替命令'},
+'财帛':{m:'财运格局大，善用身份地位赚钱，收入与层级挂钩',a:'提升自身段位比埋头苦干更赚钱，投资选大平台'},
+'疾厄':{m:'注意脾胃和过度劳累，帝王星入疾厄易因好强伤身',a:'别硬撑，身体报警就休息，定期检查脾胃'},
+'迁移':{m:'出外有贵人，到哪都有排面，适合在外发展',a:'多走出去，异地发展或出差对你有利'},
+'交友':{m:'交友层次高，朋友多有权势之人，但也易被利用',a:'分辨真心朋友和利益关系，别被捧杀'},
+'官禄':{m:'事业格局大，适合管理层、公职、大型机构，天生领导命',a:'瞄准管理岗或自主创业，别长期做执行层'},
+'田宅':{m:'家庭条件好，房产运佳，家中你说了算',a:'适当投资房产，家中事务多担当'},
+'福德':{m:'内心高傲但精神世界丰富，追求高品质生活',a:'别太在意面子，内心知足比外在排场重要'},
+'父母':{m:'父母有威望，家教严格，长辈对你的期望高',a:'理解父母的严格要求是为你好，多沟通别对抗'}
+},
+'天机':{
+'命宫':{m:'智慧星坐命，思维敏捷善谋划，反应快学习强，但容易想太多',a:'想清楚就行动，别陷入分析瘫痪，动手比动脑更出结果'},
+'兄弟':{m:'手足聪明善变，朋友点子多但不太靠谱',a:'听兄弟朋友的建议可以，但别照做，自己拿主意'},
+'夫妻':{m:'配偶聪明多变，感情中沟通多但对方心思难猜',a:'多问少猜，别用脑补代替沟通'},
+'子女':{m:'子女聪慧活泼，学习能力强但需引导专注',a:'培养孩子专注力，兴趣班别贪多'},
+'财帛':{m:'靠脑力赚钱，收入灵活但波动大，善抓机会',a:'建立稳定收入基础，别只靠投机和脑力变现'},
+'疾厄':{m:'注意肝胆和神经系统，思虑过度伤神',a:'少熬夜少焦虑，运动比补脑保健品管用'},
+'迁移':{m:'外出机会多，善变通，到哪都能适应',a:'多走动多接触新环境，灵感在外不在家'},
+'交友':{m:'朋友多智多谋，社交中你是军师角色',a:'别总替别人出主意，留点脑力给自己'},
+'官禄':{m:'适合策划、咨询、IT、教育等脑力工作，变动多是常态',a:'选需要动脑的行业深耕，别做重复性工作'},
+'田宅':{m:'家中变动多，搬家频繁，居住环境常调整',a:'居住环境宜简洁，别折腾装修，稳定为上'},
+'福德':{m:'思维活跃但内心不安，脑子停不下来',a:'冥想或散步有助静心，别带手机上床'},
+'父母':{m:'父母心思细，家教注重智力培养，但管得多',a:'理解父母的操心，独立后别让她们太焦虑'}
+},
+'太阳':{
+'命宫':{m:'博爱星坐命，热情大方，光明磊落，乐于付出，天生的发光体',a:'付出有度，给自己留底，帮完就放下期待'},
+'兄弟':{m:'手足热情大方，朋友中你是付出最多的那个',a:'别总当老好人，适当索取才能平衡关系'},
+'夫妻':{m:'配偶阳光热情，婚姻中你付出多，对方接受多',a:'关注伴侣的回馈，别单方面燃烧自己'},
+'子女':{m:'子女活泼开朗，教育以鼓励为主，孩子有表现欲',a:'多表扬少批评，给孩子展示的舞台'},
+'财帛':{m:'财来财去，大方花钱，靠名声和人脉赚钱',a:'记账控制支出，名声变现是你最大的财源'},
+'疾厄':{m:'注意心血管和眼睛，过度操劳易上火',a:'少熬夜，定期检查血压和视力'},
+'迁移':{m:'外出人缘好，到哪都受欢迎，阳光吸引贵人',a:'多社交多曝光，你的贵人在外不在家'},
+'交友':{m:'朋友多且广，社交圈活跃，你是圈中的核心',a:'社交虽好但别透支精力，精选深交的几个人'},
+'官禄':{m:'适合公关、教育、传媒、服务业，靠曝光度吃饭',a:'选需要个人魅力和公众曝光的行业'},
+'田宅':{m:'家中热闹，家人互动多，但你可能顾家不够',a:'多花时间陪家人，别把热情都给了外人'},
+'福德':{m:'内心阳光积极，精神世界充实，但容易操心别人',a:'把热情留一部分给自己，独处充电'},
+'父母':{m:'父亲对你影响大，父母热情但可能缺席',a:'感恩父亲的付出，主动修复父子/父女关系'}
+},
+'武曲':{
+'命宫':{m:'财星坐命，刚毅务实，执行力强，靠实力说话，不善表达情感',a:'专业能力是根本，考证深造是最直接的投资，学着表达感受'},
+'兄弟':{m:'手足务实能干，朋友中你信服有实力的人',a:'跟有本事的人深交，远离只会说的'},
+'夫妻':{m:'配偶务实强势，婚姻中讲实际少浪漫，易有摩擦',a:'婚姻需要物质基础也需要情感表达，偶尔浪漫一下'},
+'子女':{m:'子女独立要强，管教不宜太硬，叛逆心重',a:'用目标驱动代替命令，给孩子自主空间'},
+'财帛':{m:'正财运强，靠专业技能赚钱，理财有道',a:'深耕一个专业领域，持续投入就是最好的理财'},
+'疾厄':{m:'注意肺部和呼吸系统，刚强易折，情绪压抑伤身',a:'学会释放情绪，别硬扛，深呼吸练习有帮助'},
+'迁移':{m:'外出求财，异地发展有利，实干出成绩',a:'别怕吃苦，外地机会比本地多'},
+'交友':{m:'交友重质不重量，朋友多务实之人',a:'少参与无效应酬，跟能一起做事的人来往'},
+'官禄':{m:'适合金融、军警、技术、工程等实干型行业',a:'选需要硬实力和资质的行业，别做纯靠嘴的工作'},
+'田宅':{m:'守家业有道，房产运佳，适合置产',a:'买房置产是好的投资方式，守住已有资产'},
+'福德':{m:'内心刚毅但不够松弛，精神上紧绷',a:'培养一个与赚钱无关的爱好，学会享受生活'},
+'父母':{m:'父母严格务实，家教重视纪律和实力',a:'理解父母的严厉是为你的将来，用成绩证明自己'}
+},
+'天同':{
+'命宫':{m:'福星坐命，乐观随和，享受生活，人缘好，但容易懒散',a:'别因底子好就放纵，设定目标逼自己一把，规律作息比补品管用'},
+'兄弟':{m:'手足关系融洽，朋友觉得你好相处',a:'关系好也别太依赖，保持独立性'},
+'夫妻':{m:'配偶温柔体贴，婚姻和谐但缺乏激情',a:'偶尔制造浪漫和新鲜感，别让婚姻太平淡'},
+'子女':{m:'子女乖巧懂事，亲子关系好',a:'适当给孩子压力，别太溺爱'},
+'财帛':{m:'财运平稳不缺钱，但不善理财，花钱随性',a:'设定储蓄目标，别有多少花多少'},
+'疾厄':{m:'注意肠胃和泌尿系统，懒散易发胖',a:'管住嘴迈开腿，别让福气变成脂肪'},
+'迁移':{m:'外出顺利平安，但缺乏冲劲，在外偏安逸',a:'外出时多主动争取机会，别只求安稳'},
+'交友':{m:'朋友多好人缘好，但深交的少',a:'主动维护几段深关系，别都是泛泛之交'},
+'官禄':{m:'适合服务业、文教、餐饮、休闲行业，工作环境轻松',a:'别选高压竞争行业，稳定舒适的环境更适合你'},
+'田宅':{m:'家庭温馨和睦，居家环境舒适',a:'注重家居品质，家是你充电的地方'},
+'福德':{m:'精神世界丰富，懂得享受，内心平和',a:'保持乐观，但别用享乐逃避现实问题'},
+'父母':{m:'父母慈祥温和，家庭氛围轻松',a:'感恩家庭的温暖，但别躲在舒适区不成长'}
+},
+'廉贞':{
+'命宫':{m:'次桃花星坐命，精明能干，内心拉扯，欲望与理性反复博弈',a:'内耗时就去做事，用行动占住脑子，空想就少一半'},
+'兄弟':{m:'手足关系复杂，有亲近也有摩擦',a:'跟兄弟保持适当距离，太近易生矛盾'},
+'夫妻':{m:'感情波折多，配偶强势有主见，婚姻中拉扯不断',a:'婚姻需要磨合期，别轻易放弃，也别冲动决定'},
+'子女':{m:'子女个性强，管教有难度，叛逆期明显',a:'用平等对话代替权威压制，硬碰硬两败俱伤'},
+'财帛':{m:'财运起伏大，敢赚敢花，欲望驱动财务',a:'控制消费欲望，大额支出冷静三天再决定'},
+'疾厄':{m:'注意精神压力和情绪问题，内耗伤身',a:'定期释放情绪，运动或倾诉都行，别憋着'},
+'迁移':{m:'外出有桃花有是非，在外人缘好但易惹麻烦',a:'外出注意言行，桃花未必是好事'},
+'交友':{m:'社交圈复杂，朋友类型多样，易卷入是非',a:'交友有选择，别什么人都来往'},
+'官禄':{m:'适合公关、演艺、法律、政务等需要手腕的工作',a:'选需要人际博弈能力的行业，你的精明是优势'},
+'田宅':{m:'家中易有矛盾，居住环境变动多',a:'家中事务别太强势，给家人空间'},
+'福德':{m:'内心矛盾，精神上欲望与理智打架',a:'学会与欲望共处，别压抑也别放纵'},
+'父母':{m:'与父母关系有张力，既亲近又冲突',a:'理解代际差异，别试图改变父母'}
+},
+'天府':{
+'命宫':{m:'财库星坐命，稳重大方，保守可靠，守成有余开创不足',a:'稳中求进，守住已有基本盘，别贪快，适度尝试新领域'},
+'兄弟':{m:'手足稳重可靠，朋友中你是值得信赖的人',a:'关系稳固但别太保守，适当拓展新圈子'},
+'夫妻':{m:'配偶稳重顾家，婚姻稳定但缺乏变化',a:'偶尔给婚姻加点新鲜感，别让稳定变成无聊'},
+'子女':{m:'子女踏实稳重，教育顺其自然即可',a:'适当鼓励孩子冒险，别让你的保守限制了孩子'},
+'财帛':{m:'正财运稳，善储蓄，理财保守但安全',a:'适当配置一些收益型投资，别让钱只存银行'},
+'疾厄':{m:'注意脾胃和消化系统，体质偏虚',a:'规律饮食，少冷饮，调理脾胃是根本'},
+'迁移':{m:'外出平稳，但缺乏冲劲，在外偏保守',a:'外出时大胆一些，机会不会主动找你'},
+'交友':{m:'朋友稳重可信，社交圈偏传统',a:'适当接触不同类型的人，别太封闭'},
+'官禄':{m:'适合银行、行政、地产、仓储等稳定型行业',a:'选大平台大机构，稳定晋升比创业更适合你'},
+'田宅':{m:'家庭稳固，房产运极佳，适合置产守业',a:'房产是你最大的财富来源，重点投入'},
+'福德':{m:'内心安稳知足，精神世界平和',a:'享受安稳的同时，偶尔跳出舒适区尝鲜'},
+'父母':{m:'父母稳重，家庭条件不差，家教传统',a:'感恩家庭的稳定，但也别被传统束缚'}
+},
+'太阴':{
+'命宫':{m:'月亮星坐命，温柔细腻，重感情，直觉力强，情绪随月圆缺波动',a:'关注情绪健康，建立情绪管理习惯，妈妈很需要你关注'},
+'兄弟':{m:'手足温柔体贴，姐妹缘分深',a:'珍惜与姐妹的感情，多关心她们的生活'},
+'夫妻':{m:'配偶温柔细腻，感情深厚但易多愁善感',a:'多给伴侣安全感，别让对方猜你的心思'},
+'子女':{m:'子女乖巧敏感，需要温柔对待',a:'多鼓励少批评，注意孩子的情绪变化'},
+'财帛':{m:'财运如月光，时明时暗，靠积蓄理财',a:'稳定储蓄，月光族要设强制存款，别情绪消费'},
+'疾厄':{m:'注意肾脏和妇科，情绪影响身体',a:'情绪管理就是最好的养生，定期检查肾和妇科'},
+'迁移':{m:'外出敏感，环境变化影响情绪，夜间活动多',a:'外出注意安全，白天行动比夜间好'},
+'交友':{m:'朋友多温柔细腻之人，社交偏感性',a:'别被朋友情绪带跑，保持自己的节奏'},
+'官禄':{m:'适合艺术、文教、房产、护理等柔性工作',a:'选需要细腻和共情能力的行业，夜间经济也适合'},
+'田宅':{m:'家庭温馨，房产运佳，尤其利于女性置产',a:'投资房产是好选择，家居环境宜柔和温馨'},
+'福德':{m:'内心丰富敏感，精神世界如月变化',a:'接纳情绪的起伏，别苛求自己一直积极'},
+'父母':{m:'母亲影响大，与母亲感情深，父亲缘分稍弱',a:'多关心母亲的健康和情绪'}
+},
+'贪狼':{
+'命宫':{m:'桃花星坐命，欲望强，多才多艺，兴趣广泛，社交能力强但容易分散',a:'欲望化为学习动力，大额消费放三天再决定，聚焦一两个兴趣深耕'},
+'兄弟':{m:'手足多才多艺，朋友热闹但易卷入桃花是非',a:'社交热闹但别跟风，保持自己的判断'},
+'夫妻':{m:'感情多姿多彩，配偶有魅力但桃花重，婚姻需防外力干扰',a:'经营婚姻的新鲜感，别让桃花变烂桃花'},
+'子女':{m:'子女聪明活泼多才，但管教有难度',a:'引导孩子专注，别什么都学什么都不精'},
+'财帛':{m:'偏财运佳，靠社交和才艺赚钱，但花销也大',a:'控制欲望消费，把社交变成变现渠道'},
+'疾厄':{m:'注意肝胆和泌尿系统，纵欲伤身',a:'节制饮酒和夜生活，规律作息保肝'},
+'迁移':{m:'外出桃花旺人缘好，社交场合如鱼得水',a:'善用社交能力拓展人脉，但别沉迷应酬'},
+'交友':{m:'朋友多且杂，社交圈五湖四海',a:'精选有价值的社交，别应酬到身体垮'},
+'官禄':{m:'适合娱乐、传媒、销售、演艺、公关等需要人脉的行业',a:'选能发挥社交和才艺的行业，别做闷头苦干型工作'},
+'田宅':{m:'家中热闹，但居住环境变动多，不安定',a:'稳定居住环境，别频繁搬家折腾'},
+'福德':{m:'精神世界丰富，欲望多乐趣多，但不易满足',a:'学会知足，欲望清单砍掉一半你会更快乐'},
+'父母':{m:'父母多才但关系复杂，家教偏松',a:'理解父母的生活方式，别被他们的桃花影响'}
+},
+'巨门':{
+'命宫':{m:'口舌星坐命，善于表达但易招是非，洞察力强，说话直接',a:'说话留三分余地，听过就算，别较真，写作比说话更适合你'},
+'兄弟':{m:'手足间易有口角，朋友关系时好时坏',a:'少跟兄弟争论，赢了道理输了感情不划算'},
+'夫妻':{m:'婚姻中沟通是双刃剑，说好了增进感情，说不好就吵架',a:'吵架时先闭嘴冷静，别逞口舌之快'},
+'子女':{m:'子女嘴利有主见，管教时容易顶嘴',a:'别跟孩子硬碰硬，用提问代替说教'},
+'财帛':{m:'靠口才赚钱，但财来口舌也来，钱财有争议',a:'合同协议白纸黑字写清楚，别口头约定'},
+'疾厄':{m:'注意口腔、牙齿、食道问题，话多伤气',a:'少说多听，定期检查口腔牙齿'},
+'迁移':{m:'外出易有口舌是非，但也能靠口才打开局面',a:'外出注意言辞，少评论别人，多倾听'},
+'交友':{m:'朋友多善辩之人，社交中容易争论',a:'别在社交中争对错，求同存异'},
+'官禄':{m:'适合律师、教师、主播、销售、咨询等口才型行业',a:'选需要表达和辩论能力的行业，你的嘴就是生产力'},
+'田宅':{m:'家中易有口角，家人间沟通不畅',a:'改善家庭沟通方式，少指责多表达需求'},
+'福德':{m:'内心多疑敏感，精神上容易纠结',a:'别过度解读别人的话，学会放下'},
+'父母':{m:'与父母沟通有障碍，易因言语起冲突',a:'换种方式跟父母说话，写信比当面说更有效'}
+},
+'天相':{
+'命宫':{m:'印星坐命，辅佐之才，随和稳重，善于协调，但缺乏主见',a:'借力比硬扛强，找对人合作，你的价值在成全别人'},
+'兄弟':{m:'手足随和，朋友觉得你好相处好合作',a:'保持随和但也要有底线，别什么都答应'},
+'夫妻':{m:'配偶温和体贴，婚姻和谐，但对方依赖性强',a:'适当引导伴侣独立，别什么都替对方做'},
+'子女':{m:'子女温顺听话，教育省心',a:'鼓励孩子有主见，别让孩子太依赖你'},
+'财帛':{m:'财运平稳，靠合作和服务赚钱，理财保守',a:'跟着靠谱的人投资，别自己瞎折腾'},
+'疾厄':{m:'注意皮肤和过敏问题，体质偏敏感',a:'注意饮食过敏原，护肤比化妆重要'},
+'迁移':{m:'外出顺利，人缘好，到哪都能融入',a:'善用适应力，多环境切换对你有利'},
+'交友':{m:'朋友多好相处之人，你是社交中的润滑剂',a:'别只当老好人，维护自己的利益'},
+'官禄':{m:'适合行政、人事、助理、中介、服务等辅佐型岗位',a:'选需要协调能力的岗位，副手比一把手更适合你'},
+'田宅':{m:'家庭和睦，居住环境舒适整洁',a:'注重家居整理，环境有序心情也好'},
+'福德':{m:'内心平和，精神上随遇而安',a:'保持随和的同时，也要有自己的立场'},
+'父母':{m:'父母温和，家庭关系融洽',a:'感恩家庭的和谐，但别被过度保护'}
+},
+'天梁':{
+'命宫':{m:'荫星坐命，长辈缘好，逢凶化吉，正直有威望，但操心命',a:'遇到困难找前辈聊，一句话省半年弯路，学会放下操心事'},
+'兄弟':{m:'手足中有年长者照顾你，朋友多年长者是贵人',a:'珍惜年长手足和前辈的关心，别嫌啰嗦'},
+'夫妻':{m:'配偶成熟稳重或年长，婚姻有荫庇但配偶爱操心',a:'理解伴侣的操心是关心，别嫌烦'},
+'子女':{m:'子女孝顺懂事，晚年得贵子，亲子关系好',a:'别过度保护孩子，让他们经历挫折才能成长'},
+'财帛':{m:'财运有贵人相助，逢凶化吉，但不宜投机',a:'稳健理财，长辈的资源可以善用，别贪快'},
+'疾厄':{m:'注意消化系统和睡眠，操心伤身，易焦虑',a:'放下不必要的操心，运动和冥想有助睡眠'},
+'迁移':{m:'外出遇长辈贵人，出行逢凶化吉，适合在外发展',a:'出差旅行多结交年长者，异地发展有助力'},
+'交友':{m:'朋友多年长者，社交圈偏成熟稳重',a:'年长朋友是你的贵人，多请教少逞强'},
+'官禄':{m:'适合文教、医疗、法律、公职等有威望的行业',a:'选需要资历和威望的行业，越老越值钱'},
+'田宅':{m:'家庭有长辈庇荫，房产稳健，家中长辈说了算',a:'善用长辈的房产资源，居家宜安静祥和'},
+'福德':{m:'内心正直，精神上重因果，晚年安享',a:'别操心老天的事，管好自己的事就够'},
+'父母':{m:'父母缘分深，长辈是你的贵人，家教注重品德',a:'多与长辈沟通，考试升职前可请教前辈'}
+},
+'七杀':{
+'命宫':{m:'将星坐命，独立果断，冲劲十足，越难越稳，但容易冲动和孤独',a:'选能独立负责的方向，单人深耕最出成绩，冲动前数三个数'},
+'兄弟':{m:'手足独立各自发展，关系不远不近',a:'保持联系但别干涉对方选择'},
+'夫妻':{m:'感情浓烈但波折多，配偶强势，婚姻如战场',a:'婚姻需要双方独立，别试图控制对方'},
+'子女':{m:'子女个性强难管教，叛逆期猛烈',a:'给孩子足够空间，硬碰硬必出问题'},
+'财帛':{m:'财运大起大落，敢搏敢拼，暴富和破财交替',a:'赚到大钱先存一半，别全投回去'},
+'疾厄':{m:'注意外伤、手术、肝胆，刚猛易伤',a:'注意安全，别逞强，定期体检'},
+'迁移':{m:'外出冲劲足，异地发展有利，但奔波劳碌',a:'外出做好风险预案，别只看机会不看风险'},
+'交友':{m:'朋友多独立强势之人，社交偏竞争性',a:'跟强者合作但别跟强者硬碰'},
+'官禄':{m:'适合军警、创业、外贸、竞技等需要冲劲的行业',a:'选能独当一面的岗位，团队执行不如个人突破'},
+'田宅':{m:'家中变动多，居住环境不稳，频繁搬家',a:'尽量稳定居住环境，别频繁折腾房产'},
+'福德':{m:'内心刚强不服输，精神上孤独但坚韧',a:'学会示弱，不是什么事都要一个人扛'},
+'父母':{m:'父母管教严格，关系有张力，早独立',a:'理解父母的严厉，独立后关系会改善'}
+},
+'破军':{
+'命宫':{m:'耗星坐命，破旧立新，变动不居，敢闯敢拼，但难以安稳',a:'变动前想清楚方向，别为了变而变，每次破局都要有建设性的目标'},
+'兄弟':{m:'手足关系有聚有散，朋友来来去去',a:'接受人际关系的流动性，别太执着'},
+'夫妻':{m:'感情波折多变，婚姻不稳定，配偶也爱变动',a:'婚姻需要刻意经营，别任其自然漂移'},
+'子女':{m:'子女个性叛逆，亲子关系有张力',a:'接受孩子的不一样，别用旧框架套'},
+'财帛':{m:'财运波动大，破财后重建，财来财去',a:'破财时别加仓，守住底线等重建期'},
+'疾厄':{m:'注意意外伤害和心脑血管，身体消耗大',a:'注意安全，别透支身体，定期检查心血管'},
+'迁移':{m:'外出变动多，频繁奔波，但越动越有机会',a:'善用变动寻找机会，但做好后勤保障'},
+'交友':{m:'朋友流动性强，社交圈不断洗牌',a:'珍惜留下来的朋友，别为走的惋惜'},
+'官禄':{m:'适合创业、研发、变革型工作，破旧立新是天赋',a:'选需要颠覆和创新的行业，守成型工作会闷死你'},
+'田宅':{m:'家中变动频繁，房产来去不稳',a:'房产别频繁买卖，长持比短炒更适合'},
+'福德':{m:'内心不安分，精神上总想打破现状',a:'给不安分找到出口，创业或创新项目是正向宣泄'},
+'父母':{m:'与父母关系有波折，早离家发展',a:'独立后主动修复关系，别让距离变隔阂'}
+}
+};
+var AUX_SP={
+'文昌':{
+'官禄':{m:'考运佳，学业事业有文采加持',a:'多考证多发表，学历是你的竞争力'},
+'命宫':{m:'有学问才华，气质文雅',a:'把知识转化为实际产出'}
+},
+'文曲':{
+'官禄':{m:'才艺加持事业，适合创意工作',a:'发挥创意天赋，别做纯行政'},
+'命宫':{m:'才华横溢，感性浪漫',a:'创意落地为作品，别停留在想象'}
+},
+'左辅':{
+'命宫':{m:'人缘好助力多，但也依赖他人',a:'感恩助力但保持独立'},
+'交友':{m:'朋友多贵人，社交圈广',a:'善用人脉但别依赖'}
+},
+'右弼':{
+'命宫':{m:'交际广人脉多，桃花助力',a:'人脉用在对的事上'},
+'夫妻':{m:'婚姻有外力助力，但也防第三者',a:'经营二人世界，别让朋友介入太多'}
+}
+};
+
+/* ================================================================
+ * 排盘引擎核心函数
+ * ================================================================ */
+function ganzhiIdx(g,z){for(var n=0;n<60;n++){if(n%10===g&&n%12===z)return n;}return 0;}
+function yearGanZhi(year){var g=((year-4)%10+10)%10;var z=((year-4)%12+12)%12;return{g:g,z:z};}
+function calcLifePalace(month,hour){var monthPos=((2+month-1)%12+12)%12;return((monthPos-hour)%12+12)%12;}
+function calcBodyPalace(month,hour){var monthPos=((2+month-1)%12+12)%12;return((monthPos+hour)%12+12)%12;}
+function calcTwelvePalaces(lifeP){var arr=[];for(var i=0;i<12;i++){arr.push(((lifeP-i)%12+12)%12);}return arr;}
+function calcPalaceGans(yearGan){var yinGan=WU_HU[yearGan];var gans=[];for(var i=0;i<12;i++){var zhiIdx=i;var steps=((zhiIdx-2)%12+12)%12;gans[zhiIdx]=(yinGan+steps)%10;}return gans;}
+function calcWuxingJu(lifeGan,lifeZhi){var idx=ganzhiIdx(lifeGan,lifeZhi);var wx=NAYIN[idx];return{wx:wx,ju:JU_NUM[wx],name:JU_NAME[wx]};}
+function calcZiwei(ju,day){var M=ju,D=day;var Q=Math.ceil(D/M);var R=Q*M-D;var pos=1+Q+(R%2===0?R:-R);return((pos%12)+12)%12;}
+function calcTianfu(ziwei){return((4-ziwei)%12+12)%12;}
+function calc14Stars(ziwei,tianfu){var stars={};stars['紫微']=ziwei;stars['天机']=((ziwei-1)%12+12)%12;stars['太阳']=((ziwei-3)%12+12)%12;stars['武曲']=((ziwei-4)%12+12)%12;stars['天同']=((ziwei-5)%12+12)%12;stars['廉贞']=((ziwei-8)%12+12)%12;stars['天府']=tianfu;stars['太阴']=(tianfu+1)%12;stars['贪狼']=(tianfu+2)%12;stars['巨门']=(tianfu+3)%12;stars['天相']=(tianfu+4)%12;stars['天梁']=(tianfu+5)%12;stars['七杀']=(tianfu+6)%12;stars['破军']=(tianfu+10)%12;return stars;}
+function starsByPalace(stars){var map={};for(var i=0;i<12;i++)map[i]=[];for(var name in stars){var pos=stars[name];map[pos].push(name);}return map;}
+function calcDaxian(lifeP,ju,gender,yearGan){var isYang=(yearGan%2===0);var dir=(isYang&&gender==='male')||(!isYang&&gender==='female')?1:-1;var palaces=[];for(var k=0;k<12;k++){var pos=((lifeP+k*dir)%12+12)%12;var ageStart=ju+k*10;var ageEnd=ageStart+9;palaces.push({pos:pos,ageStart:ageStart,ageEnd:ageEnd,ageStr:ageStart+'-'+ageEnd+'岁'});}return palaces;}
+function findDaxianIdx(daxians,age){for(var i=0;i<daxians.length;i++){if(age>=daxians[i].ageStart&&age<=daxians[i].ageEnd)return i;}return 0;}
+function calcLiuyuePalace(liunianP,birthMonth,birthHour,queryMonth){var monthPos=((liunianP-(birthMonth-1))%12+12)%12;var doujun=((monthPos+birthHour)%12+12)%12;return((doujun+(queryMonth-1))%12+12)%12;}
+function calcLiuriPalace(liuyueP,queryDay){return((liuyueP+(queryDay-1))%12+12)%12;}
+function calcLiushiPalace(liuriP,queryHour){return((liuriP+queryHour)%12+12)%12;}
+function calcSiHua(ganIdx){var s=SIHUA[ganIdx];return{lu:s.lu,quan:s.quan,ke:s.ke,ji:s.ji,starMap:(function(){var m={};m[s.lu]='lu';m[s.quan]='quan';m[s.ke]='ke';m[s.ji]='ji';return m;})()};}
+
+function generateChart(input){
+  var by=input.birthYear,bm=input.birthMonth,bd=input.birthDay,bh=input.birthHour;
+  var gender=input.gender;
+  var qy=input.queryYear,qm=input.queryMonth,qd=input.queryDay,qh=input.queryHour;
+  var bYZ=yearGanZhi(by);var qYZ=yearGanZhi(qy);
+  var lifeP=calcLifePalace(bm,bh);var bodyP=calcBodyPalace(bm,bh);
+  var twelve=calcTwelvePalaces(lifeP);
+  var palaceGans=calcPalaceGans(bYZ.g);
+  var wuxing=calcWuxingJu(palaceGans[lifeP],lifeP);
+  var ziwei=calcZiwei(wuxing.ju,bd);var tianfu=calcTianfu(ziwei);
+  var stars=calc14Stars(ziwei,tianfu);var starMap=starsByPalace(stars);
+  var daxians=calcDaxian(lifeP,wuxing.ju,gender,bYZ.g);
+  var age=qy-by;var dxIdx=findDaxianIdx(daxians,age);var curDx=daxians[dxIdx];
+  var mpBenming=lifeP;var mpDaxian=curDx.pos;var mpLiunian=qYZ.z;var mpLiuyue=calcLiuyuePalace(mpLiunian,bm,bh,qm);var mpLiuri=calcLiuriPalace(mpLiuyue,qd);var mpLiushi=calcLiushiPalace(mpLiuri,qh);
+  var ganBenming=bYZ.g;var ganDaxian=palaceGans[mpDaxian];var ganLiunian=qYZ.g;
+  var liuyueYinGan=WU_HU[ganLiunian];var ganLiuyue=((liuyueYinGan+(qm-1))%10+10)%10;
+  var solarDate=lunarToSolar(qy,qm,qd);var dayGZ=getDayGanZhi(solarDate.getFullYear(),solarDate.getMonth()+1,solarDate.getDate());var ganLiuri=dayGZ.g;
+  var liushiZiGan=WU_SHU[ganLiuri];var ganLiushi=((liushiZiGan+qh)%10+10)%10;
+  var huaBenming=calcSiHua(ganBenming);var huaDaxian=calcSiHua(ganDaxian);var huaLiunian=calcSiHua(ganLiunian);var huaLiuyue=calcSiHua(ganLiuyue);var huaLiuri=calcSiHua(ganLiuri);var huaLiushi=calcSiHua(ganLiushi);
+  var layerMP=[mpBenming,mpDaxian,mpLiunian,mpLiuyue,mpLiuri,mpLiushi];
+  var layerGan=[ganBenming,ganDaxian,ganLiunian,ganLiuyue,ganLiuri,ganLiushi];
+  var layerHua=[huaBenming,huaDaxian,huaLiunian,huaLiuyue,huaLiuri,huaLiushi];
+  var layerNames=['本命','大限','流年','流月','流日','流时'];
+  var layerSub=[
+    GAN[ganBenming]+'干·一辈子',
+    GAN[ganDaxian]+'干·'+curDx.ageStr,
+    GAN[ganLiunian]+'干·'+GAN[qYZ.g]+ZHI[qYZ.z]+'年',
+    GAN[ganLiuyue]+'干·'+qm+'月',
+    GAN[ganLiuri]+'干·'+qd+'日',
+    GAN[ganLiushi]+'干·'+ZHI[qh]+'时'
+  ];
+  var layers=[];
+  for(var li=0;li<6;li++){
+    var layerData=[];var mp=layerMP[li];var hua=layerHua[li];
+    for(var bp=0;bp<12;bp++){
+      var palaceIdx=((mp-bp)%12+12)%12;var palaceName=PN[palaceIdx];
+      var s=starMap[bp]?starMap[bp].slice():[];
+      var sihua=null;
+      for(var si=0;si<s.length;si++){if(hua.starMap[s[si]]){sihua={type:hua.starMap[s[si]],star:s[si]};break;}}
+      layerData.push({palaceName:palaceName,stars:s,sihua:sihua});
+    }
+    layers.push(layerData);
+  }
+  return{
+    input:input,bYZ:bYZ,qYZ:qYZ,lifeP:lifeP,bodyP:bodyP,twelve:twelve,palaceGans:palaceGans,
+    wuxing:wuxing,ziwei:ziwei,tianfu:tianfu,stars:stars,starMap:starMap,daxians:daxians,curDx:curDx,dxIdx:dxIdx,age:age,
+    layerMP:layerMP,layerGan:layerGan,layerHua:layerHua,layerNames:layerNames,layerSub:layerSub,layers:layers
+  };
+}
+/* 固定宫位索引 → 某层实际盘面位置（因为活盘会旋转，位置≠宫位） */
+function posOfPalace(layerIdx,palaceIdx){return ((chart.layerMP[layerIdx]-palaceIdx)%12+12)%12;}
+
+/* ================================================================
+ * 动态解读生成
+ * ================================================================ */
+var LAYER_CTX={
+  '本命':{prefix:'先天',suffix:'这是一辈子的底色'},
+  '大限':{prefix:'这十年',suffix:'大运驱动，影响当前十年走向'},
+  '流年':{prefix:'今年',suffix:'流年触发，今年重点关注'},
+  '流月':{prefix:'本月',suffix:'月度应期，短期可调'},
+  '流日':{prefix:'今日',suffix:'当天应期，留意具体事件'},
+  '流时':{prefix:'此时',suffix:'时辰微调，当下能量'}
+};
+function genReading(palaceData,layerName){
+  var pn=palaceData.palaceName;var stars=palaceData.stars;var sihua=palaceData.sihua;
+  var field=PALACE_FIELD[pn]||'';var lctx=LAYER_CTX[layerName]||{prefix:'',suffix:''};
+  if(stars.length===0){
+    var oppM=lctx.prefix+'此宫无主星坐镇，'+field+'方面靠后天努力补足，可借对宫星曜之力。';
+    var oppA='主动规划'+(layerName==='流日'||layerName==='流时'?'今日':'')+'，别等天上掉馅饼。观察对宫星曜走势借力。';
+    return{meaning:oppM,advice:oppA};
+  }
+  var mainStar=stars[0];var spEntry=null;
+  if(SP[mainStar]&&SP[mainStar][pn]){spEntry=SP[mainStar][pn];}
+  var meaning='';var advice='';
+  if(spEntry){
+    meaning=lctx.prefix+spEntry.m+'。';advice=spEntry.a;
+    if(stars.length>1){var coStar=stars[1];var coEntry=SP[coStar]&&SP[coStar][pn];if(coEntry){meaning+='与'+coStar+'同宫，'+coEntry.m+'。';}else{var coDb=STAR_DB[coStar];if(coDb)meaning+='与'+coStar+'（'+coDb.core+'）同宫，力量叠加。';}}
+    for(var si=1;si<stars.length;si++){var auxStar=stars[si];if(AUX_SP[auxStar]&&AUX_SP[auxStar][pn]){meaning+=AUX_SP[auxStar][pn].m+'。';}}
+  }else{
+    var main=STAR_DB[mainStar]||{core:'特殊星曜组合',trait:'',advice:'综合论断'};
+    meaning=lctx.prefix+'的'+pn+'（'+field+'）：'+main.core+'。'+main.trait+'。';advice=main.advice;
+    if(stars.length>1){var extra=stars.slice(1).map(function(s){var d=STAR_DB[s];return d?d.core:s;}).join('；');meaning+='与'+stars.slice(1).join('、')+'同宫（'+extra+'），力量叠加。';}
+  }
+  if(sihua){
+    var huaCtx={
+      '本命':{lu:'先天带禄，终生受用',quan:'先天带权，天生主导',ke:'先天带科，天生有名',ji:'先天化忌，此生课题'},
+      '大限':{lu:'这十年禄入，财运亨通',quan:'这十年权到，话语权增大',ke:'这十年科照，考试升职有利',ji:'这十年忌扰，内耗加重'},
+      '流年':{lu:'今年禄到，顺势发财',quan:'今年权到，争抢加剧但有掌控',ke:'今年科照，名气提升',ji:'今年忌扰，此处需特别注意'},
+      '流月':{lu:'本月禄到，进财顺利',quan:'本月权到，需主动争取',ke:'本月科照，学习展示有利',ji:'本月忌扰，短期注意'},
+      '流日':{lu:'今日禄到，有小财运',quan:'今日权到，适合做决定',ke:'今日科照，适合考试展示',ji:'今日忌扰，当天小心'},
+      '流时':{lu:'此时禄到，短期进财',quan:'此时权到，把握主动',ke:'此时科照，思路清晰',ji:'此时忌扰，暂避锋芒'}
+    };
+    var huaLayer=huaCtx[layerName]||huaCtx['流年'];
+    meaning+=' '+sihua.star+HUA_LABEL[sihua.type]+'——'+huaLayer[sihua.type]+'。';
+  }
+  meaning+='（'+lctx.suffix+'）';
+  return{meaning:meaning,advice:advice};
+}
+
+/* ================================================================
+ * ====== 一转产品新增：报告生成 / 分享导出 / 知识库检索 ======
+ * ================================================================ */
+
+/* 知识库（封装倪海厦/张至顺等真实短文档，可点击看全文） */
+var KB_LIBRARY=[
+  {t:'倪海厦 · 命盘与中医体质',d:'命盘十二宫可对应人身脏腑强弱，疾厄宫星曜是体质"提醒"而非诊断。',src:'倪海厦玄学资料（小西的知识库·道-玄之又玄）',
+   full:'倪海厦主张"命理是提醒，不是宿命"。在紫微体系中，疾厄宫的星曜组合可作为一种体质倾向的参考：例如武曲、破军入疾厄，传统上认为与肺系统、筋骨消耗相关，提醒你注意劳逸结合、别硬扛；天同化禄入疾厄，则多偏肠胃与情绪型体质，规律饮食比补品更管用。\n\n关键态度：把命盘当作一份"身体使用说明书"的索引，而非判决书。真有不适，永远以现代医学检查为准。'},
+  {t:'张至顺 · 道医顺应天时',d:'流月流日宜忌可对照节气养生，核心在"顺应"而非强求。',src:'张至顺道医资料（小西的知识库·道-玄之又玄）',
+   full:'张至顺道长以"道医"立身，核心一句话：人以天地之气生，四时之法成。\n\n紫微的流月、流日，本质是给"时间窗口"一个参考坐标：某段时间迁移宫旺，适合外出走动；某段疾厄宫动，宜静养少耗。这并非宿命，而是提醒你"借势"——顺风时多行动，逆风时多养蓄。\n\n实操：把流年流月当作节气表用，该出汗时出汗，该收心时收心，比硬抗自然节律要轻松。'},
+  {t:'古籍格局 · 紫府同宫格',d:'紫微、天府同坐命宫，古称"紫府同宫"，主贵气稳重、格局大。',src:'ziwei-doushu 开源项目格局知识库',
+   full:'【紫府同宫格】\n紫微为帝星、天府为财库，二星同度于命宫（多在寅、申宫），古诀称"紫府同宫，终身福厚"。\n\n特征：天生气场沉稳，有管理才能与守成之力，不喜冒险但能托住大局。古案多见于军政、大型机构任职者。\n\n现代解读：你适合做"稳盘的人"——管理岗、风控、资产管理，而非纯开拓型创业。格局再好，也需后天专业积累支撑，格局只是底色。'},
+  {t:'古籍格局 · 杀破狼格',d:'七杀、破军、贪狼三星分居命宫，主变动开拓、敢破敢立。',src:'ziwei-doushu 开源项目格局知识库',
+   full:'【杀破狼格】\n七杀、破军、贪狼三星，凡命宫落其一（多在子、午、卯、酉），即入"杀破狼"架构，主一生多变动、开拓、破旧立新。\n\n特征：不安分、冲劲足、越难越稳；适合创业、军警、外贸、竞技等需要"破局"的行业，守成型工作反而憋屈。\n\n提醒：变动前想清楚方向，别为了变而变；每次破局都要有建设性的目标，否则只是折腾。'},
+  {t:'化忌共振原理',d:'同一宫位多层同时化忌，内耗加倍；流年忌叠本命忌为关键课题年。',src:'本工具引擎内置逻辑',
+   full:'化忌是紫微四化（禄权科忌）中的"收缩、执念、课题"能量。\n\n共振规则：\n1）本命某宫化忌，已是终生课题；若该宫在流年再化忌，即"本命忌+流年忌"叠加，今年此处事宜格外留意，谓之关键课题年。\n2）同一宫位在两层（如大限+流年）同时化忌，内耗加倍，容易在人际关系、健康或财务上反复纠结。\n\n应对：化忌不是凶，是"此处需用心的提示"。今年忌扰的宫位，宜谨慎、宜收、宜补，不宜在该领域冒进扩张。'},
+  {t:'四化飞星基础',d:'禄权科忌是动态能量；本命定底色、大限定十年、流年定当年应期。',src:'本工具引擎内置逻辑',
+   full:'四化（禄、权、科、忌）由出生年干与各层天干推出，是紫微的"动态开关"：\n\n· 禄：发散、进益、享受——哪里禄到，哪里顺。\n· 权：主导、掌控、争抢——哪里权到，哪里要主动。\n· 科：名声、学习、化解——哪里科照，哪里利考试展示。\n· 忌：收缩、执念、课题——哪里忌扰，哪里宜谨慎。\n\n三层时间轴：本命四化定一辈子底色；大限四化管当前十年；流年四化定今年应期。本工具六层叠盘，正是把"本命→大限→流年→流月→流日→流时"逐层飞化叠在一起看，所以叫"活盘"。\n\n合规提示：以上均为传统命理学的确定性规则推演，属趋势分析与心性解读，不构成医疗/投资/人生决策建议。'}
+];
+
+/* 报告生成（年度趋势速览 + 深度流年报告） */
+function buildReport(){
+  if(!chart)return;
+  var c=chart;
+  var title='紫微斗数 · 趋势分析报告';
+  var lines=[];
+  lines.push('═══════ '+title+' ═══════');
+  lines.push('生成时间：'+new Date().toLocaleString('zh-CN'));
+  lines.push('');
+  lines.push('【命盘总览 · 格局定性】');
+  /* 开头段：学术化、去迷信的格局定性风格 */
+  var mingStars=c.layers[0][c.layerMP[0]].stars;
+  var mingMean=genReading(c.layers[0][c.layerMP[0]],'本命').meaning.replace(/（这是一辈子的底色）$/,'');
+  var shenStars=c.layers[0][c.bodyP].stars;
+  var ziwuDesc='命宫坐'+(mingStars.length?mingStars.join('、'):'无主星')+'，'+mingMean;
+  if(shenStars.length)ziwuDesc+='；身宫坐'+shenStars.join('、')+'，主后天内驱与自我定位。';
+  ziwuDesc+='五行局为'+c.wuxing.name+'，此命盘以生辰为索引，按紫微斗数确定性规则排定，整体格局需综合三方四正星曜配合——下文分本命底色、今年重点、十二宫速览与禄忌共振逐层展开，供你对照自我、顺势而为。';
+  lines.push(' '+ziwuDesc);
+  lines.push('');
+  lines.push('【基础信息】');
+  lines.push(' 出生：'+GAN[c.bYZ.g]+ZHI[c.bYZ.z]+'年 · 五行局 '+c.wuxing.name+' · 命宫在'+ZHI[c.lifeP]);
+  lines.push(' 紫微'+ZHI[c.ziwei]+' · 命宫'+PS[c.lifeP]+' · 身宫'+PS[c.bodyP]);
+  lines.push(' 查询流年：'+GAN[c.qYZ.g]+ZHI[c.qYZ.z]+'年 · 当前大限 '+c.curDx.ageStr);
+  lines.push('');
+  lines.push('【一、本命格局底色】');
+  lines.push(' '+genReading(c.layers[0][c.layerMP[0]],'本命').meaning);
+  lines.push(' 建议：'+genReading(c.layers[0][c.layerMP[0]],'本命').advice);
+  lines.push('');
+  lines.push('【二、今年（'+GAN[c.qYZ.g]+ZHI[c.qYZ.z]+'年）重点宫位】');
+  /* 流年命宫所在宫位的解读 */
+  var liuMp=c.layerMP[2];
+  for(var bp=0;bp<12;bp++){
+    if(c.layers[2][bp].palaceName==='命宫'){
+      lines.push(' 流年命宫落：'+c.layers[2][bp].stars.join('·')+'（'+genReading(c.layers[2][bp],'流年').meaning+'）');
+    }
+  }
+  lines.push('');
+  lines.push('【三、十二宫速览（今年）】');
+  for(var i=0;i<12;i++){
+    /* 固定宫位索引 i → 流年层实际位置 bp，确保标题 PN[i] 与数据对应 */
+    var bp=((c.layerMP[2]-i)%12+12)%12;
+    var pd=c.layers[2][bp];
+    var r=genReading(pd,'流年');
+    if(pd.stars.length===0){
+      /* 空宫：借对宫星曜，给一句可懂的话 */
+      var oppIdx=((bp+6)%12);
+      var oppStars=c.layers[2][oppIdx].stars;
+      var oppName=c.layers[2][oppIdx].palaceName;
+      var oppR=genReading(c.layers[2][oppIdx],'流年');
+      var oppMean=oppR.meaning.replace(/^今年/,'').replace(/（今年重点关注）$/,'');
+      lines.push(' '+PN[i]+'：空宫（借对宫'+oppName+'之'+oppStars.join('·')+'）— 今年'+PN[i]+'的事宜，可参考对宫'+oppName+'的走势：'+oppMean);
+    }else{
+      var mean=r.meaning.replace(/（今年重点关注）$/,'').replace(/^今年/,'今年');
+      lines.push(' '+PN[i]+'：'+pd.stars.join('·')+' — '+mean);
+    }
+  }
+  lines.push('');
+  lines.push('【四、化禄/化禄共振提示】');
+  lines.push(' 「共振」好比同一层楼被几盏灯同时照亮：多层都在同一个宫位化禄，代表这个领域今年顺遂、进益、机会多，适合主动推进；多层都在同一个宫位化忌，代表这个领域今年压力、执念、反复纠结多，需要收着点、谨慎处理。');
+  var st={};for(var L=0;L<3;L++){for(var b=0;b<12;b++){var p=c.layers[L][b];if(p.sihua){if(!st[p.sihua.type])st[p.sihua.type]=[];st[p.sihua.type].push(p.palaceName+'('+c.layerNames[L]+')');}}}
+  if(st['lu'])lines.push(' 化禄：'+st['lu'].join('、')+' → 进益发散，机会叠加，宜把握推进');
+  if(st['ji'])lines.push(' 化忌：'+st['ji'].join('、')+' → 内耗/课题，能量收紧，宜谨慎收束');
+  if(!st['ji']&&!st['lu'])lines.push(' 本年无明显禄忌共振，整体平稳。');
+  lines.push('');
+  lines.push('【五、顺势建议】');
+  lines.push(' 本报告基于确定性排盘规则生成，属趋势分析与心性解读，仅供参考与自我觉察。');
+  lines.push(' 重大决策请结合现实多方考量，理性对待。');
+  lines.push('════════════════════════════');
+  return lines.join('\n');
+}
+
+/* 行动清单（本月/本周/今日）——复购钩子模块 */
+function buildActions(){
+  if(!chart)return'';
+  var c=chart;
+  /* 宫位×四化 → 具体可执行建议。避=化忌收，进=化禄推，主=化权掌，学=化科展；做=核心宫位补一条务实动作。 */
+  var PALACE_ACTION={
+    '命宫':{ji:'重大决定先缓一缓，减少自我较劲',lu:'主动争取表现，适合面试、谈判、亮相',quan:'把握主导权，主动推进关键事项',ke:'展示专业能力，适合考试、述职、学习',empty:'梳理自身目标，列出三件最重要的事'},
+    '兄弟':{ji:'朋友合伙保持距离，不宜借钱或担保',lu:'多联络同辈朋友，合作机会变多',quan:'在团队/合伙中争取话语权',ke:'向身边有经验的人请教，容易得指点',empty:'维护熟人关系，少参与是非议论'},
+    '夫妻':{ji:'感情/合作上少较劲，避免正面冲突',lu:'感情、合作、签约适合推进',quan:'主动沟通，把握关系节奏',ke:'用柔和方式表达，适合化解误会',empty:'给伴侣或合作方留空间，保持平常心'},
+    '子女':{ji:'晚辈、下属、创意项目别逼太紧',lu:'下属、晚辈、作品容易出成绩',quan:'主导项目推进，给团队定方向',ke:'展示作品/方案，适合面试、考试',empty:'多关注身边年轻人，别操之过急'},
+    '财帛':{ji:'花钱投资保守，大额支出先放三天',lu:'财运顺，可主动争取收入、谈价',quan:'主动争取报价、薪资或项目预算',ke:'靠专业名声、证书、作品变现',empty:'整理收支，砍掉一笔非必要支出'},
+    '疾厄':{ji:'注意休息，避免熬夜和过度消耗',lu:'身体状态好，适合开始养生计划',quan:'主动管理健康，制定运动/体检计划',ke:'学习健康知识，调整作息节奏',empty:'保持规律作息，每天走够六千步'},
+    '迁移':{ji:'外出、变动、签约宜谨慎，多检查',lu:'外出、拓展、跳槽机会多，主动接触',quan:'主动争取外部机会，别怕开口',ke:'出差、考试、对外展示有利',empty:'走出去见见人，别闷在家里'},
+    '交友':{ji:'社交别轻信，远离是非和利益纠葛',lu:'人脉活络，多参加社交活动',quan:'在社交场合主动牵头、组织',ke:'结交良师益友，拓展学习圈',empty:'精简社交，维护三五位核心关系'},
+    '官禄':{ji:'工作上守成，新项目别冒进',lu:'事业顺，适合推进项目、争取资源',quan:'主动承担任务，主导项目',ke:'展示专业能力，利升职、考证、竞聘',empty:'梳理职业规划，主动学习一项新技能'},
+    '田宅':{ji:'家中、房产事务宜缓，别冲动决策',lu:'家庭、房产、装修方面有好消息',quan:'家中大事主动拍板，别推诿',ke:'营造家庭学习氛围，整理居家环境',empty:'整理房间，多花时间陪家人'},
+    '福德':{ji:'少内耗，别钻牛角尖，早点睡',lu:'心态顺，适合享受生活、培养爱好',quan:'主动调整心态，把焦虑写下来',ke:'学习心理、玄学、艺术提升心境',empty:'独处充电，减少无效信息输入'},
+    '父母':{ji:'与长辈、上司沟通有耐心，别顶撞',lu:'长辈、上司缘好，适合请教、求助',quan:'主动争取上司支持和资源',ke:'向上级汇报学习成果，容易获认可',empty:'保持与长辈的良性沟通，定期问候'}
+  };
+  function actFor(pd){
+    var ctx=PALACE_ACTION[pd.palaceName];
+    if(!ctx)return null;
+    if(pd.sihua){
+      var t=pd.sihua.type;
+      var flag=t==='ji'?'避':t==='lu'?'进':t==='quan'?'主':'学';
+      return{flag:flag,pal:pd.palaceName,txt:ctx[t]+'（'+pd.sihua.star+HUA_LABEL[t]+'）'};
+    }
+    return{flag:'做',pal:pd.palaceName,txt:ctx.empty};
+  }
+  function itemsFor(layerIdx){
+    var res=[];
+    /* 优先列出核心宫位（命/财/官/田/疾/迁）的明确动作，再补充其他宫位 */
+    var priority=[0,4,8,9,5,7,1,2,3,6,10,11];
+    priority.forEach(function(palaceIdx){
+      var bp=((c.layerMP[layerIdx]-palaceIdx)%12+12)%12;
+      var pd=c.layers[layerIdx][bp];
+      var a=actFor(pd);
+      if(a)res.push(a);
+    });
+    return res.slice(0,5);
+  }
+  var month=itemsFor(3),week=itemsFor(4),today=itemsFor(5);
+  function card(title,sub,items){
+    var body=items.map(function(it){
+      return '<li><span class="act-flag f-'+it.flag+'">'+it.flag+'</span><span class="act-pal">'+it.pal+'</span><span class="act-txt">'+it.txt+'</span></li>';
+    }).join('')||'<li class="act-empty">本期没有特别突出的动作点，保持日常节奏即可。</li>';
+    return '<div class="act-card"><div class="act-head">'+title+'<span class="act-sub">'+sub+'</span></div><ul class="act-list">'+body+'</ul></div>';
+  }
+  /* 周期副标题：用对应层的天干 + 查询的月/日/时，避免错配 */
+  var monthSub=GAN[c.layerGan[3]]+'干 · '+c.input.queryMonth+'月 · 流月';
+  var weekSub=GAN[c.layerGan[4]]+'干 · '+c.input.queryDay+'日 · 流日';
+  var todaySub=GAN[c.layerGan[5]]+'干 · '+ZHI[c.input.queryHour]+'时 · 流时';
+  var html='<div class="actions-block"><h4 class="act-title">📌 行动清单（周期收口）</h4>';
+  html+='<div class="act-grid">';
+  html+=card('本月',monthSub,month);
+  html+=card('本周',weekSub,week);
+  html+=card('今日',todaySub,today);
+  html+='</div>';
+  html+='<div class="act-note">清单按本命→大限→流年→流月→流日→流时的确定性规则生成，随查询时间刷新。<b>下个月、明天、下个时辰再来，会给出对应周期的新行动指引</b>——这正是持续参考的价值。</div>';
+  html+='</div>';
+  return html;
+}
+
+function openReport(){
+  if(!chart){return;}
+  var c=chart;
+  var body=document.getElementById('drawerBody');
+  document.getElementById('drawerTitle').textContent='深度趋势报告';
+  var html='<div class="report-wrap">';
+
+  /* 报告头：格局定性 */
+  var mingStars=c.layers[0][c.layerMP[0]].stars;
+  var mingMean=genReading(c.layers[0][c.layerMP[0]],'本命').meaning.replace(/（这是一辈子的底色）$/,'');
+  var shenStars=c.layers[0][c.bodyP].stars;
+  var ziwuDesc='命宫坐'+(mingStars.length?mingStars.join('、'):'无主星')+'，'+mingMean;
+  if(shenStars.length)ziwuDesc+='；身宫坐'+shenStars.join('、')+'，主后天内驱。';
+  ziwuDesc+='五行局'+c.wuxing.name+'。';
+  html+='<div class="report-head"><h3>命盘总览 · 格局定性</h3><p>'+ziwuDesc+'</p>'+
+        '<div class="report-meta">出生 '+GAN[c.bYZ.g]+ZHI[c.bYZ.z]+'年 · 五行局 '+c.wuxing.name+' · 命宫'+PS[c.lifeP]+
+        ' · 查询流年 '+GAN[c.qYZ.g]+ZHI[c.qYZ.z]+'年（'+c.curDx.ageStr+'）</div></div>';
+
+  /* 宫位卡片区：十二宫（今年/流年层） */
+  html+='<h4 class="sec-title">十二宫速览（今年）</h4><div class="palace-grid">';
+  for(var i=0;i<12;i++){
+    /* 固定宫位索引 i → 流年层实际位置 bp */
+    var bp=((c.layerMP[2]-i)%12+12)%12;
+    var pd=c.layers[2][bp];var r=genReading(pd,'流年');
+    var kw=[];
+    if(pd.stars.length)kw.push(pd.stars.join('·'));
+    if(pd.sihua)kw.push(pd.sihua.star+HUA_LABEL[pd.sihua.type]);
+    var mean=r.meaning.replace(/（今年重点关注）$/,'').replace(/^今年/,'');
+    var hl=(bp===c.layerMP[2]||(pd.sihua&&pd.sihua.type==='ji'))?' hl':'';
+    var sihuaBadge=pd.sihua?'<span class="pc-sihua s-'+pd.sihua.type+'">'+pd.sihua.star+HUA_LABEL[pd.sihua.type]+'</span>':'';
+    html+='<div class="pcard'+hl+'"><div class="pc-head"><span class="pc-name">'+PN[i]+'</span>'+sihuaBadge+'</div>'+
+          '<div class="pc-kw">'+(kw.length?kw.join(' · '):'空宫（借对宫）')+'</div>'+
+          '<div class="pc-concl">'+mean+'</div></div>';
+  }
+  html+='</div>';
+
+  /* 化忌/化禄共振 */
+  var st={};for(var L=0;L<3;L++){for(var b=0;b<12;b++){var p=c.layers[L][b];if(p.sihua){if(!st[p.sihua.type])st[p.sihua.type]=[];st[p.sihua.type].push(p.palaceName+'('+c.layerNames[L]+')');}}}
+  html+='<h4 class="sec-title">禄忌共振提示</h4>';
+  html+='<p style="font-size:10px;color:var(--text-muted);line-height:1.7;margin-bottom:8px">「共振」就像同一间房被几盏灯同时打亮：本命、大限、流年如果都在<b>同一个宫位</b>化禄，代表这个领域今年顺遂、进益、机会叠加，适合主动推进；如果都在同一个宫位化忌，代表这个领域今年压力、执念、反复纠结，需要收着点、谨慎处理。下面列出你命盘里出现叠加的宫位。</p>';
+  html+='<div class="resonance-box">';
+  if(st['lu'])html+='<div class="res-item lu"><b>化禄叠加</b>：'+st['lu'].join('、')+' → 这些宫位今年进益发散、机会多，宜把握推进</div>';
+  if(st['ji'])html+='<div class="res-item ji"><b>化忌叠加</b>：'+st['ji'].join('、')+' → 这些宫位今年内耗/课题，能量收紧，宜谨慎收束</div>';
+  if(!st['ji']&&!st['lu'])html+='<div class="res-item">本命、大限、流年之间没有明显的禄忌叠加，整体能量相对平稳。</div>';
+  html+='</div>';
+
+  /* 行动清单（Task 3） */
+  html+=buildActions();
+
+  html+='</div>'; /* report-wrap */
+
+  /* 深度报告钩子 + 导出 PDF */
+  html+='<div class="hook-box">想看完整版（含大限十年轨迹 + 流月重点节点 + 事业/感情/财运/健康逐章建议）？<br>升级「深度流年报告」即可获取 40-90 页 PDF + 专属批注。更多古籍原文、格局库、道医对照表等，升级「深度流年报告」即可获取。</div>';
+  html+='<button class="btn-action" style="margin-top:10px;width:100%" onclick="window.print()">导出 / 打印 PDF</button>';
+  body.innerHTML=html;
+  openDrawer();
+}
+
+/* 知识库浮层（可点击看全文） */
+function openKB(){
+  var body=document.getElementById('drawerBody');
+  document.getElementById('drawerTitle').textContent='玄学知识库（可查阅）';
+  var html='<div style="color:var(--text-muted);font-size:10px;margin-bottom:8px">封装自小西知识库的倪海厦/张至顺等玄学资料，点击条目可展开全文。</div>';
+  KB_LIBRARY.forEach(function(k,idx){
+    html+='<div class="kb-item" onclick="toggleKB('+idx+')"><div class="kt">'+k.t+'</div><div class="kd">'+k.d+'<br><span style="opacity:0.6">来源：'+k.src+'</span></div>';
+    html+='<div id="kbfull-'+idx+'" style="display:none;margin-top:6px;padding:8px;background:rgba(0,0,0,0.25);border-radius:4px;font-size:10px;line-height:1.8;color:var(--text-body);white-space:pre-wrap">'+k.full.replace(/</g,'&lt;')+'</div>';
+    html+='</div>';
+  });
+  html+='<div class="hook-box">更多古籍原文、格局库、道医对照表等，升级「深度流年报告」即可获取。</div>';
+  body.innerHTML=html;
+  openDrawer();
+}
+function toggleKB(idx){
+  var el=document.getElementById('kbfull-'+idx);
+  if(el)el.style.display=(el.style.display==='none')?'block':'none';
+}
+function openDrawer(){document.getElementById('drawer').classList.add('open');document.getElementById('mask').classList.add('show');}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('mask').classList.remove('show');}
+
+/* ================================================================
+ * Canvas 渲染
+ * ================================================================ */
+var LAYER_COLORS=['#9c6b2f','#b07d3a','#7d9b6a','#5f8aa6','#8a6fae','#b06b5a'];
+var LAYER_BG=['rgba(156,107,47,','rgba(176,125,58,','rgba(125,155,106,','rgba(95,138,166,','rgba(138,111,174,','rgba(176,107,90,'];
+var chart=null;
+var cv=document.getElementById('ringCanvas');
+var cx=cv.getContext('2d');
+var W=680,H=680,CX=340,CY=340,IR=58,CR=50;
+var dpr=window.devicePixelRatio||1;
+cv.width=W*dpr;cv.height=H*dpr;
+var sel=-1,hov=-1;
+/* vis 两态：0=关（盘面环与下方叠读均不显示） 2=开（显示）。默认开启本命(0)与流年(2)，其余关闭。 */
+var vis=[2,0,2,0,0,0];
+var HILITE_DEFAULT=[0,2];
+function bAng(p){return(270+p*30)*Math.PI/180;}
+function draw(){
+  if(!chart)return;
+  cx.setTransform(dpr,0,0,dpr,0,0);cx.clearRect(0,0,W,H);
+  var ringW=[44,42,38,34,32,28];var rds=[IR];var acc=IR;
+  for(var i=0;i<6;i++){if(vis[i]){acc+=2+ringW[i];rds.push(acc);}}
+  var maxR=rds[rds.length-1];
+  cx.fillStyle='#f7f5f0';cx.fillRect(0,0,W,H);
+  var bg=cx.createRadialGradient(CX,CY,0,CX,CY,maxR+25);
+  bg.addColorStop(0,'rgba(138,90,43,0.06)');bg.addColorStop(1,'rgba(138,90,43,0)');
+  cx.fillStyle=bg;cx.fillRect(0,0,W,H);
+  var ri=0;
+  for(var li=0;li<6;li++){
+    if(vis[li]===0)continue;
+    var r0=rds[ri],r1=rds[ri+1];
+    var hi=true;                              /* 进入此分支即“开”层，全部以实色渲染 */
+    var Lc=LAYER_COLORS[li];
+    var Lb=LAYER_BG[li];
+    cx.beginPath();cx.arc(CX,CY,r1,0,Math.PI*2);cx.arc(CX,CY,r0,0,Math.PI*2,true);
+    cx.fillStyle=Lb+'0.05)';cx.fill();
+    cx.beginPath();cx.arc(CX,CY,r1,0,Math.PI*2);cx.strokeStyle=Lb+(hi?'0.32)':'0.14)');cx.lineWidth=hi?1.2:0.8;cx.stroke();
+    for(var bp=0;bp<12;bp++){
+      var a1=bAng(bp)-Math.PI/24,a2=bAng(bp)+Math.PI/24,am=bAng(bp);
+      var s=bp===sel,h=bp===hov;var pd=chart.layers[li][bp];
+      if(s||h){
+        cx.beginPath();cx.arc(CX,CY,r1,a1,a2);cx.arc(CX,CY,r0,a2,a1,true);cx.closePath();
+        cx.fillStyle=Lb+(s?(hi?'0.34)':'0.22)'):(hi?'0.12)':'0.08)'));cx.fill();
+      }
+      cx.beginPath();cx.moveTo(CX+r0*Math.cos(a1),CY+r0*Math.sin(a1));cx.lineTo(CX+r1*Math.cos(a1),CY+r1*Math.sin(a1));
+      cx.strokeStyle='rgba(43,40,35,0.06)';cx.lineWidth=0.5;cx.stroke();
+      var nr=r0+9;cx.save();cx.translate(CX+nr*Math.cos(am),CY+nr*Math.sin(am));
+      var ta=am;if(ta>Math.PI/2&&ta<Math.PI*1.5)ta+=Math.PI;cx.rotate(ta);
+      cx.fillStyle=s?Lc:(hi?'rgba(43,40,35,0.42)':'rgba(120,114,102,0.55)');cx.font='8px "Noto Serif SC",serif';cx.textAlign='center';cx.textBaseline='middle';
+      cx.fillText(PS[chart.layerMP[li]===bp?0:((chart.layerMP[li]-bp)%12+12)%12],0,0);cx.restore();
+      if(pd.stars.length>0){
+        var tr=(r0+r1)/2+2;cx.save();cx.translate(CX+tr*Math.cos(am),CY+tr*Math.sin(am));
+        var t2=am;if(t2>Math.PI/2&&t2<Math.PI*1.5)t2+=Math.PI;cx.rotate(t2);
+        cx.fillStyle=Lc;cx.font='11px "Noto Serif SC",serif';cx.globalAlpha=1;cx.textAlign='center';cx.textBaseline='middle';
+        cx.fillText(pd.stars.join('·'),0,0);cx.globalAlpha=1;cx.restore();
+      }
+      if(pd.sihua){var dr=r1-5;cx.beginPath();cx.arc(CX+dr*Math.cos(am),CY+dr*Math.sin(am),hi?3.5:2.6,0,Math.PI*2);
+        var hc=pd.sihua.type;cx.fillStyle=hc==='ji'?'#b34a3f':hc==='lu'?'#5f8a4e':hc==='quan'?'#b07d3a':'#5f8aa6';cx.globalAlpha=1;cx.fill();cx.globalAlpha=1;}
+    }
+    ri++;
+  }
+  cx.beginPath();cx.arc(CX,CY,CR,0,Math.PI*2);cx.fillStyle='#efece6';cx.fill();
+  cx.strokeStyle='rgba(138,90,43,0.4)';cx.lineWidth=1.2;cx.stroke();
+  cx.fillStyle='#8a5a2b';cx.font='bold 13px "Noto Serif SC",serif';cx.textAlign='center';cx.textBaseline='middle';
+  cx.fillText('紫微叠盘',CX,CY-8);
+  cx.fillStyle='#928c80';cx.font='9px "Noto Sans SC",sans-serif';
+  cx.fillText(chart.qYZ?GAN[chart.qYZ.g]+ZHI[chart.qYZ.z]:'',CX,CY+8);
+  var olr=maxR+16;
+  for(var p=0;p<12;p++){var a=bAng(p);cx.fillStyle=(p===sel||p===hov)?'#8a5a2b':'#6b655a';cx.font='bold 13px "Noto Serif SC",serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(BR[p],CX+olr*Math.cos(a),CY+olr*Math.sin(a));}
+  if(sel>=0){var am=bAng(sel);cx.beginPath();cx.moveTo(CX+IR*Math.cos(am-Math.PI/24),CY+IR*Math.sin(am-Math.PI/24));cx.lineTo(CX+maxR*Math.cos(am-Math.PI/24),CY+maxR*Math.sin(am-Math.PI/24));cx.moveTo(CX+IR*Math.cos(am+Math.PI/24),CY+IR*Math.sin(am+Math.PI/24));cx.lineTo(CX+maxR*Math.cos(am+Math.PI/24),CY+maxR*Math.sin(am+Math.PI/24));cx.strokeStyle='rgba(138,90,43,0.5)';cx.lineWidth=1.8;cx.stroke();}
+}
+function posFrom(e){
+  var r=cv.getBoundingClientRect();var scaleX=W/r.width,scaleY=H/r.height;
+  var mx=(e.clientX-r.left)*scaleX,my=(e.clientY-r.top)*scaleY;
+  var dx=mx-CX,dy=my-CY,dist=Math.sqrt(dx*dx+dy*dy);
+  var deg=((Math.atan2(dy,dx)*180/Math.PI)-270+360)%360;if(deg<0)deg+=360;
+  var pos=Math.round(deg/30)%12;var rds=[IR];var acc=IR;
+  for(var i=0;i<6;i++){if(vis[i]!==0){acc+=2+[44,42,38,34,32,28][i];rds.push(acc);}}
+  if(dist<rds[0]||dist>rds[rds.length-1])return-1;return pos;
+}
+cv.addEventListener('click',function(e){var p=posFrom(e);if(p>=0){sel=(sel===p)?-1:p;draw();updateReadout();}});
+cv.addEventListener('mousemove',function(e){var p=posFrom(e);if(p!==hov){hov=p;draw();}});
+cv.addEventListener('mouseleave',function(){hov=-1;draw();});
+
+function updateReadout(){
+  if(!chart)return;
+  var el=document.getElementById('mc');var ra=document.getElementById('ra'),rt=document.getElementById('rt');
+  var cc=document.getElementById('cc'),cr=document.getElementById('cr');
+  if(sel<0){
+    el.innerHTML='<h3>点击圆盘上的格子</h3><p class="ehint">每层命宫位置不同，外层的宫名和内层<span style="color:var(--accent)">对不上</span>——这就是"转盘"。<br>改变上方查询时间，盘面会<span style="color:var(--accent)">实时变化</span>，这才是活盘。</p>';
+    ra.classList.remove('show');cc.style.display='none';cv.classList.remove('evil-pulse');return;
+  }
+  var br=BR[sel],st={};var ch='';
+  for(var i=0;i<6;i++){if(vis[i]===0)continue;var pd=chart.layers[i][sel];
+    if(pd.sihua){var ht=pd.sihua.type;if(!st[ht])st[ht]=[];st[ht].push(chart.layerNames[i]);}
+    var bd='';if(pd.sihua){var sc=pd.sihua.type==='ji'?'#b34a3f':pd.sihua.type==='lu'?'#5f8a4e':pd.sihua.type==='quan'?'#b07d3a':'#5f8aa6';bd=' <span style="background:'+sc+';color:#fff;padding:1px 5px;border-radius:3px;font-size:9px">'+HUA_LABEL[pd.sihua.type]+'</span>';}
+    ch+='<div class="cr"><span class="ctag" style="background:'+LAYER_COLORS[i]+'">'+chart.layerNames[i]+'</span><span class="carr">'+GAN[chart.layerGan[i]]+'干</span><span class="cp" style="color:'+LAYER_COLORS[i]+'">'+pd.palaceName+'</span><span class="cs">'+(pd.stars.length?pd.stars.join('·'):'空')+(pd.sihua?' · '+pd.sihua.star+HUA_LABEL[pd.sihua.type]:'')+'</span></div>';
+  }
+  cc.style.display='block';cr.innerHTML=ch;
+  var h='<h3>'+br+'宫 · 六层叠读</h3>';
+  for(var i=0;i<6;i++){if(vis[i]===0)continue;var pd=chart.layers[i][sel];var reading=genReading(pd,chart.layerNames[i]);var ganName=GAN[chart.layerGan[i]];var hua=chart.layerHua[i];
+    var bd='';if(pd.sihua){var sc=pd.sihua.type==='ji'?'#b34a3f':pd.sihua.type==='lu'?'#5f8a4e':pd.sihua.type==='quan'?'#b07d3a':'#5f8aa6';bd=' <span style="background:'+sc+';color:#fff;padding:1px 5px;border-radius:3px;font-size:9px">'+HUA_LABEL[pd.sihua.type]+'</span>';}
+    var huaSummary='<span style="color:#5f8a4e">'+hua.lu+'禄</span> · <span style="color:#b07d3a">'+hua.quan+'权</span> · <span style="color:#5f8aa6">'+hua.ke+'科</span> · <span style="color:#b34a3f">'+hua.ji+'忌</span>';
+    h+='<div class="lstrip'+(i===0?' open':'')+'" style="border-left-color:'+LAYER_COLORS[i]+';background:'+LAYER_BG[i]+'0.03)" onclick="this.classList.toggle(\'open\')">';
+    h+='<div class="lhead"><span class="ltag" style="background:'+LAYER_COLORS[i]+'">'+chart.layerNames[i]+'</span><span class="lp" style="color:'+LAYER_COLORS[i]+'">'+ganName+'干</span><span class="lp">'+pd.palaceName+'</span><span class="ls" style="color:'+LAYER_COLORS[i]+'">'+(pd.stars.length?pd.stars.join('·'):'空')+bd+'</span><span class="lexp"></span></div>';
+    h+='<div class="lbody"><div style="margin-bottom:3px;font-size:9px;color:var(--text-muted)">本层四化：'+huaSummary+'</div>';
+    h+='<div style="margin-bottom:4px"><span style="color:var(--text-muted)">解读：</span>'+reading.meaning+'</div>';
+    h+='<div class="sug"><span class="sug-mark">建议</span>'+reading.advice+'</div></div></div>';
+  }
+  el.innerHTML=h;
+  var rh=[];var types=['ji','lu','quan','ke'];
+  for(var k=0;k<4;k++){var ht=types[k];if(st[ht]&&st[ht].length>=2){var lb=ht==='ji'?'化忌':ht==='lu'?'化禄':ht==='quan'?'化权':'化科';var ef=ht==='ji'?'内耗加倍！':ht==='lu'?'福气加倍':ht==='quan'?'争抢加剧':'名气加持';rh.push('<b>'+lb+'共振</b>：'+st[ht].join(' + ')+' 同在'+br+'宫 → '+ef);}}
+  if(rh.length){rt.innerHTML=rh.join('<br>');ra.classList.add('show');if(st['ji']&&st['ji'].length>=2)cv.classList.add('evil-pulse');else cv.classList.remove('evil-pulse');}
+  else{ra.classList.remove('show');cv.classList.remove('evil-pulse');}
+}
+function navStateClass(v){return v===2?' on hi':' off';}
+function navBg(v,i){return v===2?LAYER_COLORS[i]:'var(--bg-surface)';}
+function buildNav(){
+  var nav=document.getElementById('nav');var legend=document.getElementById('legend');
+  nav.innerHTML='';legend.innerHTML='';
+  for(var i=0;i<6;i++){
+    var b=document.createElement('button');b.className='lbtn'+navStateClass(vis[i]);
+    b.innerHTML='<span class="lname"><span class="ldot" style="background:'+LAYER_COLORS[i]+'"></span>'+chart.layerNames[i]+(vis[i]===2?'<span class="star">★</span>':'')+'</span><span class="lsub">'+chart.layerSub[i]+'</span>';
+    b.style.borderColor=vis[i]===0?'var(--border-subtle)':'transparent';
+    b.style.background=navBg(vis[i],i);
+    (function(idx,btn){
+      btn.onclick=function(){
+        /* 两态开关：0=关（盘面与下方解读均不显示） → 2=开（显示） */
+        vis[idx]=vis[idx]===0?2:0;
+        btn.className='lbtn'+navStateClass(vis[idx]);
+        btn.style.borderColor=vis[idx]===0?'var(--border-subtle)':'transparent';
+        btn.style.background=navBg(vis[idx],idx);
+        draw();updateReadout();
+      };
+    })(i,b);
+    nav.appendChild(b);
+    var lg=document.createElement('div');lg.className='lg-item'+(vis[i]===2?' hi':' off');
+    lg.innerHTML='<span class="ldot" style="background:'+LAYER_COLORS[i]+'"></span>'+chart.layerNames[i]+' '+chart.layerSub[i];legend.appendChild(lg);
+  }
+  /* 全部开 / 全部关 切换 */
+  var allOn=vis.every(function(v){return v===2;});
+  var rb=document.createElement('button');rb.className='lbtn reset';
+  rb.textContent=allOn?'☆ 全部关闭':'★ 全部开启';
+  rb.onclick=function(){
+    for(var i=0;i<6;i++)vis[i]=allOn?0:2;
+    buildNav();draw();updateReadout();
+  };
+  nav.appendChild(rb);
+  var hint=document.createElement('div');hint.className='nav-hint';
+  hint.textContent='点击图层标签可开/关对应层级：开（★ 实色）→ 盘面与该层下方解读都显示；关（灰虚线）→ 这一层不显示。默认开启本命与流年。';
+  nav.appendChild(hint);
+}
+function updateInfo(){
+  var c=chart;var bGan=GAN[c.bYZ.g],bZhi=ZHI[c.bYZ.z];var qGan=GAN[c.qYZ.g],qZhi=ZHI[c.qYZ.z];var mp=c.layerMP;
+  var isYangYear=(c.bYZ.g%2===0);var genderLabel=(isYangYear?'阳':'阴')+(c.input.gender==='male'?'男':'女');
+  var dirLabel=isYangYear?(c.input.gender==='male'?'顺行':'逆行'):(c.input.gender==='male'?'逆行':'顺行');
+  document.getElementById('subInfo').innerHTML=bGan+bZhi+'年'+ZHI[c.input.birthHour]+'时 · '+c.wuxing.name+' · 命宫在'+ZHI[c.lifeP]+(c.stars['紫微']===c.stars['天府']?' · 紫微天府同坐'+ZHI[c.ziwei]:' · 紫微在'+ZHI[c.ziwei])+' · '+genderLabel+dirLabel+' · '+qGan+qZhi+'流年';
+  document.getElementById('infoBar').innerHTML='本命命宫'+ZHI[mp[0]]+' · 大限命宫'+ZHI[mp[1]]+'（'+c.curDx.ageStr+'） · 流年命宫'+ZHI[mp[2]]+' · 流月命宫'+ZHI[mp[3]]+' · 流日命宫'+ZHI[mp[4]]+' · 流时命宫'+ZHI[mp[5]];
+}
+function doChart(){
+  var input={
+    birthYear:parseInt(document.getElementById('in_birthYear').value),
+    birthMonth:parseInt(document.getElementById('in_birthMonth').value),
+    birthDay:parseInt(document.getElementById('in_birthDay').value),
+    birthHour:parseInt(document.getElementById('in_birthHour').value),
+    gender:document.getElementById('in_gender').value,
+    queryYear:parseInt(document.getElementById('in_queryYear').value),
+    queryMonth:parseInt(document.getElementById('in_queryMonth').value),
+    queryDay:parseInt(document.getElementById('in_queryDay').value),
+    queryHour:parseInt(document.getElementById('in_queryHour').value)
+  };
+  chart=generateChart(input);buildNav();updateInfo();draw();updateReadout();
+}
+function initInputs(){
+  var hourNames=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+  var monthNames=['正月','二月','三月','四月','五月','六月','七月','八月','九月','十月','冬月','腊月'];
+  var bySel=document.getElementById('in_birthYear');var qySel=document.getElementById('in_queryYear');
+  for(var y=1940;y<=2030;y++){var yz=yearGanZhi(y);var label=y+'年('+GAN[yz.g]+ZHI[yz.z]+')';bySel.add(new Option(label,y));qySel.add(new Option(label,y));}
+  bySel.value=1996;qySel.value=2026;
+  var bmSel=document.getElementById('in_birthMonth');for(var m=1;m<=12;m++)bmSel.add(new Option(monthNames[m-1],m));bmSel.value=7;
+  var bdSel=document.getElementById('in_birthDay');for(var d=1;d<=30;d++)bdSel.add(new Option('初'+d,d));bdSel.value=15;
+  var bhSel=document.getElementById('in_birthHour');var qhSel=document.getElementById('in_queryHour');
+  for(var h=0;h<12;h++){bhSel.add(new Option(hourNames[h]+'时',h));qhSel.add(new Option(hourNames[h]+'时',h));}
+  bhSel.value=0;qhSel.value=7;
+  var qmSel=document.getElementById('in_queryMonth');for(var m=1;m<=12;m++)qmSel.add(new Option(monthNames[m-1],m));qmSel.value=5;
+  var qdSel=document.getElementById('in_queryDay');for(var d=1;d<=30;d++)qdSel.add(new Option('初'+d,d));qdSel.value=1;
+  document.getElementById('btnCalc').addEventListener('click',doChart);
+  document.getElementById('btnReport').addEventListener('click',openReport);
+  document.getElementById('btnKB').addEventListener('click',openKB);
+  document.getElementById('drawerClose').addEventListener('click',closeDrawer);
+  document.getElementById('mask').addEventListener('click',closeDrawer);
+  var inputs=document.querySelectorAll('#inputPanel select');inputs.forEach(function(el){el.addEventListener('change',doChart);});
+}
+initInputs();doChart();
+if(document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){draw();});}
+
+
+
+
+
+</script>
+</div>
+</body>
+</html>

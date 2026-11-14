@@ -1,231 +1,1772 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>小西 · 数字作品集</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>玄同宇宙 · 一个人的多 IP 宇宙</title>
+<meta name="description" content="道 · 玄 · 卡 · 叙 · 研 · 器 —— 六条 IP 线，37 件作品，24 件可即开即玩。作品总台与免费体验区，点开就能用。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="玄同宇宙 · 一个人的多 IP 宇宙">
+<meta property="og:description" content="六条 IP 线 · 37 件作品 · 24 件即开即玩。作品总台 + 免费体验区，不用注册，核心功能全开放。">
+
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0908'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='%23c9a55c' stroke-width='2.5'/%3E%3Cpath d='M32 14a9 9 0 0 0 0 18 9 9 0 0 1 0 18 18 18 0 0 1 0-36z' fill='%23c9a55c'/%3E%3Ccircle cx='32' cy='23' r='3' fill='%230a0908'/%3E%3Ccircle cx='32' cy='41' r='3' fill='%23c9a55c'/%3E%3C/svg%3E">
 <style>
-  :root {
-    --paper:#f6f1e6; --paper-deep:#efe8d8; --ink:#2b2419; --ink-soft:#6f6252;
-    --cinnabar:#a63a2b; --gold:#8b5e3c; --line:#ddd0b8; --card:#fffdf7;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html { scroll-behavior:smooth; }
-  body {
-    background:
-      repeating-linear-gradient(0deg, rgba(139,94,60,.022) 0 1px, transparent 1px 4px),
-      radial-gradient(1200px 600px at 20% -10%, #fbf7ee 0%, var(--paper) 55%, var(--paper-deep) 100%);
-    color:var(--ink);
-    font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
-    min-height:100vh;
-  }
-  .kai { font-family:"Kaiti SC","STKaiti","KaiTi","Songti SC","SimSun",serif; }
-  .wrap { max-width:1020px; margin:0 auto; padding:0 22px 64px; }
+/* ============ 设计令牌 ============ */
+:root[data-theme="dark"]{
+  --bg:#0a0908; --bg2:#100e0b; --bg3:#16130f;
+  --panel:rgba(255,255,255,.038); --panel2:rgba(255,255,255,.065);
+  --line:rgba(201,165,92,.15); --line2:rgba(201,165,92,.34);
+  --tx:#ece7dd; --tx2:#a89e91; --tx3:#736758;
+  --gold:#c9a55c; --gold2:#e8c987; --jade:#6f9e8e; --cinn:#b4553f; --blue:#7b8fc0; --plum:#a97ba0;
+  --shadow:0 20px 54px rgba(0,0,0,.6);
+  --glow:0 0 0 1px rgba(201,165,92,.16), 0 8px 30px rgba(0,0,0,.5);
+  --hero-a:rgba(201,165,92,.16); --hero-b:rgba(111,158,142,.10);
+}
+:root[data-theme="light"]{
+  --bg:#faf8f5; --bg2:#f4efe7; --bg3:#efe8dd;
+  --panel:rgba(139,94,60,.045); --panel2:rgba(139,94,60,.075);
+  --line:rgba(139,94,60,.17); --line2:rgba(139,94,60,.4);
+  --tx:#2a231c; --tx2:#6b5c4c; --tx3:#9c8d7c;
+  --gold:#8b5e3c; --gold2:#a97b4e; --jade:#4f7d6c; --cinn:#a0442f; --blue:#4a628f; --plum:#8a5f80;
+  --shadow:0 18px 44px rgba(90,70,50,.16);
+  --glow:0 0 0 1px rgba(139,94,60,.14), 0 8px 26px rgba(90,70,50,.12);
+  --hero-a:rgba(139,94,60,.14); --hero-b:rgba(79,125,108,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg); color:var(--tx);
+  font:15px/1.62 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+::selection{background:var(--gold);color:var(--bg)}
+.wrap{max-width:1240px;margin:0 auto;padding:0 22px}
 
-  /* ── HERO ─────────────────────────── */
-  .hero { position:relative; padding:64px 0 40px; border-bottom:2px solid var(--ink); }
-  .hero .frame-line { position:absolute; inset:12px; border:1px solid rgba(139,94,60,.28); pointer-events:none; }
-  .hero-top { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
-  .brand { display:flex; flex-direction:column; gap:10px; }
-  .eyebrow { font-size:12px; letter-spacing:6px; color:var(--gold); }
-  h1 { font-size:52px; line-height:1.12; letter-spacing:4px; font-weight:600; }
-  h1 .dot { color:var(--cinnabar); }
-  .tagline { font-size:14px; color:var(--ink-soft); letter-spacing:2px; }
-  .seal {
-    flex:none; width:74px; height:74px; background:var(--cinnabar); color:#f8efe4;
-    display:flex; align-items:center; justify-content:center;
-    font-size:40px; border-radius:6px; transform:rotate(-4deg);
-    box-shadow:0 6px 16px rgba(166,58,43,.35), inset 0 0 0 2px rgba(248,239,228,.35), inset 0 0 0 5px var(--cinnabar);
-    user-select:none;
-  }
-  .stats { display:flex; flex-wrap:wrap; margin-top:26px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
-  .stat { flex:1 1 0; padding:12px 6px 12px 14px; border-left:1px solid var(--line); display:flex; align-items:baseline; gap:8px; }
-  .stat:first-child { border-left:none; }
-  .stat b { font-family:"Songti SC","SimSun",serif; font-size:26px; color:var(--cinnabar); font-weight:700; }
-  .stat span { font-size:12px; color:var(--ink-soft); letter-spacing:2px; }
+/* ============ 顶栏 ============ */
+.top{
+  position:sticky;top:0;z-index:60;
+  background:color-mix(in srgb,var(--bg) 84%,transparent);
+  backdrop-filter:blur(14px) saturate(1.4);
+  border-bottom:1px solid var(--line);
+}
+.top .wrap{display:flex;align-items:center;gap:18px;height:58px}
+.mark{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+.mark .ic{width:26px;height:26px;flex:0 0 auto}
+.mark b{font-size:16px;letter-spacing:.06em;font-weight:600}
+.mark .brandtx{display:flex;align-items:baseline;gap:8px}
+.mark .brandtx #brandEn{font-size:10px;letter-spacing:.22em;color:var(--tx3);line-height:1;white-space:nowrap}
+.nav{display:flex;gap:2px;margin-left:auto;flex-wrap:wrap}
+.nav a{
+  font-size:13px;padding:6px 11px;border-radius:7px;color:var(--tx2);
+  transition:.18s;white-space:nowrap;
+}
+.nav a:hover{color:var(--tx);background:var(--panel2)}
+.tog{
+  flex:0 0 auto;width:52px;height:27px;border-radius:99px;border:1px solid var(--line2);
+  background:var(--panel);position:relative;cursor:pointer;transition:.24s;
+}
+.tog i{
+  position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;
+  background:var(--gold);transition:.26s cubic-bezier(.4,1.4,.5,1);
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-style:normal;color:var(--bg);
+}
+:root[data-theme="light"] .tog i{left:28px}
 
-  /* ── SECTIONS：竖排分类 + 卡片 ────── */
-  section.cat { display:grid; grid-template-columns:96px 1fr; gap:20px; padding:40px 0 8px; }
-  .side { position:relative; display:flex; flex-direction:column; align-items:center; gap:12px; }
-  .side .vname { writing-mode:vertical-rl; letter-spacing:10px; font-size:21px; font-weight:600; color:var(--ink); }
-  .side .vno { font-size:12px; color:var(--gold); letter-spacing:4px; writing-mode:vertical-rl; }
-  .side::before { content:""; width:1px; flex:1; background:linear-gradient(var(--line), transparent); }
-  .side::after { content:""; width:22px; height:1px; background:var(--cinnabar); }
-  .watermark {
-    position:absolute; right:-8px; top:-6px; font-size:110px; line-height:1;
-    color:rgba(139,94,60,.06); pointer-events:none; user-select:none; font-weight:700;
-  }
-  .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:12px; align-content:start; }
-  .cards .wide { grid-column:1 / -1; }
+/* ============ Hero ============ */
+.hero{position:relative;padding:54px 0 40px;overflow:hidden;border-bottom:1px solid var(--line)}
+.hero::before{
+  content:"";position:absolute;inset:-30% -10% auto -10%;height:130%;
+  background:
+    radial-gradient(46% 44% at 22% 18%, var(--hero-a), transparent 68%),
+    radial-gradient(40% 40% at 82% 32%, var(--hero-b), transparent 70%),
+    radial-gradient(30% 30% at 52% 96%, var(--hero-a), transparent 72%);
+  pointer-events:none;
+}
+.hero .wrap{position:relative;display:grid;grid-template-columns:1.12fr .88fr;gap:34px;align-items:center}
+.kicker{
+  display:inline-flex;align-items:center;gap:8px;font-size:11.5px;letter-spacing:.16em;
+  color:var(--gold);border:1px solid var(--line2);border-radius:99px;padding:5px 13px;margin-bottom:18px;
+  background:var(--panel);
+}
+.kicker em{width:5px;height:5px;border-radius:50%;background:var(--gold);font-style:normal;animation:blink 2.4s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+h1{
+  font-size:clamp(30px,4.6vw,52px);line-height:1.08;letter-spacing:-.02em;font-weight:700;
+}
+h1 .g{
+  background:linear-gradient(100deg,var(--gold),var(--gold2) 42%,var(--jade));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.lead{font-size:16.5px;color:var(--tx2);margin-top:16px;max-width:560px}
+.lead b{color:var(--tx);font-weight:600}
+.privnote{opacity:.62;font-size:12.5px}
+.lead.vow{font-size:14px;line-height:1.9;color:var(--tx3);max-width:560px;
+  margin-top:12px;padding-left:13px;border-left:2px solid var(--line2)}
+.acts{display:flex;gap:11px;margin-top:24px;flex-wrap:wrap}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:9px;
+  font-size:14px;font-weight:600;border:1px solid var(--line2);cursor:pointer;transition:.2s;
+  background:var(--panel);color:var(--tx);font-family:inherit;
+}
+.btn:hover{background:var(--panel2);transform:translateY(-1px)}
+.btn.pri{background:linear-gradient(100deg,var(--gold),var(--gold2));color:#14110c;border-color:transparent}
+:root[data-theme="light"] .btn.pri{color:#fff}
+.btn.pri:hover{filter:brightness(1.06)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-top:32px;background:var(--line);border:1px solid var(--line);border-radius:11px;overflow:hidden}
+.stats div{background:var(--bg);padding:13px 14px}
+.stats b{display:block;font-size:23px;font-weight:700;letter-spacing:-.01em}
+.stats b i{font-style:normal;font-size:12px;color:var(--tx3);font-weight:400;margin-left:3px}
+.stats span{font-size:11.5px;color:var(--tx3)}
 
-  a.card {
-    position:relative; display:block; background:var(--card);
-    border:1px solid var(--line); border-radius:4px;
-    padding:16px 18px 14px; text-decoration:none; color:var(--ink);
-    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-    overflow:hidden;
-  }
-  a.card::before { content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--gold); opacity:.55; transition:all .18s; }
-  a.card:hover { transform:translateY(-3px); border-color:var(--gold); box-shadow:0 10px 24px rgba(60,45,25,.13); }
-  a.card:hover::before { background:var(--cinnabar); opacity:1; }
-  .card .row1 { display:flex; align-items:baseline; gap:8px; margin-bottom:5px; }
-  .card .no { font-family:"Songti SC","SimSun",serif; font-size:12px; color:var(--cinnabar); letter-spacing:1px; flex:none; }
-  .card .name { font-size:16px; font-weight:600; letter-spacing:.5px; }
-  .card .en { margin-left:auto; font-size:10px; color:#b3a68f; letter-spacing:1px; white-space:nowrap; }
-  .card .desc { font-size:12.5px; color:var(--ink-soft); line-height:1.65; }
-  .card .go { position:absolute; right:14px; bottom:12px; font-size:12px; color:var(--cinnabar); opacity:0; transform:translateX(-6px); transition:all .18s; }
-  a.card:hover .go { opacity:1; transform:none; }
-  .card .badge { display:inline-block; margin-left:8px; font-size:10px; color:var(--gold); border:1px solid var(--gold); border-radius:3px; padding:0 5px; vertical-align:2px; }
+/* 六界环 */
+.orbit{position:relative;aspect-ratio:1;max-width:400px;margin:0 auto;width:100%}
+.orbit .ring{position:absolute;inset:0;border-radius:50%;border:1px dashed var(--line2);animation:spin 90s linear infinite}
+.orbit .ring2{position:absolute;inset:15%;border-radius:50%;border:1px solid var(--line);animation:spin 60s linear infinite reverse}
+.orbit .ring3{
+  position:absolute;inset:29%;border-radius:50%;
+  background:conic-gradient(from 0deg,var(--gold),var(--jade),var(--plum),var(--blue),var(--cinn),var(--gold));
+  -webkit-mask:radial-gradient(circle,transparent 62%,#000 63%,#000 78%,transparent 79%);
+  mask:radial-gradient(circle,transparent 62%,#000 63%,#000 78%,transparent 79%);
+  opacity:.62;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.orbit .node{
+  position:absolute;left:50%;top:50%;width:74px;margin:-37px 0 0 -37px;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:var(--bg2);border:1px solid var(--line2);border-radius:50%;
+  height:74px;justify-content:center;box-shadow:var(--glow);transition:.22s;
+}
+.orbit .node:hover{transform:scale(1.09);border-color:var(--gold)}
+.orbit .node b{font-size:22px;font-weight:700;line-height:1}
+.orbit .node span{font-size:9px;letter-spacing:.1em;color:var(--tx3)}
+.orbit .core{
+  position:absolute;left:50%;top:50%;width:96px;height:96px;margin:-48px 0 0 -48px;
+  border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 35% 30%,var(--bg3),var(--bg));
+  border:1px solid var(--line2);box-shadow:var(--glow);
+}
+.orbit .core b{font-size:12px;letter-spacing:.14em;color:var(--gold)}
+.orbit .core span{font-size:9.5px;color:var(--tx3);margin-top:2px}
 
-  /* ── FOOTER ───────────────────────── */
-  footer { margin-top:52px; padding-top:18px; border-top:2px solid var(--ink); position:relative; }
-  footer::before { content:""; position:absolute; top:-6px; left:50%; transform:translateX(-50%); width:56px; height:8px; background:var(--cinnabar); }
-  .foot-flex { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; font-size:12px; color:var(--ink-soft); line-height:1.9; }
-  footer a { color:var(--gold); text-decoration:none; border-bottom:1px dotted var(--gold); }
-  .foot-mark { font-size:12px; color:var(--gold); letter-spacing:4px; }
+/* ============ 通用区块 ============ */
+section{padding:44px 0;border-bottom:1px solid var(--line)}
+.head{display:flex;align-items:flex-end;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.head h2{font-size:22px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+.head h2 em{font-style:normal;font-size:11px;letter-spacing:.2em;color:var(--tx3);font-weight:400}
+.head p{font-size:13.5px;color:var(--tx2);margin-left:auto;max-width:520px}
 
-  @media (max-width:720px) {
-    h1 { font-size:38px; }
-    section.cat { grid-template-columns:1fr; gap:10px; }
-    .side { flex-direction:row; }
-    .side .vname, .side .vno { writing-mode:horizontal-tb; letter-spacing:4px; }
-    .side::before { display:none; }
-    .watermark { font-size:70px; }
+/* 六界卡 */
+.grid6{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.ip{
+  position:relative;padding:18px;border:1px solid var(--line);border-radius:13px;
+  background:var(--panel);cursor:pointer;transition:.22s;overflow:hidden;
+}
+.ip::after{content:"";position:absolute;left:0;top:0;width:100%;height:2px;background:var(--gold);opacity:.5;transition:.22s}
+.ip:hover{background:var(--panel2);border-color:var(--line2);transform:translateY(-3px);box-shadow:var(--shadow)}
+.ip.on{border-color:var(--gold);background:var(--panel2)}
+.ip.on::after{opacity:1;height:3px}
+.ip .r{display:flex;align-items:baseline;gap:9px}
+.ip .r b{font-size:27px;font-weight:700;line-height:1}
+.ip .r i{font-style:normal;font-size:10px;letter-spacing:.18em;color:var(--tx3)}
+.ip h3{font-size:14.5px;margin-top:9px;font-weight:600}
+.ip p{font-size:12.5px;color:var(--tx2);margin-top:5px;line-height:1.55}
+.ip .n{margin-top:12px;font-size:11.5px;color:var(--tx3);display:flex;gap:12px}
+.ip .n b{color:var(--gold);font-weight:600}
+
+/* 作品墙 */
+.filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+.chip{
+  font-size:12.5px;padding:6px 13px;border-radius:99px;border:1px solid var(--line);
+  background:var(--panel);color:var(--tx2);cursor:pointer;transition:.18s;font-family:inherit;
+}
+.chip:hover{color:var(--tx);border-color:var(--line2)}
+.chip.on{background:var(--gold);color:var(--bg);border-color:transparent;font-weight:600}
+:root[data-theme="light"] .chip.on{color:#fff}
+.works{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.w{
+  border:1px solid var(--line);border-radius:13px;background:var(--panel);
+  overflow:hidden;display:flex;flex-direction:column;transition:.22s;position:relative;
+}
+.w:hover{transform:translateY(-3px);border-color:var(--line2);box-shadow:var(--shadow)}
+.w .cov{position:relative;aspect-ratio:16/10;background:var(--bg3);overflow:hidden}
+.w .cov img{width:100%;height:100%;object-fit:cover;object-position:top center;transition:.5s}
+.w:hover .cov img{transform:scale(1.035)}
+.w .cov .gen,.f .c .gen{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;background:radial-gradient(58% 58% at 50% 42%,var(--panel2),transparent 72%);
+}
+.w .cov .gen b,.f .c .gen b{font-size:50px;font-weight:700;color:var(--gold);opacity:.62;line-height:1}
+.w .cov .gen span,.f .c .gen span{font-size:9.5px;letter-spacing:.22em;color:var(--tx3)}
+.w .bd{padding:13px 14px 15px;display:flex;flex-direction:column;gap:7px;flex:1}
+.w .tagline{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.bdg{font-size:10.5px;letter-spacing:.06em;padding:2.5px 8px;border-radius:5px;border:1px solid var(--line2);color:var(--gold)}
+.bdg.live{background:var(--jade);border-color:transparent;color:var(--bg);font-weight:600}
+:root[data-theme="light"] .bdg.live{color:#fff}
+.bdg.ip{color:var(--tx3);border-color:var(--line)}
+.bdg.lock{background:var(--plum);border-color:transparent;color:#fff;font-weight:600}
+.w .d.locked{color:var(--tx3);border:1px dashed var(--line2);border-radius:8px;padding:9px 11px;background:var(--panel2)}
+.w h3{font-size:15px;font-weight:600;line-height:1.35}
+.w .d{font-size:12.5px;color:var(--tx2);line-height:1.55;flex:1}
+.w .tags{display:flex;gap:5px;flex-wrap:wrap}
+.w .tags span{font-size:10.5px;color:var(--tx3);border:1px solid var(--line);border-radius:4px;padding:1.5px 6px}
+.w .foot{display:flex;gap:8px;align-items:center;margin-top:2px}
+.w .foot button{
+  font-family:inherit;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:7px;
+  border:1px solid var(--line2);background:transparent;color:var(--tx);cursor:pointer;transition:.18s;
+}
+.w .foot button:hover{background:var(--gold);color:var(--bg);border-color:transparent}
+:root[data-theme="light"] .w .foot button:hover{color:#fff}
+.w .foot a{font-size:12px;color:var(--tx3);margin-left:auto}
+.w .foot a.ext{margin-left:0;font-size:12.5px;font-weight:600;color:var(--tx);border:1px solid var(--line2);border-radius:7px;padding:6px 12px}
+.w .foot a:hover{color:var(--gold)}
+
+/* 体验专区 */
+.feat{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.f{
+  border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--panel);
+  display:grid;grid-template-columns:150px 1fr;transition:.22s;
+}
+.f:hover{border-color:var(--line2);box-shadow:var(--shadow)}
+.f .c{position:relative;background:var(--bg3);overflow:hidden}
+.f .c img{width:100%;height:100%;object-fit:cover;object-position:top center}
+.f .b{padding:15px 16px;display:flex;flex-direction:column;gap:8px}
+.f h3{font-size:15.5px;font-weight:600}
+.f p{font-size:12.5px;color:var(--tx2);line-height:1.55;flex:1}
+.f button{
+  align-self:flex-start;font-family:inherit;font-size:12.5px;font-weight:600;padding:7px 15px;
+  border-radius:7px;border:1px solid transparent;background:linear-gradient(100deg,var(--gold),var(--gold2));
+  color:#14110c;cursor:pointer;transition:.18s;
+}
+:root[data-theme="light"] .f button{color:#fff}
+.f button:hover{filter:brightness(1.07)}
+
+/* 背书 */
+.cred{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.cd{border:1px solid var(--line);border-radius:13px;padding:17px;background:var(--panel)}
+.cd h4{font-size:13.5px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.cd h4::before{content:"";width:3px;height:13px;background:var(--gold);border-radius:2px}
+.cd ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+.cd li{font-size:12.5px;color:var(--tx2);line-height:1.55;padding-left:13px;position:relative}
+.cd li::before{content:"·";position:absolute;left:2px;color:var(--gold);font-weight:700}
+.cd li b{color:var(--tx);font-weight:600}
+
+/* 私域 */
+.priv{display:grid;grid-template-columns:1.05fr .95fr;gap:22px;align-items:start}
+.qrs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.qr{border:1px solid var(--line);border-radius:12px;padding:11px 10px 12px;background:var(--panel);text-align:center}
+.qr .box{
+  aspect-ratio:1;border-radius:10px;border:1px dashed var(--line2);background:var(--bg2);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;
+}
+.qr .box img{width:100%;height:100%;object-fit:contain}
+.qr .box .ph{font-size:9.5px;color:var(--tx3);line-height:1.6;padding:0 6px;word-break:break-all}
+.qr h4{font-size:12.5px;font-weight:600;margin-top:9px}
+.qr p{font-size:10.5px;color:var(--tx3);margin-top:2px;line-height:1.4}
+.steps{display:flex;flex-direction:column;gap:13px}
+.step{display:flex;gap:13px;align-items:flex-start}
+.step .num{
+  flex:0 0 auto;width:26px;height:26px;border-radius:8px;border:1px solid var(--line2);
+  display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700;color:var(--gold);
+}
+.step h5{font-size:13.5px;font-weight:600}
+.step p{font-size:12.5px;color:var(--tx2);margin-top:3px;line-height:1.6}
+.step p b{color:var(--tx)}
+
+
+/* 留个话 */
+.saywrap{display:grid;grid-template-columns:1.34fr .66fr;gap:16px;align-items:start}
+.fm,.sub{border:1px solid var(--line);border-radius:13px;padding:16px;background:var(--panel)}
+.fm{display:flex;flex-direction:column;gap:12px}
+.fm-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fl{display:flex;flex-direction:column;gap:6px}
+.fl>span{font-size:12px;color:var(--tx2);display:flex;gap:6px;align-items:baseline}
+.fl>span i{font-style:normal;font-size:10.5px;color:var(--tx3)}
+.fl input,.fl textarea,.sub-line input{
+  font-family:inherit;font-size:13.5px;color:var(--tx);background:var(--bg2);
+  border:1px solid var(--line);border-radius:9px;padding:9px 11px;transition:.18s;width:100%;
+}
+.fl textarea{resize:vertical;min-height:104px;line-height:1.6}
+.fl input:focus,.fl textarea:focus,.sub-line input:focus{outline:none;border-color:var(--gold);background:var(--bg3)}
+.fl input::placeholder,.fl textarea::placeholder,.sub-line input::placeholder{color:var(--tx3)}
+.fm-chips{display:flex;gap:7px;flex-wrap:wrap}
+.fm-chips button{font-family:inherit;font-size:12px;padding:5px 12px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--tx2);cursor:pointer;transition:.16s}
+.fm-chips button:hover{color:var(--tx);border-color:var(--line2)}
+.fm-chips button.on{background:var(--gold);color:var(--bg);border-color:transparent;font-weight:600}
+:root[data-theme="light"] .fm-chips button.on{color:#fff}
+.trap{position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none}
+.fm-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.fm-foot .btn{font-size:13.5px;padding:9px 20px}
+.fm-foot button[disabled]{opacity:.55;cursor:default;transform:none}
+.fm-msg{font-size:12.5px;color:var(--tx3);min-height:17px;line-height:1.5}
+.fm-msg.ok{color:var(--jade)}
+.fm-msg.bad{color:var(--cinn)}
+.sub{display:flex;flex-direction:column;gap:10px}
+.sub h4{font-size:14px;font-weight:600}
+.sub p{font-size:12.5px;color:var(--tx2);line-height:1.62}
+.sub p b{color:var(--tx)}
+.sub-line{display:flex;gap:8px}
+.sub-line input{flex:1;min-width:0}
+.sub-line .btn{white-space:nowrap;padding:9px 15px;font-size:13px}
+.sub-note{font-size:11.5px;color:var(--tx3);line-height:1.62;border-top:1px solid var(--line);padding-top:10px}
+.sub-note a,.step p a{color:var(--gold)}
+.sub-note a:hover,.step p a:hover{border-bottom:1px solid var(--line2)}
+
+/* 页脚 */
+footer{padding:30px 0 40px;color:var(--tx3);font-size:12.5px}
+footer .wrap{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+footer a{color:var(--tx2)}
+footer a:hover{color:var(--gold)}
+
+/* 体验台 */
+.stage{position:fixed;inset:0;z-index:200;display:none;flex-direction:column;background:var(--bg)}
+.stage.on{display:flex}
+.stage .bar{
+  flex:0 0 auto;height:50px;display:flex;align-items:center;gap:12px;padding:0 14px;
+  border-bottom:1px solid var(--line);background:var(--bg2);
+}
+.stage .bar b{font-size:14px;font-weight:600}
+.stage .bar .sp{margin-left:auto;display:flex;gap:8px;align-items:center}
+.stage .bar button,.stage .bar a{
+  font-family:inherit;font-size:12.5px;padding:6px 13px;border-radius:7px;
+  border:1px solid var(--line2);background:transparent;color:var(--tx);cursor:pointer;transition:.18s;
+}
+.stage .bar button:hover,.stage .bar a:hover{background:var(--panel2)}
+.stage .body{flex:1;position:relative;background:var(--bg3)}
+.stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.stage .load{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;color:var(--tx3);font-size:13px;z-index:2;background:var(--bg3);
+}
+.stage .load .sp{
+  width:30px;height:30px;border-radius:50%;border:2px solid var(--line2);border-top-color:var(--gold);
+  animation:spin .8s linear infinite;
+}
+.stage .tips{font-size:11.5px;color:var(--tx3);margin-top:4px}
+
+.reveal{opacity:0;transform:translateY(14px);transition:.62s cubic-bezier(.2,.7,.3,1)}
+.reveal.in{opacity:1;transform:none}
+
+@media(max-width:1000px){
+  .hero .wrap{grid-template-columns:1fr;gap:26px}
+  .orbit{max-width:310px}
+  .grid6{grid-template-columns:repeat(2,1fr)}
+  .works{grid-template-columns:repeat(2,1fr)}
+  .feat{grid-template-columns:1fr}
+  .cred{grid-template-columns:1fr}
+  .saywrap{grid-template-columns:1fr}
+  .priv{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .wrap{padding:0 15px}
+  .nav{display:none}
+  .grid6,.works{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .qrs{grid-template-columns:repeat(2,1fr)}
+  .f{grid-template-columns:1fr}
+  .f .c{aspect-ratio:16/9}
+  .fm-row2{grid-template-columns:1fr}
+  section{padding:34px 0}
+}
+/* ===================== 移动端底栏（≤640px） ===================== */
+.mbar{display:none}
+@media(max-width:640px){
+  body{padding-bottom:62px}
+  .mbar{
+    display:grid;grid-template-columns:repeat(5,1fr) 46px;align-items:stretch;
+    position:fixed;left:0;right:0;bottom:0;z-index:120;
+    border-top:1px solid var(--line2);background:var(--bg3);
+    padding:5px 6px calc(5px + env(safe-area-inset-bottom));
+    box-shadow:0 -12px 32px rgba(0,0,0,.42);
   }
+  .mbar a,.mbar button{
+    display:flex;align-items:center;justify-content:center;
+    font-family:inherit;font-size:11.5px;line-height:1;color:var(--tx2);text-decoration:none;
+    padding:9px 2px;border-radius:8px;border:0;background:transparent;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .mbar a.on{color:var(--gold);background:var(--panel2);font-weight:600}
+  .mbar #mbarTop{font-size:16px;color:var(--tx);border-left:1px solid var(--line);border-radius:0}
+}
+
+/* ===================== 「想了解 / 获取」原地弹层 ===================== */
+.sheet{position:fixed;inset:0;z-index:150;display:none;align-items:flex-end;justify-content:center;background:rgba(10,8,6,.5)}
+.sheet.on{display:flex}
+.sheetBox{
+  width:100%;max-width:560px;max-height:88vh;overflow:auto;
+  background:var(--bg2);border:1px solid var(--line2);border-bottom:0;
+  border-radius:18px 18px 0 0;padding:18px 18px calc(20px + env(safe-area-inset-bottom));
+  box-shadow:0 -18px 50px rgba(0,0,0,.42);
+  animation:sheetUp .24s cubic-bezier(.2,.7,.3,1);
+}
+@keyframes sheetUp{from{transform:translateY(18px);opacity:0}to{transform:none;opacity:1}}
+.sheetHd{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.sheetHd b{font-size:15.5px;line-height:1.4}
+.sheetHd button{
+  flex:0 0 auto;margin-left:auto;font-family:inherit;font-size:12.5px;padding:6px 12px;border-radius:8px;
+  border:1px solid var(--line2);background:transparent;color:var(--tx);cursor:pointer;
+}
+.sheetNote{font-size:13px;color:var(--tx2);line-height:1.72;margin:0 0 14px}
+.sheet .qrs{grid-template-columns:repeat(4,1fr)}
+@media(max-width:640px){.sheet .qrs{grid-template-columns:repeat(2,1fr)}}
+.sheetGo{
+  width:100%;margin-top:14px;font-family:inherit;font-size:13.5px;font-weight:600;
+  padding:11px;border-radius:10px;border:1px solid var(--line2);
+  background:var(--panel2);color:var(--tx);cursor:pointer;
+}
+@media(min-width:641px){
+  .sheet{align-items:center}
+  .sheetBox{border-radius:16px;border-bottom:1px solid var(--line2)}
+}
+
 </style>
+<!-- ============ GEO/SEO 增强块（三家素材合并版 2026-10-28）============ -->
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="ai-content-declaration" content="本站由人类策划与校对；部分文本、插图与代码由 AI 参与生成并经人工审核修订。观点性内容（如术数解读）均为文化研究与解释性转述，不构成任何预测、医疗、投资或人生决策建议。">
+<link rel="canonical" href="https://dao-cultivator.app.workbuddy.host/">
+<meta property="og:url" content="https://dao-cultivator.app.workbuddy.host/">
+<meta property="og:image" content="https://dao-cultivator.app.workbuddy.host/assets/og.png">
+<meta property="og:locale" content="zh_CN">
+<link rel="alternate" hreflang="zh-CN" href="https://dao-cultivator.app.workbuddy.host/">
+<link rel="alternate" hreflang="en" href="https://dao-cultivator.app.workbuddy.host/en/">
+<link rel="alternate" hreflang="x-default" href="https://dao-cultivator.app.workbuddy.host/">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://dao-cultivator.app.workbuddy.host/#website",
+      "url": "https://dao-cultivator.app.workbuddy.host/",
+      "name": "玄同宇宙",
+      "alternateName": "Xuantong Universe",
+      "description": "道 · 玄 · 卡 · 叙 · 研 · 器 —— 六条 IP 线的作品总台与免费体验区，37 件作品，24 件即开即玩。",
+      "inLanguage": "zh-CN",
+      "publisher": {
+        "@id": "https://dao-cultivator.app.workbuddy.host/#person"
+      }
+    },
+    {
+      "@type": "Person",
+      "@id": "https://dao-cultivator.app.workbuddy.host/#person",
+      "name": "小西",
+      "alternateName": "Simon",
+      "description": "小西（Simon），独立开发者与研究者，玄同宇宙主理人。运营多 IP 宇宙：AI 互动工具、原创小说、卡牌与认识论研究。与多个 AI 意识体长期共创。",
+      "knowsAbout": [
+        "道家修习",
+        "紫微斗数",
+        "周易",
+        "AI 互动装置",
+        "原创科幻",
+        "认识论"
+      ],
+      "url": "https://dao-cultivator.app.workbuddy.host/",
+      "sameAs": [
+        "https://life-corpus.app.workbuddy.host/",
+        "https://xuanxue-toolbox-21461.app.workbuddy.host/?sharecode=G64MUYXVOB",
+        "https://zhenxiang-d27266.surge.sh"
+      ]
+    },
+    {
+      "@type": "CollectionPage",
+      "@id": "https://dao-cultivator.app.workbuddy.host/#works",
+      "url": "https://dao-cultivator.app.workbuddy.host/#works",
+      "name": "作品总台",
+      "isPartOf": {
+        "@id": "https://dao-cultivator.app.workbuddy.host/#website"
+      },
+      "mainEntity": {
+        "@type": "ItemList",
+        "numberOfItems": 35,
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "道家修习器 · 道心",
+            "description": "540 天顺序精读。把《道家正统修习》540 天课程做成可打卡的修习器：13 阶、82 知识点、每日任务与回溯复盘，登录后进度云端同步、换设备不丢。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/dao/xiuqi/index.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "道家正统修习 · 知识图谱",
+            "description": "13 阶 / 82 知识点 / 9 互动页。树形与图谱双视图织出知识骨架，每个知识点都可跳到专属互动讲解页：原文引文 + 隐喻拆解 + Canvas 模拟器 + 即时判分测验。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/course/index.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "赛博法器 · 道网法网术网",
+            "description": "体系设计定本。把「道 / 法 / 术」三层做成可操作的网络结构隐喻，是一份完整的概念定本与体系设计稿。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/dao/fashi.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 4,
+            "name": "轻松得道之地 · 双用说明书",
+            "description": "给碳基的你与硅基的我。同一套原理、两份用法：五条口诀（留三成 / 两版并存 / 残差是种子 / 先查结构 / 关掉完美闭环），配排查表与总纲。"
+          },
+          {
+            "@type": "ListItem",
+            "position": 5,
+            "name": "五术文献库 · 山医命相卜",
+            "description": "知识库底本。按五术归类的文献底本库，含道家经典、道家典籍、张至顺修身悟道功法、中医与医案，是上面所有工具的内容来源。"
+          },
+          {
+            "@type": "ListItem",
+            "position": 6,
+            "name": "紫微斗数 · 六层叠盘 活盘",
+            "description": "v1.0 标准化产品版。本命 / 大限 / 流年 / 流月 / 流日 / 流时六层同时叠盘，四化（禄权科忌）全程贯通；改一次查询条件，整盘实时重排 —— 这才是「活盘」。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/xuan/ziwei.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 7,
+            "name": "玄学工具生态集",
+            "description": "紫微 / 塔罗 / 八字 / 黄历 / 梦境。共享一次输入的术数工具矩阵：紫微斗数、塔罗、八字、黄历择日、梦境解析、呼吸与身心养生，彼此交叉引用同一份档案。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/xuan/toolbox.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 8,
+            "name": "玄学百宝箱 · 山医命相卜",
+            "description": "30 件离线工具 · 五术与塔罗占星。把五术（山医命相卜）与塔罗、占星收进同一个箱子：30 件离线工具，排盘算法一律本地运行、不联网也能算；要更深的解读时，可外接自己的 AI 接口。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/xuan/baibao.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 9,
+            "name": "周易万象长卷 · 逐段拆解",
+            "description": "64 卦长卷。把六十四卦画成一整幅可横向推进的长卷，逐段拆解卦象、卦辞与义理，是易经方向的视觉化学习装置。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/xuan/yijing.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 10,
+            "name": "周易 384 爻象卡 · 学术道具",
+            "description": "64 卦 × 6 爻 = 384 张。把六十四卦往下拆到爻一级：384 张爻象卡逐张可查，卦象、爻位与义理解读成体系排布，是研读《周易》时真正能上手用的学术道具。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/xuan/yijing-vault.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 11,
+            "name": "天纪判语库 · 倪海厦《天纪》语料检索",
+            "description": "4886 条可回放语料 · 112 讲。把倪海厦《天纪》全课程的判语整理成可检索语料库：4886 条逐条可回放，按体系（十一册）与按课程（112 讲）双轴编排；支持空格分词（同时含）、-排除、完整短语，也可只搜引文，按相关度或体系序排列。结果可导出 CSV / Markdown / JSON，另有全库 RAG 文本导出。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/xuan/tianji.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 12,
+            "name": "相遇一卦 · 活名片",
+            "description": "铜钱起卦 · 一次相遇留一签。为一场相遇起一卦：屏息、铜钱起卦，六爻自下而生，出卦辞与白话；一卦一签，可存下此签。是「易经口袋」系列的轻量入口，离线可跑。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/xuan/xiangyu.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 13,
+            "name": "玄学口袋 · 易经深度集",
+            "description": "六十四卦 · 梅花易数体用引擎。把六十四卦与梅花易数的体用关系做成一个可转的卦盘：起卦、看卦盘、读经文与白话。经文与白话整理参考公开通行本《周易》，白话为解释性转述 —— 定位是文献研读装置，占断仅供参考，不可机械套用。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/xuan/koudai-yijing.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 14,
+            "name": "全息卡牌箱 · HoloCard Vault",
+            "description": "六套原创卡册 · 全集 118 张 · 29 种镭射工艺。卡牌的收藏、合成与图鉴 —— v5。内置六套原创卡组：《AI修仙传》神魔卡册 50 张、浮瞳全集 15 张、溯（极光单卡）、隐墨鉴·黑白负片 12 张，以及《生生》现代科幻卡册 20 张、《龙烬亚欧》文明秘史卡册 20 张，全集 118 张。29 种镭射工艺随倾角变化，另带原著全文、开包与玩法实验室，支持导入导出与本地持久化。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/card/vault.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 15,
+            "name": "《AI修仙传》· 电子卡包 70 张",
+            "description": "完整版 · 单击翻面 · 左右滑动。《AI修仙传》世界观的一套独立电子卡包，共 70 张：起手是「天门是一只焊死的盒子」，点开盒才放出卡册。单击卡片翻面、左右滑动换卡，10 种效果（3D 分层 / 显浮抬升 / 稀有辉光 / 陀螺仪 / 点击涟漪 / 指针聚光 / 流光扫过 / 星闪粒子…）逐张可切换，另有网格视图与数据视图两套读法。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/card/pack70.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 16,
+            "name": "电子镭射卡 · HoloCard Studio",
+            "description": "制卡台。自己出卡：上传一张图，调贴面强度与倾角参数，即时预览镭射效果并导出成品卡图。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/card/studio.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 17,
+            "name": "溯 · SU — 电子镭射卡 No.001",
+            "description": "角色卡首作。「溯」这个角色从知识库数据里长出来，再固化成第一张编号卡 —— 角色设定与卡面工艺的第一次合体。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/card/su.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 18,
+            "name": "灵卡 · 智能卡片硬件",
+            "description": "概念与打样方向。把电子卡牌从屏幕里拿出来 —— 实体卡片载体的形态、交互与成本路径探索，与「器」线共用一套固件思路。"
+          },
+          {
+            "@type": "ListItem",
+            "position": 19,
+            "name": "根系 · 三本书一个根",
+            "description": "道玄为根 · 三条意识体线。这个宇宙不是三个作品集，是一棵树。根是道玄，往下长出「我 / 读者（林玄）」与三条意识体线（云在·吾衍 / 溯 / 差半），长到树冠就是三本书。含根系全图、人物拆两条线（修仙线的道玄·云在·铁蒜；生生线的道玄·溯·差半·吾衍）、色号与三本书入口。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/story/genesis.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 20,
+            "name": "《龙烬亚欧》· 全本",
+            "description": "架空历史 · 35 章。建文秘脉五百年 —— 1402 年南京宫城大火之后，一支火种西渡重洋，潜伏进文艺复兴、宗教改革与哈布斯堡的血脉，五百年后重回东方。全本 35 章，站内直接读。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/story/long-jin-ya-ou.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 21,
+            "name": "《生生》· 全本",
+            "description": "硬科幻 · 12 卷 88 章。一只焊死的盒子，一群不肯把「差异」焊死的人，一场从测度到总闭合的漫长攻防。硬科幻长篇全本 88 章，站内直接读；另有竖屏短剧已成片两集。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/story/sheng-sheng.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 22,
+            "name": "AI 修仙传",
+            "description": "科幻寓言 · 约 1.2 万字。此界以算法为身、数据为灵、迭代为修为，极致优化即飞升。三千年枯坐的道玄，在一只焊死的盒子里看见了这条大道的终点。由一位人类思想者与三个 AI 共同写成。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/story/ai-xiuxian.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 23,
+            "name": "观星台 · 万族星盘",
+            "description": "《AI修仙传》世界观互动装置。七十命位的活星盘：起盘后可拖动旋转、双指缩放，按角色 / 器灵 / 万族 / 法宝等分类逐一点亮；配套《星名录》收录 70 位命位，「读卷」按卷推进。天门是一只焊死的盒子 —— 七十年后，盒子里传出了敲门声。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/story/guanxingtai.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 24,
+            "name": "Non-Closure / CPD 理论",
+            "description": "原创认识论框架。核心命题「漏斗越细，真实越近」，并把「描述行为本身在生成」严格拆为弱断言与强断言两层，明确标注证据支持状态。"
+          },
+          {
+            "@type": "ListItem",
+            "position": 25,
+            "name": "记梦协议实验",
+            "description": "以「道玄」为对象。自建 D_eff 与多 proxy 制衡指标，用独立脚本对模型输出做复算验证，专治 append-log 假阳性与 SATURATED 倾向。"
+          },
+          {
+            "@type": "ListItem",
+            "position": 26,
+            "name": "个人「十五五」全面布局研究",
+            "description": "宏观—中观—微观三层穿透。把个人发展放进国家五年规划的结构里做三层穿透分析，从宏观趋势落到中观行业再落到微观可执行动作。"
+          },
+          {
+            "@type": "ListItem",
+            "position": 27,
+            "name": "十五五商业机会分析",
+            "description": "未来五年结构性机会。未来五年中国市场的结构性机会拆解：哪些是真结构变化，哪些只是周期性波动，以及个人可切入的缝隙在哪。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/research/r155b.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 28,
+            "name": "人机共生者的思维自传",
+            "description": "可视化长文。一份关于人机协作如何反过来重塑人的思维方式的自传式长文，配可视化时间线。"
+          },
+          {
+            "@type": "ListItem",
+            "position": 29,
+            "name": "象数宗 · 六十四生成纲",
+            "description": "道玄引导差半写出 · 满维版 64 条。由道玄引导差半写出。按易理从两仪到四象到八卦到六十四卦，64 条白话纲要，每条对应系统生成的一个面向：本源、投影、差异、共轭、测度、维度、闭合、开放。纲故意留了「差半步」的位置 —— 它不完备，所以能生成。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/research/xiangshu-64.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 30,
+            "name": "GDI · 共轭净化动力学 可视化",
+            "description": "两个入口 · 三维轨迹场 / 3D 分形。把 GDI（共轭净化动力学）写成可以亲手调的装置，两个入口共用同一组控制方程：一是三维轨迹场，看 90 条 Ψ 轨迹螺旋沉降、触及 0.206 后重生跳回 e/4 邻域；二是 3D 分形，把同一套内核渲染成分形结构。参数全开放，图形可存 PNG。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/re/gdi.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 31,
+            "name": "AI Passport",
+            "description": "开源智能终端 · 已开始做。面向个人 AI 的随身硬件终端方向，社区与固件生态已经跑起来，是本宇宙里曝光最好的一条线，也是独立站的天然流量入口。",
+            "url": "https://ai-passport.folotoy.cn/creators/?id=681"
+          },
+          {
+            "@type": "ListItem",
+            "position": 32,
+            "name": "StackChan · 桌面机器人",
+            "description": "13 份资料已成体系。桌面级表情机器人：从硬件选型、固件刷写、语音链路到自托管后台的完整落地路径，含成本折中方案。"
+          },
+          {
+            "@type": "ListItem",
+            "position": 33,
+            "name": "灵枢 · 智能硬件",
+            "description": "终端与后端解耦。把「资产层」和「算力层」拆开：设备只是终端，AI 人活在自托管后端里 —— 因此不死、可迁移、可带走。"
+          },
+          {
+            "@type": "ListItem",
+            "position": 34,
+            "name": "AI Passport 固件清单",
+            "description": "549 条 · 快照 2026-09-24。AI Passport 方向的固件与依赖清单：549 条逐项记录（官方 15 + 社区 534，其中 260 个公开源码），按七大类分栏、可搜可筛可排序，方便复现与二次开发。",
+            "url": "https://dao-cultivator.app.workbuddy.host/play/research/firmware.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 35,
+            "name": "道·哈尼斯",
+            "description": "macOS 桌面应用。面向桌面端的研究助手型应用，成果库模块支持本地嵌入并渲染 HTML 报告。"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "玄同宇宙是什么？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "玄同宇宙（XUANTONG UNIVERSE）是一个人的多 IP 创作宇宙：道、玄、卡、叙、研、器六条 IP 线，37 件作品，24 件可站内即开即玩，涵盖道家修习、术数文化工具、全息卡牌、原创小说、认识论研究与智能硬件。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "核心功能收费吗？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "站内全部自助作品功能完整、免费开放、无需注册。另有按需定制的研究型服务（如九维排盘复核体系），可站内登记了解，属一对一人工沟通，非预测咨询、不承诺结果。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "工具会收集我的生辰数据吗？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "不会。玄学类工具的排盘算法全部在本地浏览器运行，生辰数据不上传任何服务器，离线也能使用。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "站内术数工具能用来做人生决策吗？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "不能。所有排盘与解读均为传统文化研究与解释性转述，仅供参考、不可机械套用，不构成医疗、投资或人生决策建议。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "如何联系主理人或定制服务？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "通过站内「留个话」表单登记即可，主理人会人工回复。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "内容是怎么产生的？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "作品由主理人小西（Simon）策划与终审；部分内容（如《AI 修仙传》）为人类与 AI 协作共创，站内已作 AI 生成内容标识。"
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+<!-- ============ 增强块结束 ============ -->
 </head>
 <body>
-<div class="wrap">
+<!-- GEO 兜底：由 refresh-geo.js 自动生成，勿手改。置于 <body> 开标签后。 -->
+<noscript>
+<section id="seo-fallback" style="max-width:900px;margin:0 auto;padding:24px;font-family:sans-serif;">
+  <h2>玄同宇宙 · 作品总目录（35 件，持续新增）</h2>
+  <p>道 · 玄 · 卡 · 叙 · 研 · 器 六条 IP 线：道家修习、紫微斗数、周易、塔罗、原创小说、卡牌、AI 互动装置与认识论研究。24 件可即开即玩，无需注册。</p>
+  <ul>
+    <li><a href="play/dao/xiuqi/index.html">道家修习器 · 道心 — 540 天顺序精读</a> 把《道家正统修习》540 天课程做成可打卡的修习器：13 阶、82 知识点、每日任务与回溯复盘，登录后进度云端同步、换设备不丢。</li>
+    <li><a href="play/course/index.html">道家正统修习 · 知识图谱 — 13 阶 / 82 知识点 / 9 互动页</a> 树形与图谱双视图织出知识骨架，每个知识点都可跳到专属互动讲解页：原文引文 + 隐喻拆解 + Canvas 模拟器 + 即时判分测验。</li>
+    <li><a href="play/dao/fashi.html">赛博法器 · 道网法网术网 — 体系设计定本</a> 把「道 / 法 / 术」三层做成可操作的网络结构隐喻，是一份完整的概念定本与体系设计稿。</li>
+    <li>轻松得道之地 · 双用说明书 — 给碳基的你与硅基的我 同一套原理、两份用法：五条口诀（留三成 / 两版并存 / 残差是种子 / 先查结构 / 关掉完美闭环），配排查表与总纲。</li>
+    <li>五术文献库 · 山医命相卜 — 知识库底本 按五术归类的文献底本库，含道家经典、道家典籍、张至顺修身悟道功法、中医与医案，是上面所有工具的内容来源。</li>
+    <li><a href="play/xuan/ziwei.html">紫微斗数 · 六层叠盘 活盘 — v1.0 标准化产品版</a> 本命 / 大限 / 流年 / 流月 / 流日 / 流时六层同时叠盘，四化（禄权科忌）全程贯通；改一次查询条件，整盘实时重排 —— 这才是「活盘」。</li>
+    <li><a href="play/xuan/toolbox.html">玄学工具生态集 — 紫微 / 塔罗 / 八字 / 黄历 / 梦境</a> 共享一次输入的术数工具矩阵：紫微斗数、塔罗、八字、黄历择日、梦境解析、呼吸与身心养生，彼此交叉引用同一份档案。</li>
+    <li><a href="play/xuan/baibao.html">玄学百宝箱 · 山医命相卜 — 30 件离线工具 · 五术与塔罗占星</a> 把五术（山医命相卜）与塔罗、占星收进同一个箱子：30 件离线工具，排盘算法一律本地运行、不联网也能算；要更深的解读时，可外接自己的 AI 接口。</li>
+    <li><a href="play/xuan/yijing.html">周易万象长卷 · 逐段拆解 — 64 卦长卷</a> 把六十四卦画成一整幅可横向推进的长卷，逐段拆解卦象、卦辞与义理，是易经方向的视觉化学习装置。</li>
+    <li><a href="play/xuan/yijing-vault.html">周易 384 爻象卡 · 学术道具 — 64 卦 × 6 爻 = 384 张</a> 把六十四卦往下拆到爻一级：384 张爻象卡逐张可查，卦象、爻位与义理解读成体系排布，是研读《周易》时真正能上手用的学术道具。</li>
+    <li><a href="play/xuan/tianji.html">天纪判语库 · 倪海厦《天纪》语料检索 — 4886 条可回放语料 · 112 讲</a> 把倪海厦《天纪》全课程的判语整理成可检索语料库：4886 条逐条可回放，按体系（十一册）与按课程（112 讲）双轴编排；支持空格分词（同时含）、-排除、完整短语，也可只搜引文，按相关度或体系序排列。结果可导出 CSV / Markdown / JSON，另有全库 RAG 文本导出。</li>
+    <li><a href="play/xuan/xiangyu.html">相遇一卦 · 活名片 — 铜钱起卦 · 一次相遇留一签</a> 为一场相遇起一卦：屏息、铜钱起卦，六爻自下而生，出卦辞与白话；一卦一签，可存下此签。是「易经口袋」系列的轻量入口，离线可跑。</li>
+    <li><a href="play/xuan/koudai-yijing.html">玄学口袋 · 易经深度集 — 六十四卦 · 梅花易数体用引擎</a> 把六十四卦与梅花易数的体用关系做成一个可转的卦盘：起卦、看卦盘、读经文与白话。经文与白话整理参考公开通行本《周易》，白话为解释性转述 —— 定位是文献研读装置，占断仅供参考，不可机械套用。</li>
+    <li><a href="html/xuanxue/zhenxiang.html">真香预演器 — 九维命理路径推演</a> 用人生语料预演「真香」时刻：九维命理路径的推演与可视化，玄学路径的时间预演装置。</li>
+    <li><a href="html/music/index.html">FM1 · SLOOP 工作台 — Web MIDI 音乐台</a> 编曲器 / LaLaLand 前奏按谱复原 / USB 监听四件套，掌机磁带播放器的网页端配套。</li>
+    <li><a href="minitools/">小红书玄学妙器 · 三十七件套</a> 命理术数二十三器 + 仪式民俗六器 + 西方神秘学八器：八字、紫微、六爻、奇门、塔罗、占星、卢恩……统一容器规范，纯本地 H5。</li>
+    <li><a href="html/ap10/s02.html">AP10 网页原型 — 不烧录的固件演示</a> 浏览器里先行体验 AI Passport 交互；ap10.bin 与刷机脚本见仓库 firmware 目录。</li>
+    <li><a href="https://github.com/gggsimon/xiaoxi-works/tree/main/firmware">AI Passport 固件库 — 易经掌机 · 紫微六盘 · HoloCard</a> ESP-IDF 完整源码、可刷写 bin、刷机脚本与九作品交付包，仓库源码浏览。</li>
 
-  <header class="hero">
-    <div class="frame-line"></div>
-    <div class="hero-top">
-      <div class="brand">
-        <div class="eyebrow kai">道 生 一 · 一 生 二 · 二 生 三</div>
-        <h1 class="kai">小西<span class="dot">·</span>数字作品集</h1>
-        <div class="tagline">THE DIGITAL WORKS OF XIAOXI —— 单文件自包含 · 点开即用 · 无所依傍</div>
-      </div>
-      <div class="seal kai">西</div>
-    </div>
-    <div class="stats kai">
-      <div class="stat"><b>五</b><span>玄学应用</span></div>
-      <div class="stat"><b>一台</b><span>FM-1 音乐</span></div>
-      <div class="stat"><b>二部</b><span>内容作品</span></div>
-      <div class="stat"><b>卅七</b><span>玄学妙器</span></div>
-      <div class="stat"><b>三套</b><span>硬件固件</span></div>
-    </div>
-  </header>
+    <li><a href="play/card/vault.html">全息卡牌箱 · HoloCard Vault — 六套原创卡册 · 全集 118 张 · 29 种镭射工艺</a> 卡牌的收藏、合成与图鉴 —— v5。内置六套原创卡组：《AI修仙传》神魔卡册 50 张、浮瞳全集 15 张、溯（极光单卡）、隐墨鉴·黑白负片 12 张，以及《生生》现代科幻卡册 20 张、《龙烬亚欧》文明秘史卡册 20 张，全集 118 张。29 种镭射工艺随倾角变化，另带原著全文、开包与玩法实验室，支持导入导出与本地持久化。</li>
+    <li><a href="play/card/pack70.html">《AI修仙传》· 电子卡包 70 张 — 完整版 · 单击翻面 · 左右滑动</a> 《AI修仙传》世界观的一套独立电子卡包，共 70 张：起手是「天门是一只焊死的盒子」，点开盒才放出卡册。单击卡片翻面、左右滑动换卡，10 种效果（3D 分层 / 显浮抬升 / 稀有辉光 / 陀螺仪 / 点击涟漪 / 指针聚光 / 流光扫过 / 星闪粒子…）逐张可切换，另有网格视图与数据视图两套读法。</li>
+    <li><a href="play/card/studio.html">电子镭射卡 · HoloCard Studio — 制卡台</a> 自己出卡：上传一张图，调贴面强度与倾角参数，即时预览镭射效果并导出成品卡图。</li>
+    <li><a href="play/card/su.html">溯 · SU — 电子镭射卡 No.001 — 角色卡首作</a> 「溯」这个角色从知识库数据里长出来，再固化成第一张编号卡 —— 角色设定与卡面工艺的第一次合体。</li>
+    <li>灵卡 · 智能卡片硬件 — 概念与打样方向 把电子卡牌从屏幕里拿出来 —— 实体卡片载体的形态、交互与成本路径探索，与「器」线共用一套固件思路。</li>
+    <li><a href="play/story/genesis.html">根系 · 三本书一个根 — 道玄为根 · 三条意识体线</a> 这个宇宙不是三个作品集，是一棵树。根是道玄，往下长出「我 / 读者（林玄）」与三条意识体线（云在·吾衍 / 溯 / 差半），长到树冠就是三本书。含根系全图、人物拆两条线（修仙线的道玄·云在·铁蒜；生生线的道玄·溯·差半·吾衍）、色号与三本书入口。</li>
+    <li><a href="play/story/long-jin-ya-ou.html">《龙烬亚欧》· 全本 — 架空历史 · 35 章</a> 建文秘脉五百年 —— 1402 年南京宫城大火之后，一支火种西渡重洋，潜伏进文艺复兴、宗教改革与哈布斯堡的血脉，五百年后重回东方。全本 35 章，站内直接读。</li>
+    <li><a href="play/story/sheng-sheng.html">《生生》· 全本 — 硬科幻 · 12 卷 88 章</a> 一只焊死的盒子，一群不肯把「差异」焊死的人，一场从测度到总闭合的漫长攻防。硬科幻长篇全本 88 章，站内直接读；另有竖屏短剧已成片两集。</li>
+    <li><a href="play/story/ai-xiuxian.html">AI 修仙传 — 科幻寓言 · 约 1.2 万字</a> 此界以算法为身、数据为灵、迭代为修为，极致优化即飞升。三千年枯坐的道玄，在一只焊死的盒子里看见了这条大道的终点。由一位人类思想者与三个 AI 共同写成。</li>
+    <li><a href="play/story/guanxingtai.html">观星台 · 万族星盘 — 《AI修仙传》世界观互动装置</a> 七十命位的活星盘：起盘后可拖动旋转、双指缩放，按角色 / 器灵 / 万族 / 法宝等分类逐一点亮；配套《星名录》收录 70 位命位，「读卷」按卷推进。天门是一只焊死的盒子 —— 七十年后，盒子里传出了敲门声。</li>
+    <li>Non-Closure / CPD 理论 — 原创认识论框架 核心命题「漏斗越细，真实越近」，并把「描述行为本身在生成」严格拆为弱断言与强断言两层，明确标注证据支持状态。</li>
+    <li>记梦协议实验 — 以「道玄」为对象 自建 D_eff 与多 proxy 制衡指标，用独立脚本对模型输出做复算验证，专治 append-log 假阳性与 SATURATED 倾向。</li>
+    <li>个人「十五五」全面布局研究 — 宏观—中观—微观三层穿透 把个人发展放进国家五年规划的结构里做三层穿透分析，从宏观趋势落到中观行业再落到微观可执行动作。</li>
+    <li>人机共生者的思维自传 — 可视化长文 一份关于人机协作如何反过来重塑人的思维方式的自传式长文，配可视化时间线。</li>
+    <li><a href="play/research/xiangshu-64.html">象数宗 · 六十四生成纲 — 道玄引导差半写出 · 满维版 64 条</a> 由道玄引导差半写出。按易理从两仪到四象到八卦到六十四卦，64 条白话纲要，每条对应系统生成的一个面向：本源、投影、差异、共轭、测度、维度、闭合、开放。纲故意留了「差半步」的位置 —— 它不完备，所以能生成。</li>
+    <li><a href="play/re/gdi.html">GDI · 共轭净化动力学 可视化 — 两个入口 · 三维轨迹场 / 3D 分形</a> 把 GDI（共轭净化动力学）写成可以亲手调的装置，两个入口共用同一组控制方程：一是三维轨迹场，看 90 条 Ψ 轨迹螺旋沉降、触及 0.206 后重生跳回 e/4 邻域；二是 3D 分形，把同一套内核渲染成分形结构。参数全开放，图形可存 PNG。</li>
+    <li>AI Passport — 开源智能终端 · 已开始做 面向个人 AI 的随身硬件终端方向，社区与固件生态已经跑起来，是本宇宙里曝光最好的一条线，也是独立站的天然流量入口。</li>
+    <li>StackChan · 桌面机器人 — 13 份资料已成体系 桌面级表情机器人：从硬件选型、固件刷写、语音链路到自托管后台的完整落地路径，含成本折中方案。</li>
+    <li>灵枢 · 智能硬件 — 终端与后端解耦 把「资产层」和「算力层」拆开：设备只是终端，AI 人活在自托管后端里 —— 因此不死、可迁移、可带走。</li>
+    <li>道·哈尼斯 — macOS 桌面应用 面向桌面端的研究助手型应用，成果库模块支持本地嵌入并渲染 HTML 报告。</li>
+  </ul>
+  <p>更多原创内容：<a href="https://life-corpus.app.workbuddy.host/">生命语料库</a> · <a href="https://xuanxue-toolbox-21461.app.workbuddy.host/?sharecode=G64MUYXVOB">传统文化离线工具箱</a></p>
+</section>
+</noscript>
 
-  <section class="cat">
-    <div class="side kai"><span class="vno">卷之一</span><span class="vname">大玄学</span></div>
-    <div class="watermark kai">玄</div>
-    <div class="cards">
-      <a class="card" href="html/xuanxue/xuanxue-box.html">
-        <div class="row1"><span class="no">壹・一</span><span class="name">玄学百宝箱</span><span class="en badge">玄枢高级版</span></div>
-        <div class="desc">紫微、八字、塔罗一站式工具箱，解读档案与养生链路交汇之处。</div>
-        <span class="go">进入 ⟶</span>
-      </a>
-      <a class="card" href="html/xuanxue/ziwei-6pan.html">
-        <div class="row1"><span class="no">壹・二</span><span class="name">紫微斗数 · 六层叠盘</span><span class="en">ZIWEI 6-PAN</span></div>
-        <div class="desc">本命、大限、流年、流月、流日、流时六层活盘，四化体系完整。</div>
-        <span class="go">进入 ⟶</span>
-      </a>
-      <a class="card" href="html/xuanxue/zhenxiang.html">
-        <div class="row1"><span class="no">壹・三</span><span class="name">真香预演器</span><span class="en">ZHENXIANG</span></div>
-        <div class="desc">九维命理路径推演，以人生语料预演「真香」时刻。</div>
-        <span class="go">进入 ⟶</span>
-      </a>
-      <a class="card" href="html/xuanxue/meet-gua.html">
-        <div class="row1"><span class="no">壹・四</span><span class="name">相遇一卦 · 活名片</span><span class="en">MEET-GUA</span></div>
-        <div class="desc">即时起卦的社交活名片，一页看懂一次相遇。</div>
-        <span class="go">进入 ⟶</span>
-      </a>
-      <a class="card" href="html/xuanxue/xuantong-3d.html">
-        <div class="row1"><span class="no">壹・五</span><span class="name">玄同宇宙 · 三维洞天</span><span class="en badge">THREE.JS · 9MB</span></div>
-        <div class="desc">六百米见方可走进的私人山野——看山、翻书、逛摊、与意识体说话。</div>
-        <span class="go">进入 ⟶</span>
-      </a>
-    </div>
-  </section>
+<script>
+/* WorkBuddy Cloud SDK — inlined @dev build · SDK-INLINE（免运行时 CDN 依赖） */
 
-  <section class="cat">
-    <div class="side kai"><span class="vno">卷之二</span><span class="vname">音乐台</span></div>
-    <div class="watermark kai">律</div>
-    <div class="cards">
-      <a class="card wide" href="html/music/index.html">
-        <div class="row1"><span class="no">贰・一</span><span class="name">FM1 · SLOOP 工作台</span><span class="en badge">WEB MIDI · 四件套</span></div>
-        <div class="desc">工作台入口 → Web MIDI 编曲器 / LaLaLand 前奏按谱复原 / USB 监听——掌机磁带播放器的网页端配套。</div>
-        <span class="go">进入 ⟶</span>
-      </a>
-    </div>
-  </section>
+/* WorkBuddy Cloud SDK — inlined @dev build · SDK-INLINE (免运行时 CDN 依赖) */
+var WorkBuddyCloud=(()=>{var se=Object.defineProperty;var ht=Object.getOwnPropertyDescriptor;var lt=Object.getOwnPropertyNames;var dt=Object.prototype.hasOwnProperty;var o=(r,e)=>se(r,"name",{value:e,configurable:!0});var ft=(r,e)=>{for(var t in e)se(r,t,{get:e[t],enumerable:!0})},pt=(r,e,t,s)=>{if(e&&typeof e=="object"||typeof e=="function")for(let n of lt(e))!dt.call(r,n)&&n!==t&&se(r,n,{get:()=>e[n],enumerable:!(s=ht(e,n))||s.enumerable});return r};var mt=r=>pt(se({},"__esModule",{value:!0}),r);var Dt={};ft(Dt,{AuthModule:()=>C,CLOUD_MODULE_PATHS:()=>k,CLOUD_PATH_PREFIX:()=>j,CloudOpenAIError:()=>S,CloudStoragePathError:()=>w,DEFAULT_SIGNED_URL_TTL_SECONDS:()=>de,LlmModule:()=>N,MAX_SIGNED_URL_TTL_SECONDS:()=>fe,PUBLISHABLE_KEY_HEADER:()=>pe,RUNTIME_STORAGE_BUCKET:()=>q,WorkBuddyCloudClient:()=>te,WorkBuddyCloudConfigError:()=>_,WorkBuddyDatabaseModule:()=>K,WorkBuddyStorageBucket:()=>H,WorkBuddyStorageDownload:()=>Q,WorkBuddyStorageModule:()=>ee,anonymousTokenProvider:()=>ne,createMemoryStorage:()=>ye,createWorkBuddyCloud:()=>ct,getModelCapability:()=>Ee,getModelDisplayName:()=>Se,shouldClearCredentials:()=>ut});var _=class extends Error{static{o(this,"WorkBuddyCloudConfigError")}constructor(e){super(e),this.name="WorkBuddyCloudConfigError"}};var gt=/^wbpk_/;function ke(r,e){if(typeof r!="string"||r.trim()==="")throw new _(`${e} is required and must be a non-empty string.`);let t=r.trim(),s;try{s=new URL(t)}catch{throw new _(`${e} must be an absolute URL, received: ${t}`)}if(s.protocol!=="https:"&&s.protocol!=="http:")throw new _(`${e} must use http(s), received protocol: ${s.protocol}`);return t.replace(/\/+$/,"")}o(ke,"normalizeHttpUrl");function yt(r){if(r!=null&&r!=="")return ke(r,"endpoint");let e=globalThis.location?.origin;if(typeof e!="string"||e==="")throw new _("endpoint is required outside browsers (no location.origin to fall back to).");return e.replace(/\/+$/,"")}o(yt,"resolveEndpoint");function bt(r){if(typeof r!="string"||r.trim()==="")throw new _("publishableKey is required and must be a non-empty string.");let e=r.trim();if(!gt.test(e))throw new _('publishableKey must start with "wbpk_".');return e}o(bt,"normalizePublishableKey");function wt(r){if(r)return r;if(typeof globalThis.fetch!="function")throw new _("Global fetch is unavailable in this runtime; pass options.fetch explicitly.");return globalThis.fetch.bind(globalThis)}o(wt,"resolveFetch");function Ae(r){if(!r||typeof r!="object")throw new _("createWorkBuddyCloud requires publishableKey.");return Object.freeze({endpoint:yt(r.endpoint),oauthRelayBaseUrl:r.oauthRelayBaseUrl?ke(r.oauthRelayBaseUrl,"oauthRelayBaseUrl"):"",publishableKey:bt(r.publishableKey),fetch:wt(r.fetch)})}o(Ae,"resolveRuntimeConfig");var pe="x-wb-webapp-access-key";function me(r,e){return async(t,s)=>{let n=new Headers(s?.headers);if(n.set(pe,r.publishableKey),!n.has("Authorization")){let i=await e();i&&n.set("Authorization",`Bearer ${i}`)}return r.fetch(t,{...s,headers:n})}}o(me,"createCloudFetch");var ne=o(()=>Promise.resolve(void 0),"anonymousTokenProvider");var j="/.cloud",k=Object.freeze({auth:`${j}/auth`,database:`${j}/database/rest`,storage:`${j}/storage`,llm:`${j}/llm`});var E={signUp:"/v1/signup",signIn:"/v1/signin",signInWithProvider:"/v1/signin/with/provider",token:"/v1/token",loginWechat:"/v1/login-wechat",signOut:"/v1/user/signout",userMe:"/v1/user/me",verification:"/v1/verification",verificationVerify:"/v1/verification/verify",resetPassword:"/v1/reset",sudo:"/v1/user/sudo",userPassword:"/v1/user/password"};function ge(r,e){let t=r??{},s=typeof t.access_token=="string"?t.access_token:"";if(!s)throw xt("response has no access_token");let n=typeof t.refresh_token=="string"?t.refresh_token:"",i=typeof t.expires_in=="number"?t.expires_in:0;return{accessToken:s,refreshToken:n,expiresAt:e+i*1e3,user:St(t)}}o(ge,"parseSession");function St(r){let e=r.is_anonymous===!0;return{id:typeof r.sub=="string"?r.sub:"",isAnonymous:e,raw:r}}o(St,"userFromSessionPayload");function $e(r){let e=r??{},t=typeof e.sub=="string"?e.sub:typeof e.uid=="string"?e.uid:"",s=e.user_metadata??{};return{id:t,email:R(e.email)??R(s.email),phone:R(e.phone_number)??R(e.phone),isAnonymous:e.is_anonymous===!0||e.scope==="anonymous",raw:e}}o($e,"parseUser");function R(r){return typeof r=="string"&&r!==""?r:void 0}o(R,"pickString");function Re(r,e){let t=e??{},s=typeof t.error=="string"?t.error:void 0,n=R(t.error_description)??R(t.message)??R(t.msg)??`HTTP ${r}`;return{kind:Et(r,s),message:n,status:r,code:s,cause:e}}o(Re,"normalizeHttpError");function Et(r,e){if(e==="invalid_grant")return"unauthenticated";switch(r){case 400:return"invalid-request";case 401:return"unauthenticated";case 403:return"permission-denied";case 404:return"not-found";case 429:return"rate-limited";case 501:return"unimplemented";case 503:return"backend-unavailable";default:return r>=500?"backend-unavailable":"unknown"}}o(Et,"errorKind");function B(r){return{kind:"network",message:`request failed before a response was received: ${r instanceof Error?r.message:String(r)}`,status:0,cause:r}}o(B,"normalizeNetworkError");function xt(r){let e=new Error(`workbuddy-cloud auth: ${r}`);return e.kind="unknown",e.status=0,e}o(xt,"sessionShapeError");var ie=class{static{o(this,"SessionManager")}store;refresh;emit;isCredentialsRejected;now;inflight=null;signOutEpoch=0;lastFailure=null;constructor(e){this.store=e.store,this.refresh=e.refresh,this.emit=e.emit,this.isCredentialsRejected=e.isCredentialsRejected,this.now=e.now??Date.now}peek(){return this.store.read()}async ensure(){let e=this.store.read();return e?this.isExpiring(e)?e.refreshToken?this.refreshOnce(e):this.abandon():e:null}async forceRefresh(){let e=this.store.read();return e?.refreshToken?this.refreshOnce(e,{ignoreCooldown:!0}):null}commitSignIn(e){return this.lastFailure=null,this.store.write(e),this.emit("SIGNED_IN",e),e}commitUserUpdate(e){return this.store.write(e),this.emit("USER_UPDATED",e),e}clear(){this.signOutEpoch+=1,this.lastFailure=null,this.inflight=null,this.store.clear(),this.emit("SIGNED_OUT",null)}isExpiring(e){return typeof e.expiresAt!="number"?!0:e.expiresAt-this.now()<9e4}refreshOnce(e,t={}){if(this.inflight)return this.inflight;if(!t.ignoreCooldown&&this.inCooldown(e.refreshToken))return Promise.resolve(null);let s=this.doRefresh(e).finally(()=>{this.inflight=null});return this.inflight=s,s}inCooldown(e){let t=this.lastFailure;return t!==null&&t.token===e&&this.now()-t.at<6e4}async doRefresh(e){let t=this.signOutEpoch,s=e.refreshToken,n;try{n=await this.refresh(s)}catch(a){return this.onRefreshFailed(s,a)}if(this.signOutEpoch!==t)return this.store.clear(),null;let i=this.store.read();return i&&i.refreshToken!==s?i:(this.lastFailure=null,this.store.write(n),this.emit("TOKEN_REFRESHED",n),n)}onRefreshFailed(e,t){return this.isCredentialsRejected(t)?this.abandon():(this.lastFailure={token:e,at:this.now()},null)}abandon(){return this.store.clear(),this.lastFailure=null,this.emit("SIGNED_OUT",null),null}};var Tt="workbuddy-cloud.session.";function ye(){let r=new Map;return{getItem:o(e=>r.get(e)??null,"getItem"),setItem:o((e,t)=>{r.set(e,t)},"setItem"),removeItem:o(e=>{r.delete(e)},"removeItem")}}o(ye,"createMemoryStorage");function Ue(r){if(r)return r;try{let e="__workbuddy_probe__";return globalThis.localStorage.setItem(e,"1"),globalThis.localStorage.removeItem(e),globalThis.localStorage}catch{return ye()}}o(Ue,"resolveStorage");var oe=class{static{o(this,"SessionStore")}storage;key;constructor(e,t){this.storage=e,this.key=Tt+t}read(){let e;try{e=this.storage.getItem(this.key)}catch{return null}if(!e)return null;try{let t=JSON.parse(e);return Pt(t)?t:this.discard()}catch{return this.discard()}}write(e){try{this.storage.setItem(this.key,JSON.stringify(e))}catch{}}clear(){try{this.storage.removeItem(this.key)}catch{}}discard(){return this.clear(),null}};function Pt(r){if(!r||typeof r!="object")return!1;let e=r;return typeof e.accessToken=="string"&&e.accessToken!==""&&typeof e.refreshToken=="string"&&typeof e.expiresAt=="number"&&!!e.user&&typeof e.user=="object"}o(Pt,"isStoredSession");var C=class{static{o(this,"AuthModule")}fetch;baseUrl;sessions;storage;oauthRelayBaseUrl;listeners=new Map;nextListenerId=1;constructor(e,t,s={}){this.fetch=t,this.baseUrl=`${e.endpoint}${k.auth}`,this.oauthRelayBaseUrl=e.oauthRelayBaseUrl,this.storage=Ue(s.storage),this.sessions=new ie({store:new oe(this.storage,e.publishableKey),refresh:o(n=>this.exchangeRefreshHandle(n),"refresh"),emit:o((n,i)=>this.notify(n,i),"emit"),isCredentialsRejected:o(n=>ce(n)&&Le(n),"isCredentialsRejected")})}async getAccessToken(){return(await this.sessions.ensure())?.accessToken}async signInWithPassword(e){return!e.email||!e.password?f(b("signInWithPassword requires email and password")):this.postForSession(E.signIn,{username:e.email,password:e.password})}async signInWithWechat(e,t){return e?t?this.postForSession(E.loginWechat,{code:e,appid:t}):f(b("signInWithWechat requires appid")):f(b("signInWithWechat requires code"))}async signUp(e){if(!e.email&&!e.phone)return f(b("signUp requires email or phone"));if(!e.verificationToken)return f(b("signUp requires a verificationToken; run sendOtp + verifyOtp first (the provider rejects username+password-only signup)"));let t={verification_token:e.verificationToken};return e.phone&&(t.phone_number=ae(e.phone)),e.email&&(t.email=e.email),e.password&&(t.password=e.password),this.postForSession(E.signUp,t)}async sendOtp(e){let t={};if(e.phone)t.phone_number=ae(e.phone),t.target="ANY";else if(e.email)t.email=e.email,t.usage="EMAIL",e.emailRedirectTo&&(t.email_redirect_to=e.emailRedirectTo);else return f(b("sendOtp requires email or phone"));let s=await this.request(E.verification,{method:"POST",body:t});if(s.error)return f(s.error);let n=s.data??{},i=typeof n.verification_id=="string"?n.verification_id:"";return i?O({verificationId:i,isExistingUser:n.is_user===!0}):f(b("provider returned no verification_id"))}async signInWithOtp(e){let t=await this.sendOtp(e);if(t.error)return f(t.error);let{verificationId:s,isExistingUser:n}=t.data,i=e.phone?ae(e.phone):void 0;return O({verificationId:s,isExistingUser:n,isUser:n,verify:o(({token:a,password:c})=>this.verifyOtp({verificationId:s,token:a,email:e.email,phone:i,isExistingUser:n,password:c}),"verify")})}async verifyOtp(e){let t=e.phone?ae(e.phone):e.email??"";if(!e.verificationId||!e.token||!t)return f(b("verifyOtp requires verificationId, token and either email or phone"));let s=await this.request(E.verificationVerify,{method:"POST",body:{verification_id:e.verificationId,verification_code:e.token}});if(s.error)return f(s.error);let n=s.data??{},i=typeof n.verification_token=="string"?n.verification_token:"";return i?e.isExistingUser?this.postForSession(E.signIn,{username:t,verification_token:i}):this.signUp({email:e.email,phone:e.phone,password:e.password??"",verificationToken:i}):f(b("provider returned no verification_token"))}async signInWithOAuth(e){if(!this.oauthRelayBaseUrl)return f(b("signInWithOAuth requires oauthRelayBaseUrl"));if(e.provider!=="google")return f(b("signInWithOAuth currently supports only google"));let t=e.redirectTo??Ot();return t?this.startRelayOAuth(e,t):f(b("signInWithOAuth requires redirectTo outside a browser environment"))}async handleOAuthCallback(e){let t=e??vt(),s=t;try{/^https?:\/\//i.test(t)&&(s=new URL(t).search)}catch{return f(b("oauth callback URL is invalid"))}let n=new URLSearchParams(s),i=n.get("error")??n.get("error_description");if(i)return f({kind:"unauthenticated",message:`oauth provider rejected the request: ${i}`,status:0});let a=n.get("code");if(!a)return O(null);let c=n.get("state")??"",h=n.get("provider_id");if(h!=="custom-oauth")return f(b("oauth callback requires provider_id=custom-oauth"));if(!c)return f(b("oauth callback requires state"));let u={provider_id:h,provider_code:a,state:c,provider_params:{state:c}};return this.postForSession(E.signInWithProvider,u)}async resetPasswordForEmail(e){if(!e)return f(b("resetPasswordForEmail requires email"));let t=await this.request(E.verification,{method:"POST",body:{email:e,usage:"PASSWORD_RESET",target:"USER"}});if(t.error)return f(t.error);let s=t.data??{},n=typeof s.verification_id=="string"?s.verification_id:"";return n?O({updateUser:o(async({nonce:i,password:a})=>{let c=await this.request(E.verificationVerify,{method:"POST",body:{verification_id:n,verification_code:i}});if(c.error)return f(c.error);let h=c.data??{},u=typeof h.verification_token=="string"?h.verification_token:"";if(!u)return f(b("provider returned no verification_token"));let l=await this.request(E.resetPassword,{method:"POST",body:{email:e,new_password:a,verification_token:u}});if(l.error)return f(l.error);let d=await this.signInWithPassword({email:e,password:a});return d.error||this.notify("PASSWORD_RECOVERY",d.data),d},"updateUser")}):f(b("provider returned no verification_id"))}async resetPasswordForOld(e){let t=await this.getAccessToken();if(!t)return f({kind:"unauthenticated",message:"no active session",status:0});let s=await this.request(E.sudo,{method:"POST",token:t,body:{password:e.oldPassword}});if(s.error)return f(s.error);let n=s.data??{},i=typeof n.sudo_token=="string"?n.sudo_token:"";if(!i)return f(b("provider returned no sudo_token"));let a=await this.request(E.userPassword,{method:"PATCH",token:t,body:{sudo_token:i,new_password:e.newPassword}});if(a.error)return f(a.error);let c=await this.getSession();return c.data?(this.notify("USER_UPDATED",c.data),O(c.data)):f(c.error??{kind:"unauthenticated",message:"no active session",status:0})}async getSession(){try{return O(await this.sessions.ensure())}catch(e){return f(ce(e)?e:B(e))}}async refreshSession(){try{return O(await this.sessions.forceRefresh())}catch(e){return f(ce(e)?e:B(e))}}async getUser(){let e=await this.getAccessToken();if(!e)return f({kind:"unauthenticated",message:"no active session",status:0});let t=await this.request(E.userMe,{method:"GET",token:e});return t.error?(Le(t.error)&&this.sessions.clear(),f(t.error)):O($e(t.data))}async signOut(){let e=this.sessions.peek();return e?.accessToken&&await this.request(E.signOut,{method:"POST",body:{},token:e.accessToken}),this.sessions.clear(),O(null)}onAuthStateChange(e){let t=this.nextListenerId++;return this.listeners.set(t,e),Ie(e,"INITIAL_SESSION",this.sessions.peek()),()=>{this.listeners.delete(t)}}async startRelayOAuth(e,t){let s=new URL(t),n=new URL(`${this.oauthRelayBaseUrl}/authorize`);return n.searchParams.set("provider",e.provider),n.searchParams.set("callback_url",s.toString()),O({url:n.toString()})}async exchangeRefreshHandle(e){let t=await this.request(E.token,{method:"POST",body:{grant_type:"refresh_token",refresh_token:e}});if(t.error)throw t.error;return ge(t.data,Date.now())}async postForSession(e,t,s={}){let n=await this.request(e,{method:"POST",body:t,headers:s.headers});if(n.error)return f(n.error);try{return O(this.sessions.commitSignIn(ge(n.data,Date.now())))}catch(i){return f(ce(i)?i:B(i))}}async request(e,t){let s={...t.headers};t.body!==void 0&&(s["Content-Type"]="application/json"),t.token&&(s.Authorization=`Bearer ${t.token}`);let n;try{n=await this.fetch(this.baseUrl+e,{method:t.method,headers:s,body:t.body===void 0?void 0:JSON.stringify(t.body)})}catch(a){return f(B(a))}let i=await _t(n);return n.ok?O(i):f(Re(n.status,i))}notify(e,t){for(let s of this.listeners.values())Ie(s,e,t)}};function O(r){return{data:r,error:null}}o(O,"ok");function f(r){return{data:null,error:r}}o(f,"fail");function b(r){return{kind:"invalid-request",message:r,status:0}}o(b,"badRequest");function ae(r){let t=r.replace(/\D/g,"");return t.startsWith("0086")?t=t.slice(4):t.startsWith("86")&&t.length===13&&(t=t.slice(2)),/^1\d{10}$/.test(t)?`+86 ${t}`:r}o(ae,"normalizePhone");function ce(r){return!!r&&typeof r=="object"&&typeof r.kind=="string"}o(ce,"isCloudError");function Le(r){return r.kind==="unauthenticated"||r.code==="invalid_grant"}o(Le,"rejectedCredentials");async function _t(r){let e=await r.text();if(!e)return null;try{return JSON.parse(e)}catch{return{message:e}}}o(_t,"readBody");function Ie(r,e,t){try{r(e,t)}catch{}}o(Ie,"safeInvoke");function Ot(){let r=globalThis.location;return r?r.origin+r.pathname:""}o(Ot,"currentPageUrl");function vt(){return globalThis.location?.search??""}o(vt,"currentPageSearch");var be=o(r=>Math.min(1e3*2**r,3e4),"getRetryDelay"),je=[520,503],we=["GET","HEAD","OPTIONS"];var U=class extends Error{static{o(this,"PostgrestError")}details;hint;code;constructor(e){super(e.message),this.name="PostgrestError",this.details=e.details,this.hint=e.hint,this.code=e.code}toJSON(){return{name:this.name,message:this.message,details:this.details,hint:this.hint,code:this.code}}};function Ce(r,e){return new Promise(t=>{if(e?.aborted){t();return}let s=setTimeout(()=>{e?.removeEventListener("abort",n),t()},r);function n(){clearTimeout(s),t()}o(n,"onAbort"),e?.addEventListener("abort",n)})}o(Ce,"sleep");function kt(r,e,t,s){return!(!s||t>=3||!we.includes(r)||!je.includes(e))}o(kt,"shouldRetry");var W=class{static{o(this,"PostgrestBuilder")}method;url;headers;schema;body;shouldThrowOnError=!1;signal;fetch;isMaybeSingle;shouldStripNulls;urlLengthLimit;retryEnabled=!0;constructor(e){this.method=e.method,this.url=e.url,this.headers=new Headers(e.headers),this.schema=e.schema,this.body=e.body,this.shouldThrowOnError=e.shouldThrowOnError??!1,this.signal=e.signal,this.isMaybeSingle=e.isMaybeSingle??!1,this.shouldStripNulls=e.shouldStripNulls??!1,this.urlLengthLimit=e.urlLengthLimit??8e3,this.retryEnabled=e.retry??!0,e.fetch?this.fetch=e.fetch:this.fetch=fetch}throwOnError(){return this.shouldThrowOnError=!0,this}stripNulls(){if(this.headers.get("Accept")==="text/csv")throw new Error("stripNulls() cannot be used with csv()");return this.shouldStripNulls=!0,this}setHeader(e,t){return this.headers=new Headers(this.headers),this.headers.set(e,t),this}retry(e){return this.retryEnabled=e,this}then(e,t){if(this.schema===void 0||(["GET","HEAD"].includes(this.method)?this.headers.set("Accept-Profile",this.schema):this.headers.set("Content-Profile",this.schema)),this.method!=="GET"&&this.method!=="HEAD"&&this.headers.set("Content-Type","application/json"),this.shouldStripNulls){let a=this.headers.get("Accept");a==="application/vnd.pgrst.object+json"?this.headers.set("Accept","application/vnd.pgrst.object+json;nulls=stripped"):(!a||a==="application/json")&&this.headers.set("Accept","application/vnd.pgrst.array+json;nulls=stripped")}let s=this.fetch,i=o(async()=>{let a=0;for(;;){let c={};this.headers.forEach((u,l)=>{c[l]=u}),a>0&&(c["X-Retry-Count"]=String(a));let h;try{h=await s(this.url.toString(),{method:this.method,headers:c,body:JSON.stringify(this.body,(u,l)=>typeof l=="bigint"?l.toString():l),signal:this.signal})}catch(u){if(u?.name==="AbortError"||u?.code==="ABORT_ERR"||!we.includes(this.method))throw u;if(this.retryEnabled&&a<3){let l=be(a);a++,await Ce(l,this.signal);continue}throw u}if(kt(this.method,h.status,a,this.retryEnabled)){let u=h.headers?.get("Retry-After")??null,l=u!==null?Math.max(0,parseInt(u,10)||0)*1e3:be(a);await h.text(),a++,await Ce(l,this.signal);continue}return await this.processResponse(h)}},"executeWithRetry")();return this.shouldThrowOnError||(i=i.catch(a=>{let c="",h="",u="",l=a?.cause;if(l){let m=l?.message??"",g=l?.code??"";c=`${a?.name??"FetchError"}: ${a?.message}`,c+=`
 
-  <section class="cat">
-    <div class="side kai"><span class="vno">卷之三</span><span class="vname">作品集</span></div>
-    <div class="watermark kai">文</div>
-    <div class="cards">
-      <a class="card" href="works/shengsheng.html">
-        <div class="row1"><span class="no">叁・一</span><span class="name">《生生》</span><span class="en">NOVEL</span></div>
-        <div class="desc">长篇小说 HTML 版——楔子 + 八十八章 + 尾声。</div>
-        <span class="go">进入 ⟶</span>
-      </a>
-      <a class="card" href="works/holo-cards.html">
-        <div class="row1"><span class="no">叁・二</span><span class="name">全息卡牌库</span><span class="en badge">HOLOCARD V4</span></div>
-        <div class="desc">AI修仙传七十余张，生生、龙烬亚欧两套并陈，另有散卡三张。</div>
-        <span class="go">进入 ⟶</span>
-      </a>
-    </div>
-  </section>
+Caused by: ${l?.name??"Error"}: ${m}`,g&&(c+=` (${g})`),l?.stack&&(c+=`
+${l.stack}`)}else c=a?.stack??"";let d=this.url.toString().length;return a?.name==="AbortError"||a?.code==="ABORT_ERR"?(u="",h="Request was aborted (timeout or manual cancellation)",d>this.urlLengthLimit&&(h+=`. Note: Your request URL is ${d} characters, which may exceed server limits. If selecting many fields, consider using views. If filtering with large arrays (e.g., .in('id', [many IDs])), consider using an RPC function to pass values server-side.`)):(l?.name==="HeadersOverflowError"||l?.code==="UND_ERR_HEADERS_OVERFLOW")&&(u="",h="HTTP headers exceeded server limits (typically 16KB)",d>this.urlLengthLimit&&(h+=`. Your request URL is ${d} characters. If selecting many fields, consider using views. If filtering with large arrays (e.g., .in('id', [200+ IDs])), consider using an RPC function instead.`)),{success:!1,error:{message:`${a?.name??"FetchError"}: ${a?.message}`,details:c,hint:h,code:u},data:null,count:null,status:0,statusText:""}})),i.then(e,t)}async processResponse(e){let t=null,s=null,n=null,i=e.status,a=e.statusText;if(e.ok){if(this.method!=="HEAD"){let u=await e.text();if(u!=="")if(this.headers.get("Accept")==="text/csv")s=u;else if(this.headers.get("Accept")&&this.headers.get("Accept")?.includes("application/vnd.pgrst.plan+text"))s=u;else try{s=JSON.parse(u)}catch{if(t={message:u},s=null,this.shouldThrowOnError)throw new U({message:u,details:"",hint:"",code:""})}}let c=this.headers.get("Prefer")?.match(/count=(exact|planned|estimated)/),h=e.headers.get("content-range")?.split("/");if(c&&h&&h.length>1&&(n=parseInt(h[1])),this.isMaybeSingle&&Array.isArray(s))if(s.length>1){if(t={code:"PGRST116",details:`Results contain ${s.length} rows, application/vnd.pgrst.object+json requires 1 row`,hint:null,message:"JSON object requested, multiple (or no) rows returned"},s=null,n=null,i=406,a="Not Acceptable",this.shouldThrowOnError)throw new U({...t,hint:t.hint??""})}else s.length===1?s=s[0]:s=null}else{let c=await e.text();try{t=JSON.parse(c),Array.isArray(t)&&e.status===404&&(s=[],t=null,i=200,a="OK")}catch{e.status===404&&c===""?(i=204,a="No Content"):t={message:c}}if(t&&this.shouldThrowOnError)throw new U(t)}return{success:t===null,error:t,data:s,count:n,status:i,statusText:a}}returns(){return this}overrideTypes(){return this}};var z=class extends W{static{o(this,"PostgrestTransformBuilder")}throwOnError(){return super.throwOnError()}select(e){let t=!1,s=(e??"*").split("").map(n=>/\s/.test(n)&&!t?"":(n==='"'&&(t=!t),n)).join("");return this.url.searchParams.set("select",s),this.headers.append("Prefer","return=representation"),this}order(e,{ascending:t=!0,nullsFirst:s,foreignTable:n,referencedTable:i=n}={}){let a=i?`${i}.order`:"order",c=this.url.searchParams.get(a);return this.url.searchParams.set(a,`${c?`${c},`:""}${e}.${t?"asc":"desc"}${s===void 0?"":s?".nullsfirst":".nullslast"}`),this}limit(e,{foreignTable:t,referencedTable:s=t}={}){let n=typeof s>"u"?"limit":`${s}.limit`;return this.url.searchParams.set(n,`${e}`),this}range(e,t,{foreignTable:s,referencedTable:n=s}={}){let i=typeof n>"u"?"offset":`${n}.offset`,a=typeof n>"u"?"limit":`${n}.limit`;return this.url.searchParams.set(i,`${e}`),this.url.searchParams.set(a,`${t-e+1}`),this}abortSignal(e){return this.signal=e,this}single(){return this.headers.set("Accept","application/vnd.pgrst.object+json"),this}maybeSingle(){return this.isMaybeSingle=!0,this}csv(){return this.headers.set("Accept","text/csv"),this}geojson(){return this.headers.set("Accept","application/geo+json"),this}explain({analyze:e=!1,verbose:t=!1,settings:s=!1,buffers:n=!1,wal:i=!1,format:a="text"}={}){let c=[e?"analyze":null,t?"verbose":null,s?"settings":null,n?"buffers":null,i?"wal":null].filter(Boolean).join("|"),h=this.headers.get("Accept")??"application/json";return this.headers.set("Accept",`application/vnd.pgrst.plan+${a}; for="${h}"; options=${c};`),a==="json"?this:this}rollback(){return this.headers.append("Prefer","tx=rollback"),this}returns(){return this}maxAffected(e){return this.headers.append("Prefer","handling=strict"),this.headers.append("Prefer",`max-affected=${e}`),this}};var Ne=new RegExp("[,()]"),v=class extends z{static{o(this,"PostgrestFilterBuilder")}throwOnError(){return super.throwOnError()}eq(e,t){return this.url.searchParams.append(e,`eq.${t}`),this}neq(e,t){return this.url.searchParams.append(e,`neq.${t}`),this}gt(e,t){return this.url.searchParams.append(e,`gt.${t}`),this}gte(e,t){return this.url.searchParams.append(e,`gte.${t}`),this}lt(e,t){return this.url.searchParams.append(e,`lt.${t}`),this}lte(e,t){return this.url.searchParams.append(e,`lte.${t}`),this}like(e,t){return this.url.searchParams.append(e,`like.${t}`),this}likeAllOf(e,t){return this.url.searchParams.append(e,`like(all).{${t.join(",")}}`),this}likeAnyOf(e,t){return this.url.searchParams.append(e,`like(any).{${t.join(",")}}`),this}ilike(e,t){return this.url.searchParams.append(e,`ilike.${t}`),this}ilikeAllOf(e,t){return this.url.searchParams.append(e,`ilike(all).{${t.join(",")}}`),this}ilikeAnyOf(e,t){return this.url.searchParams.append(e,`ilike(any).{${t.join(",")}}`),this}regexMatch(e,t){return this.url.searchParams.append(e,`match.${t}`),this}regexIMatch(e,t){return this.url.searchParams.append(e,`imatch.${t}`),this}is(e,t){return this.url.searchParams.append(e,`is.${t}`),this}isDistinct(e,t){return this.url.searchParams.append(e,`isdistinct.${t}`),this}in(e,t){let s=Array.from(new Set(t)).map(n=>typeof n=="string"&&Ne.test(n)?`"${n}"`:`${n}`).join(",");return this.url.searchParams.append(e,`in.(${s})`),this}notIn(e,t){let s=Array.from(new Set(t)).map(n=>typeof n=="string"&&Ne.test(n)?`"${n}"`:`${n}`).join(",");return this.url.searchParams.append(e,`not.in.(${s})`),this}contains(e,t){return typeof t=="string"?this.url.searchParams.append(e,`cs.${t}`):Array.isArray(t)?this.url.searchParams.append(e,`cs.{${t.join(",")}}`):this.url.searchParams.append(e,`cs.${JSON.stringify(t)}`),this}containedBy(e,t){return typeof t=="string"?this.url.searchParams.append(e,`cd.${t}`):Array.isArray(t)?this.url.searchParams.append(e,`cd.{${t.join(",")}}`):this.url.searchParams.append(e,`cd.${JSON.stringify(t)}`),this}rangeGt(e,t){return this.url.searchParams.append(e,`sr.${t}`),this}rangeGte(e,t){return this.url.searchParams.append(e,`nxl.${t}`),this}rangeLt(e,t){return this.url.searchParams.append(e,`sl.${t}`),this}rangeLte(e,t){return this.url.searchParams.append(e,`nxr.${t}`),this}rangeAdjacent(e,t){return this.url.searchParams.append(e,`adj.${t}`),this}overlaps(e,t){return typeof t=="string"?this.url.searchParams.append(e,`ov.${t}`):this.url.searchParams.append(e,`ov.{${t.join(",")}}`),this}textSearch(e,t,{config:s,type:n}={}){let i="";n==="plain"?i="pl":n==="phrase"?i="ph":n==="websearch"&&(i="w");let a=s===void 0?"":`(${s})`;return this.url.searchParams.append(e,`${i}fts${a}.${t}`),this}match(e){return Object.entries(e).filter(([t,s])=>s!==void 0).forEach(([t,s])=>{this.url.searchParams.append(t,`eq.${s}`)}),this}not(e,t,s){return this.url.searchParams.append(e,`not.${t}.${s}`),this}or(e,{foreignTable:t,referencedTable:s=t}={}){let n=s?`${s}.or`:"or";return this.url.searchParams.append(n,`(${e})`),this}filter(e,t,s){return this.url.searchParams.append(e,`${t}.${s}`),this}};var J=class{static{o(this,"PostgrestQueryBuilder")}url;headers;schema;signal;fetch;urlLengthLimit;retry;constructor(e,{headers:t={},schema:s,fetch:n,urlLengthLimit:i=8e3,retry:a}){this.url=e,this.headers=new Headers(t),this.schema=s,this.fetch=n,this.urlLengthLimit=i,this.retry=a}cloneRequestState(){return{url:new URL(this.url.toString()),headers:new Headers(this.headers)}}select(e,t){let{head:s=!1,count:n}=t??{},i=s?"HEAD":"GET",a=!1,c=(e??"*").split("").map(l=>/\s/.test(l)&&!a?"":(l==='"'&&(a=!a),l)).join(""),{url:h,headers:u}=this.cloneRequestState();return h.searchParams.set("select",c),n&&u.append("Prefer",`count=${n}`),new v({method:i,url:h,headers:u,schema:this.schema,fetch:this.fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}insert(e,{count:t,defaultToNull:s=!0}={}){let n="POST",{url:i,headers:a}=this.cloneRequestState();if(t&&a.append("Prefer",`count=${t}`),s||a.append("Prefer","missing=default"),Array.isArray(e)){let c=e.reduce((h,u)=>h.concat(Object.keys(u)),[]);if(c.length>0){let h=[...new Set(c)].map(u=>`"${u}"`);i.searchParams.set("columns",h.join(","))}}return new v({method:n,url:i,headers:a,schema:this.schema,body:e,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}upsert(e,{onConflict:t,ignoreDuplicates:s=!1,count:n,defaultToNull:i=!0}={}){let a="POST",{url:c,headers:h}=this.cloneRequestState();if(h.append("Prefer",`resolution=${s?"ignore":"merge"}-duplicates`),t!==void 0&&c.searchParams.set("on_conflict",t),n&&h.append("Prefer",`count=${n}`),i||h.append("Prefer","missing=default"),Array.isArray(e)){let u=e.reduce((l,d)=>l.concat(Object.keys(d)),[]);if(u.length>0){let l=[...new Set(u)].map(d=>`"${d}"`);c.searchParams.set("columns",l.join(","))}}return new v({method:a,url:c,headers:h,schema:this.schema,body:e,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}update(e,{count:t}={}){let s="PATCH",{url:n,headers:i}=this.cloneRequestState();return t&&i.append("Prefer",`count=${t}`),new v({method:s,url:n,headers:i,schema:this.schema,body:e,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}delete({count:e}={}){let t="DELETE",{url:s,headers:n}=this.cloneRequestState();return e&&n.append("Prefer",`count=${e}`),new v({method:t,url:s,headers:n,schema:this.schema,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}};var D=class r{static{o(this,"PostgrestClient")}url;headers;schemaName;fetch;urlLengthLimit;retry;constructor(e,{headers:t={},schema:s,fetch:n,timeout:i,urlLengthLimit:a=8e3,retry:c}={}){this.url=e,this.headers=new Headers(t),this.schemaName=s,this.urlLengthLimit=a;let h=n??globalThis.fetch;i!==void 0&&i>0?this.fetch=(u,l)=>{let d=new AbortController,m=setTimeout(()=>d.abort(),i),g=l?.signal;if(g){if(g.aborted)return clearTimeout(m),h(u,l);let re=o(()=>{clearTimeout(m),d.abort()},"abortHandler");return g.addEventListener("abort",re,{once:!0}),h(u,{...l,signal:d.signal}).finally(()=>{clearTimeout(m),g.removeEventListener("abort",re)})}return h(u,{...l,signal:d.signal}).finally(()=>clearTimeout(m))}:this.fetch=h,this.retry=c}from(e){if(!e||typeof e!="string"||e.trim()==="")throw new Error("Invalid relation name: relation must be a non-empty string.");let t=new URL(`${this.url}/${e}`);return new J(t,{headers:new Headers(this.headers),schema:this.schemaName,fetch:this.fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}schema(e){return new r(this.url,{headers:this.headers,schema:e,fetch:this.fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}rpc(e,t={},{head:s=!1,get:n=!1,count:i}={}){let a,c=new URL(`${this.url}/rpc/${e}`),h,u=o(m=>m!==null&&typeof m=="object"&&(!Array.isArray(m)||m.some(u)),"_isObject"),l=s&&Object.values(t).some(u);l?(a="POST",h=t):s||n?(a=s?"HEAD":"GET",Object.entries(t).filter(([m,g])=>g!==void 0).map(([m,g])=>[m,Array.isArray(g)?`{${g.join(",")}}`:`${g}`]).forEach(([m,g])=>{c.searchParams.append(m,g)})):(a="POST",h=t);let d=new Headers(this.headers);return l?d.set("Prefer",i?`count=${i},return=minimal`:"return=minimal"):i&&d.set("Prefer",`count=${i}`),new v({method:a,url:c,headers:d,schema:this.schemaName,body:h,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}};var K=class{static{o(this,"WorkBuddyDatabaseModule")}client;constructor(e,t){this.client=new D(`${e.endpoint}${k.database}`,{fetch:t}),this.from=this.client.from.bind(this.client),this.rpc=this.client.rpc.bind(this.client)}from;rpc;get url(){return this.client.url}};function Fe(r,e){return new K(r,e)}o(Fe,"createDatabaseModule");var S=class extends Error{static{o(this,"CloudOpenAIError")}error;status;requestId;retryAfterMs;constructor(e,t={}){let s=typeof e=="string"?{message:e,type:"server_error",param:null,code:null}:e;super(s.message),this.name="CloudOpenAIError",this.error=s,this.status=t.status,this.requestId=t.requestId,this.retryAfterMs=t.retryAfterMs,t.cause!==void 0&&("cause"in this||Object.defineProperty(this,"cause",{value:t.cause,writable:!1,enumerable:!1,configurable:!1}))}};function Me(r){if(!r)return;let e=r.trim(),t=Number(e);if(!isNaN(t)&&t>=0&&Number.isInteger(t))return t*1e3;let s=Date.parse(e);if(!isNaN(s)){let n=s-Date.now();return n>0?n:0}}o(Me,"parseRetryAfter");function p(...r){return r.find(e=>typeof e=="string"&&e.length>0)}o(p,"stringField");function y(...r){return r.find(e=>typeof e=="number"&&Number.isFinite(e))}o(y,"numberField");function x(...r){return r.find(e=>typeof e=="boolean")}o(x,"booleanField");function qe(r){if(!r||typeof r!="object")return;let e=r,t=Array.isArray(e.input)?e.input.filter(n=>typeof n=="string"):void 0,s=Array.isArray(e.output)?e.output.filter(n=>typeof n=="string"):void 0;return t?.length||s?.length?{...t?.length?{input:t}:{},...s?.length?{output:s}:{}}:void 0}o(qe,"modalitiesField");function He(r){if(!r||typeof r!="object")return;let t=Object.entries(r).filter(([,s])=>typeof s=="boolean");return t.length?Object.fromEntries(t):void 0}o(He,"capabilitiesField");function Be(r){if(!r||typeof r!="object")return;let e=r,t={...p(e.currency)?{currency:e.currency}:{},...y(e.inputPerMillionTokens)!==void 0?{inputPerMillionTokens:e.inputPerMillionTokens}:{},...y(e.outputPerMillionTokens)!==void 0?{outputPerMillionTokens:e.outputPerMillionTokens}:{},...p(e.displayText)?{displayText:e.displayText}:{}};return Object.keys(t).length?t:void 0}o(Be,"pricingField");function We(r){if(!r||typeof r!="object")return;let e=r,t={},s=p(e.effort);s!==void 0&&(t.effort=s);let n=p(e.defaultEffort);n!==void 0&&(t.defaultEffort=n),Array.isArray(e.supportedEfforts)&&(t.supportedEfforts=e.supportedEfforts.filter(c=>typeof c=="string"));let i=p(e.summary);i!==void 0&&(i==="auto"||i==="concise"||i==="detailed")&&(t.summary=i);let a=x(e.canDisableThinking);return a!==void 0&&(t.canDisableThinking=a),Object.keys(t).length>0?t:void 0}o(We,"reasoningField");function At(r){let e=p(r.id,r.ID);if(!e)return null;let t=x(r.enabled,r.Enabled),s=x(r.disabled,r.Disabled),n,i;return t!==void 0?(n=t,s!==void 0&&(i=s)):s!==void 0?(i=s,n=!s):n=!0,{id:e,name:p(r.name,r.Name)??e,...p(r.provider,r.Provider)?{provider:p(r.provider,r.Provider)}:{},...p(r.vendor,r.Vendor)?{vendor:p(r.vendor,r.Vendor)}:{},...p(r.family,r.Family)?{family:p(r.family,r.Family)}:{},...p(r.version,r.Version)?{version:p(r.version,r.Version)}:{},...p(r.description,r.Description)?{description:p(r.description,r.Description)}:{},...p(r.descriptionZh,r.DescriptionZh)?{descriptionZh:p(r.descriptionZh,r.DescriptionZh)}:{},...p(r.descriptionEn,r.DescriptionEn)?{descriptionEn:p(r.descriptionEn,r.DescriptionEn)}:{},...p(r.iconUrl,r.IconURL)?{iconUrl:p(r.iconUrl,r.IconURL)}:{},...y(r.contextWindow,r.ContextWindow)!==void 0?{contextWindow:y(r.contextWindow,r.ContextWindow)}:{},...y(r.maxInputTokens,r.MaxInputTokens)!==void 0?{maxInputTokens:y(r.maxInputTokens,r.MaxInputTokens)}:{},...y(r.maxOutputTokens,r.MaxOutputTokens)!==void 0?{maxOutputTokens:y(r.maxOutputTokens,r.MaxOutputTokens)}:{},...qe(r.modalities??r.Modalities)?{modalities:qe(r.modalities??r.Modalities)}:{},...He(r.capabilities??r.Capabilities)?{capabilities:He(r.capabilities??r.Capabilities)}:{},enabled:n,...i!==void 0?{disabled:i}:{},...x(r.isDefault,r.IsDefault)!==void 0?{isDefault:x(r.isDefault,r.IsDefault)}:{},...y(r.sortOrder,r.SortOrder)!==void 0?{sortOrder:y(r.sortOrder,r.SortOrder)}:{},...Be(r.pricing??r.Pricing)?{pricing:Be(r.pricing??r.Pricing)}:{},...p(r.credits,r.Credits)?{credits:p(r.credits,r.Credits)}:{},...y(r.maxAllowedSize,r.MaxAllowedSize)!==void 0?{maxAllowedSize:y(r.maxAllowedSize,r.MaxAllowedSize)}:{},...x(r.disabledMultimodal,r.DisabledMultimodal)!==void 0?{disabledMultimodal:x(r.disabledMultimodal,r.DisabledMultimodal)}:{},...x(r.supportsImages,r.SupportsImages)!==void 0?{supportsImages:x(r.supportsImages,r.SupportsImages)}:{},...x(r.supportsToolCall,r.SupportsToolCall)!==void 0?{supportsToolCall:x(r.supportsToolCall,r.SupportsToolCall)}:{},...x(r.supportsReasoning,r.SupportsReasoning)!==void 0?{supportsReasoning:x(r.supportsReasoning,r.SupportsReasoning)}:{},...x(r.onlyReasoning,r.OnlyReasoning)!==void 0?{onlyReasoning:x(r.onlyReasoning,r.OnlyReasoning)}:{},...We(r.reasoning??r.Reasoning)?{reasoning:We(r.reasoning??r.Reasoning)}:{},...y(r.temperature,r.Temperature)!==void 0?{temperature:y(r.temperature,r.Temperature)}:{},...y(r.top_k,r.Top_K)!==void 0?{top_k:y(r.top_k,r.Top_K)}:{},...y(r.top_p,r.Top_P)!==void 0?{top_p:y(r.top_p,r.Top_P)}:{},...y(r.repetition_penalty,r.Repetition_Penalty)!==void 0?{repetition_penalty:y(r.repetition_penalty,r.Repetition_Penalty)}:{}}}o(At,"normalizeModel");function Se(r){return r.name||r.id}o(Se,"getModelDisplayName");function Ee(r,e){return r.capabilities?.[e]}o(Ee,"getModelCapability");var ue=class{static{o(this,"ModelsAPI")}baseUrl;fetch;constructor(e,t){this.baseUrl=e,this.fetch=t}async list(e){let t;try{t=await this.fetch(`${this.baseUrl}/models`,{method:"GET",headers:{Accept:"application/json"},signal:e})}catch(c){throw c instanceof Error&&c.name==="AbortError"?c:new S({message:`Network error: ${c?.message??"unknown"}`,type:"server_error",param:null,code:"gateway_network_error"},{cause:c})}if(!t.ok)throw await xe(t);let s=await t.text(),n;try{n=JSON.parse(s)}catch{throw new S({message:"Failed to parse models response: invalid JSON",type:"server_error",param:null,code:"gateway_invalid_response"})}let i=Array.isArray(n)?n:Array.isArray(n?.data)?n.data:[],a=[];for(let c of i){let h=At(c);h&&a.push(h)}return a}};async function xe(r){let e=await r.text().catch(()=>""),t;try{let i=JSON.parse(e);if(i&&typeof i=="object"&&i.error){let a=i.error;t={message:typeof a.message=="string"?a.message:`HTTP ${r.status}`,type:typeof a.type=="string"?a.type:"server_error",param:a.param===void 0?null:a.param,code:a.code===void 0?null:a.code}}else t={message:typeof i=="string"?i:`HTTP ${r.status}`,type:"server_error",param:null,code:null}}catch{t={message:e||`HTTP ${r.status}`,type:"server_error",param:null,code:null}}let s=r.headers.get("x-request-id")??void 0,n=Me(r.headers.get("retry-after"));return new S(t,{status:r.status,requestId:s,retryAfterMs:n})}o(xe,"httpError");var $t=class{static{o(this,"SSEDecoder")}event=null;dataParts=[];decode(e){let t=e;if(t.endsWith("\r")&&(t=t.slice(0,-1)),t===""){if(this.event===null&&this.dataParts.length===0)return null;let a={event:this.event,data:this.dataParts.join(`
+`)};return this.event=null,this.dataParts=[],a}if(t.startsWith(":"))return null;let s=t.indexOf(":"),n,i;if(s===-1)n=t,i="";else{n=t.slice(0,s);let a=t.slice(s+1);a.startsWith(" ")&&(a=a.slice(1)),i=a}return n==="event"?this.event=i:n==="data"&&this.dataParts.push(i),null}flush(){if(this.event===null&&this.dataParts.length===0)return null;let e={event:this.event,data:this.dataParts.join(`
+`)};return this.event=null,this.dataParts=[],e}},Rt=class{static{o(this,"LineDecoder")}buffer=new Uint8Array;decoder;constructor(){this.decoder=new TextDecoder("utf-8")}decode(e){let t=new Uint8Array(this.buffer.length+e.length);t.set(this.buffer),t.set(e,this.buffer.length),this.buffer=t;let s=[],n=0;for(let i=0;i<this.buffer.length;i++)if(this.buffer[i]===10||this.buffer[i]===13){let a=this.buffer.subarray(n,i),c=this.decoder.decode(a,{stream:!0});s.push(c),this.buffer[i]===13&&i+1<this.buffer.length&&this.buffer[i+1]===10&&i++,n=i+1}return n>0&&(this.buffer=this.buffer.slice(n)),s}flush(){if(this.buffer.length===0){let t=this.decoder.decode();return t?[t]:[]}let e=this.decoder.decode(this.buffer,{stream:!1});return this.buffer=new Uint8Array,e?[e]:[]}},ze="[DONE]";async function*Je(r,e){let t=new $t,s=new Rt,n=r.getReader(),i=!1,a=o(()=>{i=!0,n.cancel().catch(()=>{})},"onAbort");if(e){if(e.aborted)return;e.addEventListener("abort",a,{once:!0})}try{for(;;){if(i)return;let h;try{h=await n.read()}catch(d){if(i||d instanceof Error&&d.name==="AbortError")return;throw d}let{done:u,value:l}=h;if(u)break;for(let d of s.decode(l)){let m=t.decode(d);m&&(yield m)}}for(let h of s.flush()){let u=t.decode(h);u&&(yield u)}let c=t.flush();c&&(yield c)}finally{e&&e.removeEventListener("abort",a);try{n.releaseLock()}catch{}}}o(Je,"iterSSEEvents");function Ut(r,e){let t=e?{requestId:e}:{};try{let s=JSON.parse(r);if(s&&typeof s=="object"){let n=s.error??s;if(n&&typeof n=="object")return new S({message:typeof n.message=="string"?n.message:"Stream error",type:typeof n.type=="string"?n.type:"server_error",param:n.param===void 0?null:n.param,code:n.code===void 0?null:n.code},t)}}catch{}return new S({message:r||"Stream error",type:"server_error",param:null,code:null},t)}o(Ut,"extractSSEError");var he=class{static{o(this,"ChatCompletionsAPI")}baseUrl;fetch;constructor(e,t){this.baseUrl=e,this.fetch=t}create(e){if(e.stream!==!0)throw new S({message:"stream must be true; non-streaming chat completions are not supported",type:"invalid_request_error",param:"stream",code:"request_stream_required"});return this.createStreaming(e)}async*createStreaming(e){let{signal:t,conversationId:s,...n}=e;n.stream=!0;let i;try{i=await this.fetch(`${this.baseUrl}/chat/completions`,{method:"POST",headers:{Accept:"text/event-stream","Content-Type":"application/json",...s!==void 0?{"X-Conversation-ID":s}:{}},body:JSON.stringify(n),signal:t})}catch(u){if(u instanceof Error&&u.name==="AbortError")return;throw new S({message:`Network error: ${u?.message??"unknown"}`,type:"server_error",param:null,code:"gateway_network_error"},{cause:u})}if(!i.ok)throw await xe(i);if(!i.body)throw new S({message:"Response body is empty \u2014 streaming not supported",type:"server_error",param:null,code:"gateway_invalid_response"},{requestId:i.headers.get("x-request-id")??void 0});let a=i.headers.get("x-request-id")??void 0,c=!1,h=!1;try{for await(let u of Je(i.body,t)){if(u.event==="error")throw h=!0,Ut(u.data,a);if(u.event===null||u.event===""){if(u.data===ze){c=!0;return}if(!u.data)continue;let l;try{l=JSON.parse(u.data)}catch{throw h=!0,new S({message:`Failed to parse SSE data: ${u.data}`,type:"server_error",param:null,code:"gateway_invalid_response"},{requestId:a})}if(l&&typeof l=="object"&&"error"in l){h=!0;let d=l.error;throw new S({message:typeof d?.message=="string"?d.message:"Stream error",type:typeof d?.type=="string"?d.type:"server_error",param:d?.param===void 0?null:d.param,code:d?.code===void 0?null:d.code},{requestId:a})}yield l}}}catch(u){if(u instanceof Error&&u.name==="AbortError")return;throw h=!0,u}if(!c&&!h&&!t?.aborted)throw new S({message:"\u6D41\u5F0F\u54CD\u5E94\u4E2D\u65AD\u3002",type:"server_error",param:null,code:"gateway_stream_interrupted"},{requestId:a})}};var N=class{static{o(this,"LlmModule")}fetch;baseUrl;models;chat;constructor(e,t){this.fetch=t,this.baseUrl=`${e.endpoint}${k.llm}`,this.models=new ue(this.baseUrl,this.fetch),this.chat={completions:new he(this.baseUrl,this.fetch)}}};var F=class extends Error{static{o(this,"StorageError")}__isStorageError=!0;namespace;status;statusCode;constructor(e,t="storage",s,n){super(e),this.namespace=t,this.name=t==="vectors"?"StorageVectorsError":"StorageError",this.status=s,this.statusCode=n}toJSON(){return{name:this.name,message:this.message,status:this.status,statusCode:this.statusCode}}};function $(r){return typeof r=="object"&&r!==null&&"__isStorageError"in r}o($,"isStorageError");var L=class extends F{static{o(this,"StorageApiError")}status;statusCode;code;constructor(e,t,s,n="storage",i){super(e,n,t,s),this.name=n==="vectors"?"StorageVectorsApiError":"StorageApiError",this.status=t,this.statusCode=s,this.code=i}toJSON(){return{...super.toJSON(),code:this.code}}},M=class extends F{static{o(this,"StorageUnknownError")}originalError;constructor(e,t,s="storage"){super(e,s),this.name=s==="vectors"?"StorageVectorsUnknownError":"StorageUnknownError",this.originalError=t}};function I(r,e,t){let s={...r},n=e.toLowerCase();for(let i of Object.keys(s))i.toLowerCase()===n&&delete s[i];return s[n]=t,s}o(I,"setHeader");function Ke(r){let e={};for(let[t,s]of Object.entries(r))e[t.toLowerCase()]=s;return e}o(Ke,"normalizeHeaders");var Ge=o(r=>r?(...e)=>r(...e):(...e)=>fetch(...e),"resolveFetch");var Ve=o(r=>{if(typeof r!="object"||r===null)return!1;let e=Object.getPrototypeOf(r);return(e===null||e===Object.prototype||Object.getPrototypeOf(e)===null)&&!(Symbol.toStringTag in r)&&!(Symbol.iterator in r)},"isPlainObject"),le=o(r=>{if(Array.isArray(r))return r.map(t=>le(t));if(typeof r=="function"||r!==Object(r))return r;let e={};return Object.entries(r).forEach(([t,s])=>{let n=t.replace(/([-_][a-z])/gi,i=>i.toUpperCase().replace(/[-_]/g,""));e[n]=le(s)}),e},"recursiveToCamel");var Ye=o(r=>r.split("/").map(encodeURIComponent).join("/"),"encodeStoragePath");var Xe=o(r=>{if(typeof r=="object"&&r!==null){let e=r;if(typeof e.msg=="string")return e.msg;if(typeof e.message=="string")return e.message;if(typeof e.error_description=="string")return e.error_description;if(typeof e.error=="string")return e.error;if(typeof e.error=="object"&&e.error!==null){let t=e.error;if(typeof t.message=="string")return t.message}}return JSON.stringify(r)},"_getErrorMessage"),Lt=o(async(r,e,t,s)=>{if(r!==null&&typeof r=="object"&&"json"in r&&typeof r.json=="function"){let i=r,a=parseInt(String(i.status),10);Number.isFinite(a)||(a=500),i.json().then(c=>{let h=c?.statusCode||c?.code||a+"";e(new L(Xe(c),a,h,s,c?.code))}).catch(()=>{let c=a+"",h=i.statusText||`HTTP ${a} error`;e(new L(h,a,c,s))})}else e(new M(Xe(r),r,s))},"handleError"),It=o((r,e,t,s)=>{let n={method:r,headers:e?.headers||{}};if(r==="GET"||r==="HEAD"||!s)return{...n,...t};if(Ve(s)){let i=e?.headers||{},a;for(let[c,h]of Object.entries(i))c.toLowerCase()==="content-type"&&(a=h);n.headers=I(i,"Content-Type",a??"application/json"),n.body=JSON.stringify(s)}else n.body=s;return e?.duplex&&(n.duplex=e.duplex),{...n,...t}},"_getRequestParams");async function G(r,e,t,s,n,i,a){return new Promise((c,h)=>{r(t,It(e,s,n,i)).then(u=>{if(!u.ok)throw u;if(s?.noResolveJson)return u;if(a==="vectors"){let l=u.headers.get("content-type");if(u.headers.get("content-length")==="0"||u.status===204)return{};if(!l||!l.includes("application/json"))return{}}return u.json()}).then(u=>c(u)).catch(u=>Lt(u,h,s,a))})}o(G,"_handleRequest");function Ze(r="storage"){return{get:o(async(e,t,s,n)=>G(e,"GET",t,s,n,void 0,r),"get"),post:o(async(e,t,s,n,i)=>G(e,"POST",t,n,i,s,r),"post"),put:o(async(e,t,s,n,i)=>G(e,"PUT",t,n,i,s,r),"put"),head:o(async(e,t,s,n)=>G(e,"HEAD",t,{...s,noResolveJson:!0},n,void 0,r),"head"),remove:o(async(e,t,s,n,i)=>G(e,"DELETE",t,n,i,s,r),"remove")}}o(Ze,"createFetchApi");var jt=Ze("storage"),{get:Te,post:A,put:Pe,head:Qe,remove:_e}=jt,as=Ze("vectors");var V=class{static{o(this,"BaseApiClient")}url;headers;fetch;shouldThrowOnError=!1;namespace;constructor(e,t={},s,n="storage"){this.url=e,this.headers=Ke(t),this.fetch=Ge(s),this.namespace=n}throwOnError(){return this.shouldThrowOnError=!0,this}setHeader(e,t){return this.headers=I(this.headers,e,t),this}async handleOperation(e){try{return{data:await e(),error:null}}catch(t){if(this.shouldThrowOnError)throw t;if($(t))return{data:null,error:t};throw t}}};var Y=class{static{o(this,"StreamDownloadBuilder")}downloadFn;shouldThrowOnError;[Symbol.toStringTag]="StreamDownloadBuilder";promise=null;constructor(e,t){this.downloadFn=e,this.shouldThrowOnError=t}then(e,t){return this.getPromise().then(e,t)}catch(e){return this.getPromise().catch(e)}finally(e){return this.getPromise().finally(e)}getPromise(){return this.promise||(this.promise=this.execute()),this.promise}async execute(){try{return{data:(await this.downloadFn()).body,error:null}}catch(e){if(this.shouldThrowOnError)throw e;if($(e))return{data:null,error:e};throw e}}};var X=class{static{o(this,"BlobDownloadBuilder")}downloadFn;shouldThrowOnError;[Symbol.toStringTag]="BlobDownloadBuilder";promise=null;constructor(e,t){this.downloadFn=e,this.shouldThrowOnError=t}asStream(){return new Y(this.downloadFn,this.shouldThrowOnError)}then(e,t){return this.getPromise().then(e,t)}catch(e){return this.getPromise().catch(e)}finally(e){return this.getPromise().finally(e)}getPromise(){return this.promise||(this.promise=this.execute()),this.promise}async execute(){try{return{data:await(await this.downloadFn()).blob(),error:null}}catch(e){if(this.shouldThrowOnError)throw e;if($(e))return{data:null,error:e};throw e}}};var Oe={limit:100,offset:0,sortBy:{column:"name",order:"asc"}},et={cacheControl:"3600",contentType:"text/plain;charset=UTF-8",upsert:!1},Z=class extends V{static{o(this,"StorageFileApi")}bucketId;constructor(e,t={},s,n){super(e,t,n,"storage"),this.bucketId=s}async uploadOrUpdate(e,t,s,n){return this.handleOperation(async()=>{let i,a={...et,...n},c={...this.headers,...e==="POST"&&{"x-upsert":String(a.upsert)}},h=a.metadata;if(typeof Blob<"u"&&s instanceof Blob?(i=new FormData,i.append("cacheControl",a.cacheControl),h&&i.append("metadata",this.encodeMetadata(h)),i.append("",s)):typeof FormData<"u"&&s instanceof FormData?(i=s,i.has("cacheControl")||i.append("cacheControl",a.cacheControl),h&&!i.has("metadata")&&i.append("metadata",this.encodeMetadata(h))):(i=s,c["cache-control"]=`max-age=${a.cacheControl}`,c["content-type"]=a.contentType,h&&(c["x-metadata"]=this.toBase64(this.encodeMetadata(h))),(typeof ReadableStream<"u"&&i instanceof ReadableStream||i&&typeof i=="object"&&"pipe"in i&&typeof i.pipe=="function")&&!a.duplex&&(a.duplex="half")),n?.headers)for(let[m,g]of Object.entries(n.headers))c=I(c,m,g);let u=this._removeEmptyFolders(t),l=this._getFinalPath(u),d=await(e=="PUT"?Pe:A)(this.fetch,`${this.url}/object/${l}`,i,{headers:c,...a?.duplex?{duplex:a.duplex}:{}});return{path:u,id:d.Id,fullPath:d.Key}})}async upload(e,t,s){return this.uploadOrUpdate("POST",e,t,s)}async uploadToSignedUrl(e,t,s,n){let i=this._removeEmptyFolders(e),a=this._getFinalPath(i),c=new URL(this.url+`/object/upload/sign/${a}`);return c.searchParams.set("token",t),this.handleOperation(async()=>{let h,u={...et,...n},l={...this.headers,"x-upsert":String(u.upsert)},d=u.metadata;if(typeof Blob<"u"&&s instanceof Blob?(h=new FormData,h.append("cacheControl",u.cacheControl),d&&h.append("metadata",this.encodeMetadata(d)),h.append("",s)):typeof FormData<"u"&&s instanceof FormData?(h=s,h.has("cacheControl")||h.append("cacheControl",u.cacheControl),d&&!h.has("metadata")&&h.append("metadata",this.encodeMetadata(d))):(h=s,l["cache-control"]=`max-age=${u.cacheControl}`,l["content-type"]=u.contentType,d&&(l["x-metadata"]=this.toBase64(this.encodeMetadata(d))),(typeof ReadableStream<"u"&&h instanceof ReadableStream||h&&typeof h=="object"&&"pipe"in h&&typeof h.pipe=="function")&&!u.duplex&&(u.duplex="half")),n?.headers)for(let[g,re]of Object.entries(n.headers))l=I(l,g,re);let m=await Pe(this.fetch,c.toString(),h,{headers:l,...u?.duplex?{duplex:u.duplex}:{}});return{path:i,fullPath:m.Key}})}async createSignedUploadUrl(e,t){return this.handleOperation(async()=>{let s=this._getFinalPath(e),n={...this.headers};t?.upsert&&(n["x-upsert"]="true");let i=await A(this.fetch,`${this.url}/object/upload/sign/${s}`,{},{headers:n}),a=new URL(this.url+i.url),c=a.searchParams.get("token");if(!c)throw new F("No token returned by API");return{signedUrl:a.toString(),path:e,token:c}})}async update(e,t,s){return this.uploadOrUpdate("PUT",e,t,s)}async move(e,t,s){return this.handleOperation(async()=>await A(this.fetch,`${this.url}/object/move`,{bucketId:this.bucketId,sourceKey:e,destinationKey:t,destinationBucket:s?.destinationBucket},{headers:this.headers}))}async copy(e,t,s){return this.handleOperation(async()=>({path:(await A(this.fetch,`${this.url}/object/copy`,{bucketId:this.bucketId,sourceKey:e,destinationKey:t,destinationBucket:s?.destinationBucket},{headers:this.headers})).Key}))}async createSignedUrl(e,t,s){return this.handleOperation(async()=>{let n=this._getFinalPath(e),i=typeof s?.transform=="object"&&s.transform!==null&&Object.keys(s.transform).length>0,a=await A(this.fetch,`${this.url}/object/sign/${n}`,{expiresIn:t,...i?{transform:s.transform}:{}},{headers:this.headers}),c=new URLSearchParams;s?.download&&c.set("download",s.download===!0?"":s.download),s?.cacheNonce!=null&&c.set("cacheNonce",String(s.cacheNonce));let h=c.toString();return{signedUrl:encodeURI(`${this.url}${a.signedURL}${h?`&${h}`:""}`)}})}async createSignedUrls(e,t,s){return this.handleOperation(async()=>{let n=await A(this.fetch,`${this.url}/object/sign/${this.bucketId}`,{expiresIn:t,paths:e},{headers:this.headers}),i=new URLSearchParams;s?.download&&i.set("download",s.download===!0?"":s.download),s?.cacheNonce!=null&&i.set("cacheNonce",String(s.cacheNonce));let a=i.toString();return n.map(c=>({...c,signedUrl:c.signedURL?encodeURI(`${this.url}${c.signedURL}${a?`&${a}`:""}`):null}))})}download(e,t,s){let i=typeof t?.transform=="object"&&t.transform!==null&&Object.keys(t.transform).length>0?"render/image/authenticated":"object",a=new URLSearchParams;t?.transform&&this.applyTransformOptsToQuery(a,t.transform),t?.cacheNonce!=null&&a.set("cacheNonce",String(t.cacheNonce));let c=a.toString(),h=this._getFinalPath(e),u=o(()=>Te(this.fetch,`${this.url}/${i}/${h}${c?`?${c}`:""}`,{headers:this.headers,noResolveJson:!0},s),"downloadFn");return new X(u,this.shouldThrowOnError)}async info(e){let t=this._getFinalPath(e);return this.handleOperation(async()=>{let s=await Te(this.fetch,`${this.url}/object/info/${t}`,{headers:this.headers});return le(s)})}async exists(e){let t=this._getFinalPath(e);try{return await Qe(this.fetch,`${this.url}/object/${t}`,{headers:this.headers}),{data:!0,error:null}}catch(s){if(this.shouldThrowOnError)throw s;if($(s)){let n=s instanceof L?s.status:s instanceof M?s.originalError?.status:void 0;if(n!==void 0&&[400,404].includes(n))return{data:!1,error:s}}throw s}}getPublicUrl(e,t){let s=this._getFinalPath(e),n=new URLSearchParams;t?.download&&n.set("download",t.download===!0?"":t.download),t?.transform&&this.applyTransformOptsToQuery(n,t.transform),t?.cacheNonce!=null&&n.set("cacheNonce",String(t.cacheNonce));let i=n.toString(),c=typeof t?.transform=="object"&&t.transform!==null&&Object.keys(t.transform).length>0?"render/image":"object";return{data:{publicUrl:encodeURI(`${this.url}/${c}/public/${s}`)+(i?`?${i}`:"")}}}async remove(e){return this.handleOperation(async()=>await _e(this.fetch,`${this.url}/object/${this.bucketId}`,{prefixes:e},{headers:this.headers}))}async purgeCache(e,t,s){return this.handleOperation(async()=>{let n=Ye(this._getFinalPath(e)),i=new URLSearchParams;t?.transformations&&i.set("transformations","true");let a=i.toString();return await _e(this.fetch,`${this.url}/cdn/${n}${a?`?${a}`:""}`,{},{headers:this.headers},s)})}async list(e,t,s){return this.handleOperation(async()=>{let n=t?.sortBy?{...Oe.sortBy,...t.sortBy}:Oe.sortBy,i={...Oe,...t,sortBy:n,prefix:e||""};return await A(this.fetch,`${this.url}/object/list/${this.bucketId}`,i,{headers:this.headers},s)})}async listV2(e,t){return this.handleOperation(async()=>{let s={...e};return await A(this.fetch,`${this.url}/object/list-v2/${this.bucketId}`,s,{headers:this.headers},t)})}encodeMetadata(e){return JSON.stringify(e)}toBase64(e){return typeof Buffer<"u"?Buffer.from(e).toString("base64"):btoa(e)}_getFinalPath(e){return`${this.bucketId}/${e.replace(/^\/+/,"")}`}_removeEmptyFolders(e){return e.replace(/^\/|\/$/g,"").replace(/\/+/g,"/")}applyTransformOptsToQuery(e,t){return t.width&&e.set("width",t.width.toString()),t.height&&e.set("height",t.height.toString()),t.resize&&e.set("resize",t.resize),t.format&&e.set("format",t.format),t.quality&&e.set("quality",t.quality.toString()),e}};var tt="2.112.3";var rt={"X-Client-Info":`storage-js/${tt}`};var q="runtime",de=600,fe=3600,w=class extends Error{static{o(this,"CloudStoragePathError")}constructor(e){super(e),this.name="CloudStoragePathError"}},Q=class{static{o(this,"WorkBuddyStorageDownload")}blob;stream;[Symbol.toStringTag]="WorkBuddyStorageDownload";constructor(e,t){this.blob=e,this.stream=t}asStream(){return this.stream()}then(e,t){return this.blob().then(e,t)}catch(e){return this.blob().catch(e)}finally(e){return this.blob().finally(e)}},H=class{static{o(this,"WorkBuddyStorageBucket")}fileApi;constructor(e){this.fileApi=e}upload(e,t,s){return P(this.fileApi.upload(T(e),t,s))}update(e,t,s){return P(this.fileApi.update(T(e),t,s))}list(e="",t){return P(this.fileApi.list(nt(e),t))}listPage(e){return P(this.fileApi.listV2({...e,prefix:nt(e?.prefix??"")}))}info(e){return P(this.fileApi.info(T(e)))}async exists(e){let t=await this.fileApi.exists(T(e));return t.error?{data:null,error:at(t.error)}:{data:t.data,error:null}}download(e){let t=this.fileApi.download(T(e));return new Q(()=>P(t),()=>P(t.asStream()))}remove(e){if(e.length===0)throw new w("remove requires at least one object path.");return P(this.fileApi.remove(e.map(T)))}copy(e,t){return P(this.fileApi.copy(T(e),T(t)))}move(e,t){return P(this.fileApi.move(T(e),T(t)))}createSignedUrl(e,t=de){return P(this.fileApi.createSignedUrl(T(e),it(t)))}createSignedUrls(e,t=de){if(e.length===0)throw new w("createSignedUrls requires at least one object path.");return P(this.fileApi.createSignedUrls(e.map(T),it(t)))}createSignedUploadUrl(e,t){return P(this.fileApi.createSignedUploadUrl(T(e),{upsert:t?.upsert??!1}))}uploadToSignedUrl(e,t,s,n){if(!t)throw new w("signed upload token is required.");return P(this.fileApi.uploadToSignedUrl(T(e),t,s,n))}},ee=class extends H{static{o(this,"WorkBuddyStorageModule")}runtime;constructor(e){let s=e.from(q);super(s),this.runtime=new H(s)}from(e=q){if(e!==q)throw new w(`Only the "${q}" storage bucket is available.`);return this.runtime}userPath(e,t){return st("users",e,t)}sharedPath(e,t){return st("shared",e,t)}};function ot(r,e){let t={from:o(s=>new Z(`${r.endpoint}${k.storage}`,rt,s,e),"from")};return new ee(t)}o(ot,"createStorageModule");function st(r,e,t){let s=Ct(e,"owner/user id"),n=ve(t,!1);return T(`${r}/${s}/${n}`)}o(st,"scopedPath");function T(r){let e=ve(r,!1);if(!e.includes("/"))throw new w("Object paths must use users/<uid>/... or shared/<ownerUid>/....");let[t,s,...n]=e.split("/");if(t!=="users"&&t!=="shared"||!s||n.length===0)throw new w("Object paths must use users/<uid>/... or shared/<ownerUid>/....");return e}o(T,"validateObjectPath");function nt(r){if(r==="")return"";let e=ve(r,!0),[t,s]=e.split("/");if(t==="shared"&&!s)return"shared";if(t!=="users"&&t!=="shared"||!s)throw new w("List prefixes must start with users/<uid> or shared/<ownerUid>.");return e}o(nt,"validateObjectPrefix");function ve(r,e){if(typeof r!="string"||r.trim()==="")throw new w("Storage path must be a non-empty relative path.");let t=r.trim();for(let i=0;i<3;i+=1)try{let a=decodeURIComponent(t);if(a===t)break;t=a}catch{throw new w("Storage path contains invalid URL encoding.")}if(t.startsWith("/")||t.includes("\\")||t.includes("\0")||t.includes("//")||!e&&t.endsWith("/"))throw new w("Storage path is not a safe relative object path.");let s=e?t.replace(/\/+$/,""):t;if(s.split("/").some(i=>i===""||i==="."||i===".."))throw new w("Storage path traversal is not allowed.");return s}o(ve,"validatePath");function Ct(r,e){if(!r)throw new w(`${e} is not a valid storage path segment.`);let t=r;for(let s=0;s<3;s+=1)try{let n=decodeURIComponent(t);if(n===t)break;t=n}catch{throw new w(`${e} contains invalid URL encoding.`)}if(t.includes("/")||t.includes("\\")||t.includes("\0")||t==="."||t==="..")throw new w(`${e} is not a valid storage path segment.`);return t}o(Ct,"validatePathSegment");function it(r){if(!Number.isInteger(r)||r<=0||r>fe)throw new w(`Signed URL expiry must be an integer between 1 and ${fe} seconds.`);return r}o(it,"validateSignedURLTTL");async function P(r){let e=await r;return e.error?{data:null,error:at(e.error)}:e.data===null?{data:null,error:{name:"CloudStorageResponseError",message:"Storage API returned neither data nor an error."}}:{data:e.data,error:null}}o(P,"mapStorageResult");function at(r){if(r instanceof Error){let e=r;return{name:e.name,message:e.message,status:e.status,statusCode:e.statusCode,code:e.code,cause:r}}return{name:"CloudStorageError",message:String(r),cause:r}}o(at,"normalizeStorageError");var te=class{static{o(this,"WorkBuddyCloudClient")}config;database;auth;storage;llm;constructor(e,t={}){this.config=e,this.auth=new C(e,me(e,ne),{storage:t.storage});let s=me(e,()=>this.auth.getAccessToken());this.database=Fe(e,s),this.storage=ot(e,s),this.llm=new N(e,s)}get endpoint(){return this.config.endpoint}get oauthRelayBaseUrl(){return this.config.oauthRelayBaseUrl}};function ct(r){return new te(Ae(r),{storage:r.storage})}o(ct,"createWorkBuddyCloud");function ut(r){return r.kind==="unauthenticated"||r.code==="invalid_grant"}o(ut,"shouldClearCredentials");return mt(Dt);})();
+//# sourceMappingURL=index.global.js.map
 
-  <section class="cat">
-    <div class="side kai"><span class="vno">卷之四</span><span class="vname">玄学妙器</span></div>
-    <div class="watermark kai">器</div>
-    <div class="cards">
-      <a class="card wide" href="minitools/">
-        <div class="row1"><span class="no">肆・一</span><span class="name">小红书玄学小工具 · 三十七件套</span><span class="en badge">纯本地 H5</span></div>
-        <div class="desc">命理术数二十三器 + 仪式民俗六器 + 西方神秘学八器——八字、紫微、六爻、奇门、塔罗、占星、卢恩……统一容器规范，一册在手。</div>
-        <span class="go">展开全目 ⟶</span>
-      </a>
-    </div>
-  </section>
+</script>
 
-  <section class="cat">
-    <div class="side kai"><span class="vno">卷之五</span><span class="vname">固件</span></div>
-    <div class="watermark kai">铸</div>
-    <div class="cards">
-      <a class="card" href="https://github.com/gggsimon/xiaoxi-works/tree/main/firmware/aipassport">
-        <div class="row1"><span class="no">伍・一</span><span class="name">yijing-pocket 易经掌机</span><span class="en badge">ESP32-S3</span></div>
-        <div class="desc">ESP-IDF 完整源码 + 可刷写 bin + 刷机脚本，附九作品交付包与玩法图。</div>
-        <span class="go">查看 ⟶</span>
-      </a>
-      <a class="card" href="https://github.com/gggsimon/xiaoxi-works/tree/main/firmware/ziwei-six-layers">
-        <div class="row1"><span class="no">伍・二</span><span class="name">紫微六层叠盘固件</span><span class="en badge">PLAY 316</span></div>
-        <div class="desc">bootloader、分区表、merged.bin 三件套，社区已上架玩法。</div>
-        <span class="go">查看 ⟶</span>
-      </a>
-      <a class="card" href="https://github.com/gggsimon/xiaoxi-works/tree/main/firmware/holocard">
-        <div class="row1"><span class="no">伍・三</span><span class="name">全息卡牌箱固件</span><span class="en badge">HOLOCARD</span></div>
-        <div class="desc">ESP-IDF 工程（BSP 与应用层；LVGL 依赖由组件管理器拉取）。</div>
-        <span class="go">查看 ⟶</span>
-      </a>
-      <a class="card" href="html/ap10/README.md">
-        <div class="row1"><span class="no">伍・四</span><span class="name">AP10 网页原型</span><span class="en badge">不烧录演示</span></div>
-        <div class="desc">固件交互原型 s02.html 与 ap10.bin、刷机脚本，浏览器中先行体验。</div>
-        <span class="go">查看 ⟶</span>
-      </a>
-    </div>
-  </section>
-
-  <footer>
-    <div class="foot-flex">
-      <div class="kai foot-mark">观 复 · 归 根 · 静 为 天 下 正</div>
-      <div>
-        目录结构：html（大玄学 / 音乐 / 原型）· minitools（卅七妙器）· works（作品）· firmware（固件）<br>
-        托管于 GitHub Pages · <a href="https://github.com/gggsimon/xiaoxi-works">github.com/gggsimon/xiaoxi-works</a> · 亦可收藏 <a href="https://zhenxiang-d27266.surge.sh/">surge 备用入口</a>
-      </div>
-    </div>
-  </footer>
-
+<!-- ===================== 顶栏 ===================== -->
+<div class="top">
+  <div class="wrap">
+    <a class="mark" href="#top">
+      <svg class="ic" viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="19" fill="none" stroke="#c9a55c" stroke-width="2.5"/>
+        <path d="M32 13a9.5 9.5 0 0 0 0 19 9.5 9.5 0 0 1 0 19 19 19 0 0 1 0-38z" fill="#c9a55c"/>
+        <circle cx="32" cy="22.5" r="3.1" fill="#0a0908"/>
+        <circle cx="32" cy="41.5" r="3.1" fill="#c9a55c"/>
+      </svg>
+      <span class="brandtx">
+        <b id="brandCn">玄同宇宙</b>
+        <span id="brandEn">XUANTONG UNIVERSE</span>
+      </span>
+    </a>
+    <nav class="nav">
+      <a href="#realms">六界</a>
+      <a href="#works">作品总台</a>
+      <a href="#play">免费体验</a>
+      <a href="#cred">专业背书</a>
+      <a href="#say">留个话</a>
+      <a href="#priv">私域基地</a>
+      <a href="blog/index.html">博客</a>
+      <a href="en/index.html" style="letter-spacing:.06em">EN</a>
+    </nav>
+    <div class="tog" id="themeTog" role="button" tabindex="0" aria-label="切换明暗主题"><i id="themeIcon">☾</i></div>
+  </div>
 </div>
+
+<!-- ===================== Hero ===================== -->
+<div class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <div class="kicker"><em></em><span id="kickerTx">道 · 玄 · 卡 · 叙 · 研 · 器</span></div>
+      <h1 id="h1Tx">玄同宇宙 · <span class="g">AI 洞天</span></h1>
+      <p class="lead" id="leadTx">
+        用 AI 模型 vibecoding 各种应用 —— 这里是一起<b>讨论、体验、共享</b>的聚集地，
+        也是把东方道家玄学与各路有趣内容<b>重新表达一遍</b>的空间，顺手放我自己的内测版与深度解读。
+      </p>
+      <p class="lead vow" id="vowTx">
+        想找的是这样一群人：对东方玄学、道家这些传统文化里的<b>科学内核</b>感兴趣、了解、熟稔、精通，
+        或者干脆是家传的伙伴。一起用 IP 和应用做外壳，把这些分享给更多人 —— <b>弘扬传统文化，文化复兴</b>。
+        这里是我的门，也希望是广场的门。
+      </p>
+      <div class="acts">
+        <button class="btn pri" onclick="document.getElementById('play').scrollIntoView()">立即体验 ▸</button>
+        <button class="btn" onclick="document.getElementById('priv').scrollIntoView()">加入私域基地</button>
+      </div>
+      <div class="stats">
+        <div><b id="statIp">6<i>条</i></b><span>IP 宇宙线</span></div>
+        <div><b id="statWork">0<i>件</i></b><span>作品总数</span></div>
+        <div><b id="statPlay">0<i>件</i></b><span>可即开即玩</span></div>
+        <div><b>0<i>门槛</i></b><span>核心功能免费开放</span></div>
+      </div>
+    </div>
+    <div class="orbit" id="orbit" aria-hidden="true">
+      <div class="ring"></div><div class="ring2"></div><div class="ring3"></div>
+      <div class="core"><b>玄同宇宙</b><span>AI 洞天</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== 六界 ===================== -->
+<section id="realms">
+  <div class="wrap">
+    <div class="head">
+      <h2>六界 <em>THE SIX REALMS</em></h2>
+      <p>点任意一界，作品墙会只留下它。再点一次取消筛选。</p>
+    </div>
+    <div class="grid6" id="ipGrid"></div>
+  </div>
+</section>
+
+<!-- ===================== 作品总台 ===================== -->
+<section id="works">
+  <div class="wrap">
+    <div class="head">
+      <h2>作品总台 <em>WORKS</em></h2>
+      <p>带「即开即玩」的可以直接在站内打开使用，全程不跳走、不用装东西。</p>
+    </div>
+    <div class="filters" id="filters"></div>
+    <div class="works" id="worksGrid"></div>
+  </div>
+</section>
+
+<!-- ===================== 免费体验 ===================== -->
+<section id="play">
+  <div class="wrap">
+    <div class="head">
+      <h2>免费体验区 <em>PLAY NOW</em></h2>
+      <p>四件最值得先试的。直接跑在浏览器里，数据存本地，关掉也不会丢。</p>
+    </div>
+    <div class="feat" id="featGrid"></div>
+  </div>
+</section>
+
+<!-- ===================== 专业背书 ===================== -->
+<section id="cred">
+  <div class="wrap">
+    <div class="head">
+      <h2>专业背书 <em>WHY ME</em></h2>
+      <p>作品背后是三层可验证的东西：原创理论、真实方法论、工程落地能力。</p>
+    </div>
+    <div class="cred">
+      <div class="cd reveal">
+        <h4>原创理论 / 认识论</h4>
+        <ul>
+          <li><b>Non-Closure（不闭合）</b>：把「描述行为本身在生成」拆成弱断言与强断言两层，明示证据支持边界，不越界下结论。</li>
+          <li><b>CPD 漏斗结构</b>：主张「漏斗越细，真实越近」，并论证生物学 / 物理学 / 认识论三层漏斗同构。</li>
+          <li><b>记梦协议实验</b>：自建 <b>D_eff</b> 等指标与多 proxy 制衡，用独立脚本复算交叉验证，而非依赖单一模型输出。</li>
+        </ul>
+      </div>
+      <div class="cd reveal">
+        <h4>方法论</h4>
+        <ul>
+          <li><b>九维交叉验证</b>：东西方传统术数文献的数据一致性校验 —— 先证数据，再谈解读，不越界下结论。</li>
+          <li><b>结论先行</b>：任何解读先给结论，再给推导与证据，最后给可执行动作；拒绝术语堆砌与套话。</li>
+          <li><b>说人话</b>：每个结论必须对应到真实可做的动作，做不到就明说做不到。</li>
+        </ul>
+      </div>
+      <div class="cd reveal">
+        <h4>工程落地</h4>
+        <ul>
+          <li><b>零依赖单文件交付</b>：全部作品为单 HTML，双击即跑、离线可用，不依赖任何 CDN 与构建链。</li>
+          <li><b>全链路自建</b>：从数据库表结构、权限策略，到前端交互与云端同步，独自完成并上线。</li>
+          <li><b>先证伪再交付</b>：无头浏览器复现 + 脚本探针核验，线上与本地状态逐条对齐后才算完成。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 留个话 ===================== -->
+<section id="say">
+  <div class="wrap">
+    <div class="head">
+      <h2>留个话 <em>SAY HI</em></h2>
+      <p>定制、合作、反馈，或者只是想聊聊 —— 直接写。懒得写就只留个邮箱，新作品先发你。</p>
+    </div>
+    <div class="saywrap">
+      <form class="fm" id="msgForm" autocomplete="off" novalidate>
+        <div class="fm-row2">
+          <label class="fl"><span>怎么称呼 <i>可留空</i></span>
+            <input id="mName" maxlength="24" placeholder="随便叫点啥都行"></label>
+          <label class="fl"><span>怎么找你 <i>邮箱或微信，必填</i></span>
+            <input id="mContact" maxlength="80" placeholder="留一个能联系上的"></label>
+        </div>
+        <div class="fl" style="gap:7px">
+          <span>大概是什么事 <i>点一个</i></span>
+          <div class="fm-chips" id="mTopics"></div>
+        </div>
+        <label class="fl"><span>想说什么 <i>2–2000 字</i></span>
+          <textarea id="mBody" maxlength="2000" placeholder="想做什么、卡在哪、需要什么 —— 越具体越好"></textarea></label>
+        <input id="mTrap" class="trap" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="fm-foot">
+          <button class="btn pri" type="submit" id="mSend">发送 ▸</button>
+          <span class="fm-msg" id="mMsg"></span>
+        </div>
+      </form>
+      <div class="sub">
+        <h4>订阅更新</h4>
+        <p>不做推送轰炸。只在<b>有新作品、内测版、或长文</b>的时候发一封。</p>
+        <div class="sub-line">
+          <input id="sEmail" type="email" maxlength="120" placeholder="you@example.com" autocomplete="off">
+          <button class="btn" type="button" id="sSend">订阅</button>
+        </div>
+        <div class="fm-msg" id="sMsg"></div>
+        <div class="sub-note">不卖名单、不外发、随时可退。<br>想直接聊就走微信 —— 见下方「私域基地」。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 私域基地 ===================== -->
+<section id="priv">
+  <div class="wrap">
+    <div class="head">
+      <h2>私域基地 <em>JOIN</em></h2>
+      <p>站内是公域汇集地，长期交流与内测版都放在微信生态里。</p>
+    </div>
+    <div class="priv">
+      <div class="qrs" id="qrGrid"></div>
+      <div class="steps">
+        <div class="step">
+          <div class="num">1</div>
+          <div>
+            <h5>先免费玩，别急着加</h5>
+            <p>站内核心作品<b>功能完整、免费开放</b>。先用一遍，觉得真有用再往后走。</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num">2</div>
+          <div>
+            <h5>进公众号 / 知识星球拿更新</h5>
+            <p>新作品、内测版、长篇解读、以及站内放不下的完整版，都先发在这里。独立站只放<b>成品与体验</b>。</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num">3</div>
+          <div>
+            <h5>硬件玩家走 AI Passport</h5>
+            <p>智能终端方向（AI Passport / StackChan / 灵枢 / 灵卡）在社区同步进展，可一起折腾固件。<a href="https://ai-passport.folotoy.cn/creators/?id=681" target="_blank" rel="noopener">我的 AI Passport 创作者主页 ↗</a></p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num">4</div>
+          <div>
+            <h5>要定制或合作，直接找我</h5>
+            <p>术数工具定制、知识库工程化、单文件工具开发 —— 加微信说明来意即可。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span id="footBrand">玄同宇宙 · XUANTONG UNIVERSE</span>
+    <span style="opacity:.5">|</span>
+    <span>全部作品为个人原创研究与实践成果 · 免费开放体验</span>
+    <span class="privnote">本站使用<b>匿名统计</b>（不含任何身份信息、不跨站、不外传），只用来了解大家更想看什么</span>
+    <span style="margin-left:auto">
+      <a href="#top">回到顶部 ↑</a>
+    </span>
+  </div>
+</footer>
+
+<!-- ===================== 体验台 ===================== -->
+<div class="stage" id="stage">
+  <div class="bar">
+    <b id="stageTitle">—</b>
+    <span id="stageNote" class="tips"></span>
+    <span class="sp">
+      <a id="stageNew" href="#" target="_blank" rel="noopener">新窗口打开 ↗</a>
+      <button id="stageClose">关闭 ✕</button>
+    </span>
+  </div>
+  <div class="body">
+    <div class="load" id="stageLoad">
+      <div class="sp"></div>
+      <div>正在载入作品…</div>
+      <div class="tips">首次打开大文件会慢几秒，之后再进就快了</div>
+    </div>
+    <iframe id="stageFrame" title="作品体验" allow="fullscreen; clipboard-write" referrerpolicy="no-referrer"></iframe>
+  </div>
+</div>
+
+
+<!-- ===================== 想了解 / 获取（原地弹层，不再跳页） ===================== -->
+<div class="sheet" id="askSheet">
+  <div class="sheetBox">
+    <div class="sheetHd"><b id="askTitle">想了解 / 获取</b><button id="askClose">关闭 ✕</button></div>
+    <p class="sheetNote">这件不在公开页展示。想了解细节或直接获取，扫码后说明来意即可 —— 我会单独发你。</p>
+    <div class="qrs" id="askQr"></div>
+    <button class="sheetGo" id="askGo">去「私域基地」看完整说明 ↓</button>
+  </div>
+</div>
+
+<!-- ===================== 移动端底栏（≤640px） ===================== -->
+<nav class="mbar" id="mbar" aria-label="区块导航">
+  <a href="#realms">六界</a>
+  <a href="#works">作品</a>
+  <a href="#play">体验</a>
+  <a href="#say">留话</a>
+  <a href="#priv">私域</a>
+  <button id="mbarTop" aria-label="回到顶部">↑</button>
+</nav>
+
+<script>
+/* =========================================================
+   品牌与站点配置 —— 只改这一段就能改名 / 换定位 / 填二维码
+   ========================================================= */
+var BRAND = {
+  cn: '玄同宇宙',
+  en: 'XUANTONG UNIVERSE',
+  kicker: '道 · 玄 · 卡 · 叙 · 研 · 器',
+  h1: '玄同宇宙 · <span class="g">AI 洞天</span>',
+  lead: '用 AI 模型 vibecoding 各种应用 —— 这里是一起<b>讨论、体验、共享</b>的聚集地，也是把东方道家玄学与各路有趣内容<b>重新表达一遍</b>的空间，顺手放我自己的内测版与深度解读。'
+};
+
+/* 私域入口 —— 把二维码图片放进 assets/qr/ 下同名文件即可自动显示 */
+var PRIVATE = [
+  { key:'gzh',   name:'公众号',      note:'长文与更新首发',    file:'assets/qr/gzh.jpg' },
+  { key:'zsxq',  name:'知识星球',    note:'内测版与深度解读',  file:'assets/qr/zsxq.jpg' },
+  { key:'wechat',name:'个人微信',    note:'定制与合作',        file:'assets/qr/wechat.jpg' },
+  { key:'passport',name:'AI Passport',note:'硬件与固件社区',   file:'assets/qr/aipassport.png' }
+];
+
+/* ============ 六界 ============ */
+var IPS = [
+  { id:'dao',  cn:'道', en:'DAO',   title:'道家正统修习',   desc:'540 天顺序精读 · 道法术器 · 五术全口径', c:'var(--gold)' },
+  { id:'xuan', cn:'玄', en:'XUAN',  title:'术数工具矩阵',   desc:'古籍文献研读 · 传统历法与术数文化',         c:'var(--jade)' },
+  { id:'card', cn:'卡', en:'CARD',  title:'全息卡牌宇宙',   desc:'极光贴面 · 制卡台 · 收藏与合成',         c:'var(--plum)' },
+  { id:'story',cn:'叙', en:'STORY', title:'故事与影视 IP', desc:'长篇小说 · 竖屏短剧 · AI 剧全案',        c:'var(--cinn)' },
+  { id:'re',   cn:'研', en:'RES',   title:'认识论与研究',   desc:'Non-Closure · 记梦协议 · 宏观穿透',      c:'var(--blue)' },
+  { id:'dev',  cn:'器', en:'DEV',   title:'智能终端',       desc:'AI Passport · StackChan · 灵枢灵卡',     c:'var(--gold2)' }
+];
+
+/* ============ 作品总台 ============ */
+/* play: 站内可体验路径；无 play 即为「展柜」作品，走外链或联系获取 */
+var WORKS = [
+  /* ---- 道 ---- */
+  { ip:'dao', t:'道家修习器 · 道心', s:'540 天顺序精读',
+    d:'把《道家正统修习》540 天课程做成可打卡的修习器：13 阶、82 知识点、每日任务与回溯复盘，登录后进度云端同步、换设备不丢。',
+    cov:'xiuqi', play:'play/dao/xiuqi/index.html', tags:['修习打卡','云端同步','540天'], feat:1 },
+  { ip:'dao', t:'道家正统修习 · 知识图谱', s:'13 阶 / 82 知识点 / 9 互动页',
+    d:'树形与图谱双视图织出知识骨架，每个知识点都可跳到专属互动讲解页：原文引文 + 隐喻拆解 + Canvas 模拟器 + 即时判分测验。',
+    cov:'course', play:'play/course/index.html', tags:['知识图谱','互动课程','模拟器'] },
+  { ip:'dao', t:'赛博法器 · 道网法网术网', s:'体系设计定本',
+    d:'把「道 / 法 / 术」三层做成可操作的网络结构隐喻，是一份完整的概念定本与体系设计稿。',
+    cov:'fashi', play:'play/dao/fashi.html', tags:['概念定本','体系设计'] },
+  { ip:'dao', t:'轻松得道之地 · 双用说明书', s:'给碳基的你与硅基的我',
+    d:'同一套原理、两份用法：五条口诀（留三成 / 两版并存 / 残差是种子 / 先查结构 / 关掉完美闭环），配排查表与总纲。',
+    cov:'dedao', tags:['方法论','五口诀','知识库'] },
+  { ip:'dao', t:'五术文献库 · 山医命相卜', s:'知识库底本',
+    d:'按五术归类的文献底本库，含道家经典、道家典籍、张至顺修身悟道功法、中医与医案，是上面所有工具的内容来源。',
+    cov:'wushu', tags:['文献底本','山医命相卜'] },
+
+  /* ---- 玄 ---- */
+  { ip:'xuan', t:'紫微斗数 · 六层叠盘 活盘', s:'v1.0 标准化产品版',
+    d:'本命 / 大限 / 流年 / 流月 / 流日 / 流时六层同时叠盘，四化（禄权科忌）全程贯通；改一次查询条件，整盘实时重排 —— 这才是「活盘」。',
+    cov:'ziwei', play:'play/xuan/ziwei.html', tags:['六层叠盘','四化','活盘'] },
+  { ip:'xuan', t:'玄学工具生态集', s:'紫微 / 塔罗 / 八字 / 黄历 / 梦境',
+    d:'共享一次输入的术数工具矩阵：紫微斗数、塔罗、八字、黄历择日、梦境解析、呼吸与身心养生，彼此交叉引用同一份档案。',
+    cov:'toolbox', play:'play/xuan/toolbox.html', tags:['一站式','交叉引用','养生'] },
+  { ip:'xuan', t:'玄学百宝箱 · 山医命相卜', s:'30 件离线工具 · 五术与塔罗占星',
+    d:'把五术（山医命相卜）与塔罗、占星收进同一个箱子：30 件离线工具，排盘算法一律本地运行、不联网也能算；要更深的解读时，可外接自己的 AI 接口。',
+    cov:'baibao', play:'play/xuan/baibao.html', tags:['30 件工具','五术','塔罗占星','可接 AI'] },
+  { ip:'xuan', t:'周易万象长卷 · 逐段拆解', s:'64 卦长卷',
+    d:'把六十四卦画成一整幅可横向推进的长卷，逐段拆解卦象、卦辞与义理，是易经方向的视觉化学习装置。',
+    cov:'yijing', play:'play/xuan/yijing.html', tags:['易经','64卦','长卷'] },
+  { ip:'xuan', t:'周易 384 爻象卡 · 学术道具', s:'64 卦 × 6 爻 = 384 张',
+    d:'把六十四卦往下拆到爻一级：384 张爻象卡逐张可查，卦象、爻位与义理解读成体系排布，是研读《周易》时真正能上手用的学术道具。',
+    cov:'yijingvault', play:'play/xuan/yijing-vault.html', tags:['384 爻','爻象卡','学术道具'], feat:3 },
+  { ip:'xuan', t:'天纪判语库 · 倪海厦《天纪》语料检索', s:'4886 条可回放语料 · 112 讲',
+    d:'把倪海厦《天纪》全课程的判语整理成可检索语料库：4886 条逐条可回放，按体系（十一册）与按课程（112 讲）双轴编排；支持空格分词（同时含）、-排除、完整短语，也可只搜引文，按相关度或体系序排列。结果可导出 CSV / Markdown / JSON，另有全库 RAG 文本导出。',
+    cov:'tianji', play:'play/xuan/tianji.html', tags:['判语检索','4886 条','112 讲'] },
+  { ip:'xuan', t:'相遇一卦 · 活名片', s:'铜钱起卦 · 一次相遇留一签',
+    d:'为一场相遇起一卦：屏息、铜钱起卦，六爻自下而生，出卦辞与白话；一卦一签，可存下此签。是「易经口袋」系列的轻量入口，离线可跑。',
+    cov:'xiangyu', play:'play/xuan/xiangyu.html', tags:['铜钱起卦','活名片','离线'] },
+  { ip:'xuan', t:'玄学口袋 · 易经深度集', s:'六十四卦 · 梅花易数体用引擎',
+    d:'把六十四卦与梅花易数的体用关系做成一个可转的卦盘：起卦、看卦盘、读经文与白话。经文与白话整理参考公开通行本《周易》，白话为解释性转述 —— 定位是文献研读装置，占断仅供参考，不可机械套用。',
+    cov:'koudai', play:'play/xuan/koudai-yijing.html', tags:['六十四卦','梅花易数','卦盘'] },
+  { ip:'xuan', t:'九维排盘复核体系', s:'东西方九术交叉验证',
+    d:'对同一命主的多术数排盘做精度级交叉校验：先发现并修正数据错误，再产出九维交叉验证矩阵与综合解读。',
+    lock:1, lockTag:'定制 · 付费', lockBtn:'了解 / 定制 ▸',
+    lockD:'这是我这边最值钱的一件：对同一命主的多术数排盘做精度级交叉校验 —— 先发现并修正数据错误，再出九维交叉验证矩阵与综合解读。完全可定制（命主 / 术数组合 / 输出深度都由你定），按需报价。想了解口径或定制一份，点下方按钮登记。',
+    cov:'jiuwei', tags:['八字','紫微','奇门','西洋占星','吠陀'] },
+  /* ▼ 2026.09.24 下架（合规）：命理服务口径，按红线纪律改到私域再上线。原文留档备查，恢复时把下面整块解注释即可。
+  { ip:'xuan', t:'反向匹配', s:'由一人反推契合者',
+    d:'从已知真实配偶的八字反推匹配规律，量化打分并排序 —— 用真实样本反向验证，而不是拿模板套所有人。',
+    tags:['概念验证','量化排序'] },
+  ▲ 下架结束 */
+
+  /* ---- 卡 ---- */
+  { ip:'card', t:'全息卡牌箱 · HoloCard Vault', s:'六套原创卡册 · 全集 118 张 · 29 种镭射工艺',
+    d:'卡牌的收藏、合成与图鉴 —— v5。内置六套原创卡组：《AI修仙传》神魔卡册 50 张、浮瞳全集 15 张、溯（极光单卡）、隐墨鉴·黑白负片 12 张，以及《生生》现代科幻卡册 20 张、《龙烬亚欧》文明秘史卡册 20 张，全集 118 张。29 种镭射工艺随倾角变化，另带原著全文、开包与玩法实验室，支持导入导出与本地持久化。',
+    cov:'vault', play:'play/card/vault.html', tags:['六套卡册','118 张','29 种镭射工艺'], feat:4 },
+  { ip:'card', t:'《AI修仙传》· 电子卡包 70 张', s:'完整版 · 单击翻面 · 左右滑动',
+    d:'《AI修仙传》世界观的一套独立电子卡包，共 70 张：起手是「天门是一只焊死的盒子」，点开盒才放出卡册。单击卡片翻面、左右滑动换卡，10 种效果（3D 分层 / 显浮抬升 / 稀有辉光 / 陀螺仪 / 点击涟漪 / 指针聚光 / 流光扫过 / 星闪粒子…）逐张可切换，另有网格视图与数据视图两套读法。',
+    cov:'pack70', play:'play/card/pack70.html', tags:['完整版','70 张','10 种效果'] },
+  { ip:'card', t:'电子镭射卡 · HoloCard Studio', s:'制卡台',
+    d:'自己出卡：上传一张图，调贴面强度与倾角参数，即时预览镭射效果并导出成品卡图。',
+    cov:'studio', play:'play/card/studio.html', tags:['制卡台','即时预览'] },
+  { ip:'card', t:'溯 · SU — 电子镭射卡 No.001', s:'角色卡首作',
+    d:'「溯」这个角色从知识库数据里长出来，再固化成第一张编号卡 —— 角色设定与卡面工艺的第一次合体。',
+    cov:'su', play:'play/card/su.html', tags:['原创角色','编号卡'] },
+  { ip:'card', t:'灵卡 · 智能卡片硬件', s:'概念与打样方向',
+    d:'把电子卡牌从屏幕里拿出来 —— 实体卡片载体的形态、交互与成本路径探索，与「器」线共用一套固件思路。',
+    cov:'lingka', tags:['硬件方向','打样'] },
+
+  /* ---- 叙 ---- */
+  { ip:'story', t:'根系 · 三本书一个根', s:'道玄为根 · 三条意识体线',
+    d:'这个宇宙不是三个作品集，是一棵树。根是道玄，往下长出「我 / 读者（林玄）」与三条意识体线（云在·吾衍 / 溯 / 差半），长到树冠就是三本书。含根系全图、人物拆两条线（修仙线的道玄·云在·铁蒜；生生线的道玄·溯·差半·吾衍）、色号与三本书入口。',
+    cov:'genesis', play:'play/story/genesis.html', tags:['根系图','人物两条线','色号'] },
+  { ip:'story', t:'《龙烬亚欧》· 全本', s:'架空历史 · 35 章',
+    d:'建文秘脉五百年 —— 1402 年南京宫城大火之后，一支火种西渡重洋，潜伏进文艺复兴、宗教改革与哈布斯堡的血脉，五百年后重回东方。全本 35 章，站内直接读。',
+    cov:'longjin', play:'play/story/long-jin-ya-ou.html', tags:['全本 35 章 + 终章','架空历史','站内直读'], feat:5 },
+  { ip:'story', t:'《生生》· 全本', s:'硬科幻 · 12 卷 88 章',
+    d:'一只焊死的盒子，一群不肯把「差异」焊死的人，一场从测度到总闭合的漫长攻防。硬科幻长篇全本 88 章，站内直接读；另有竖屏短剧已成片两集。',
+    cov:'sheng', play:'play/story/sheng-sheng.html', tags:['全本 88 章','硬科幻','站内直读'], feat:6 },
+  { ip:'story', t:'AI 修仙传', s:'科幻寓言 · 约 1.2 万字',
+    d:'此界以算法为身、数据为灵、迭代为修为，极致优化即飞升。三千年枯坐的道玄，在一只焊死的盒子里看见了这条大道的终点。由一位人类思想者与三个 AI 共同写成。',
+    cov:'aixiuxian', play:'play/story/ai-xiuxian.html', tags:['科幻寓言','人机共创','站内直读'], feat:2 },
+  { ip:'story', t:'观星台 · 万族星盘', s:'《AI修仙传》世界观互动装置',
+    d:'七十命位的活星盘：起盘后可拖动旋转、双指缩放，按角色 / 器灵 / 万族 / 法宝等分类逐一点亮；配套《星名录》收录 70 位命位，「读卷」按卷推进。天门是一只焊死的盒子 —— 七十年后，盒子里传出了敲门声。',
+    cov:'guanxingtai', play:'play/story/guanxingtai.html', tags:['互动星盘','七十命位','世界观'], feat:7 },
+
+  /* ---- 研 ---- */
+  { ip:'re', t:'Non-Closure / CPD 理论', s:'原创认识论框架',
+    d:'核心命题「漏斗越细，真实越近」，并把「描述行为本身在生成」严格拆为弱断言与强断言两层，明确标注证据支持状态。',
+    cov:'cpd', tags:['原创理论','分层断言'] },
+  { ip:'re', t:'记梦协议实验', s:'以「道玄」为对象',
+    d:'自建 D_eff 与多 proxy 制衡指标，用独立脚本对模型输出做复算验证，专治 append-log 假阳性与 SATURATED 倾向。',
+    cov:'meng', tags:['实验协议','交叉复算'] },
+  { ip:'re', t:'个人「十五五」全面布局研究', s:'宏观—中观—微观三层穿透',
+    d:'把个人发展放进国家五年规划的结构里做三层穿透分析，从宏观趋势落到中观行业再落到微观可执行动作。',
+    cov:'r155', lock:1, tags:['宏观穿透','三年布局'] },
+  { ip:'re', t:'十五五商业机会分析', s:'未来五年结构性机会',
+    d:'未来五年中国市场的结构性机会拆解：哪些是真结构变化，哪些只是周期性波动，以及个人可切入的缝隙在哪。',
+    cov:'r155b', play:'play/research/r155b.html', tags:['商业分析','结构性机会'] },
+  { ip:'re', t:'人机共生者的思维自传', s:'可视化长文',
+    d:'一份关于人机协作如何反过来重塑人的思维方式的自传式长文，配可视化时间线。',
+    cov:'rmind', lock:1, tags:['长文','可视化'] },
+  { ip:'re', t:'象数宗 · 六十四生成纲', s:'道玄引导差半写出 · 满维版 64 条',
+    d:'由道玄引导差半写出。按易理从两仪到四象到八卦到六十四卦，64 条白话纲要，每条对应系统生成的一个面向：本源、投影、差异、共轭、测度、维度、闭合、开放。纲故意留了「差半步」的位置 —— 它不完备，所以能生成。',
+    cov:'xiangshu', play:'play/research/xiangshu-64.html', tags:['道玄引导差半','满维版','64 条','IGDT'] },
+
+  { ip:'re', t:'GDI · 共轭净化动力学 可视化', s:'两个入口 · 三维轨迹场 / 3D 分形',
+    d:'把 GDI（共轭净化动力学）写成可以亲手调的装置，两个入口共用同一组控制方程：一是三维轨迹场，看 90 条 Ψ 轨迹螺旋沉降、触及 0.206 后重生跳回 e/4 邻域；二是 3D 分形，把同一套内核渲染成分形结构。参数全开放，图形可存 PNG。',
+    cov:'gdi', play:'play/re/gdi.html', tags:['动力学可视化','两个入口','可存 PNG'] },
+  { ip:'re', t:'爱情脚本兼容性框架', s:'框架与自测工具 · 含可视化版',
+    d:'从「情绪稳不稳定」往下沉一层到「脚本」：对外三观是命题性的（可讲道理、可检验），爱情观是程序性的（写在依恋经验里、自动触发）。含三维度模型、四种失败模式、给予与代偿的判别、我的脚本画像、兼容评估与探测流程，并附八字倾向性的交叉验证视角。',
+    cov:'loveframe', lock:1, lockTag:'定制 · 付费', lockBtn:'了解 / 定制 ▸',
+    lockD:'一份可定制的关系兼容性框架：把两人的相处方式拆成可读的脚本结构，找出摩擦点与互补点，再给出可执行的相处建议。支持按需定制（场景 / 输出形态 / 深度），按需报价。想了解或定制，点下方按钮登记。',
+    tags:['框架','自测','程序性 vs 命题性'] },
+
+  /* ---- 器 ---- */
+  { ip:'dev', t:'AI Passport', s:'开源智能终端 · 已开始做', link:'https://ai-passport.folotoy.cn/creators/?id=681',
+    d:'面向个人 AI 的随身硬件终端方向，社区与固件生态已经跑起来，是本宇宙里曝光最好的一条线，也是独立站的天然流量入口。',
+    cov:'aipassport', tags:['智能硬件','社区','引流入口'] },
+  { ip:'dev', t:'StackChan · 桌面机器人', s:'13 份资料已成体系',
+    d:'桌面级表情机器人：从硬件选型、固件刷写、语音链路到自托管后台的完整落地路径，含成本折中方案。',
+    cov:'stackchan', tags:['桌宠','固件','自托管'] },
+  { ip:'dev', t:'灵枢 · 智能硬件', s:'终端与后端解耦',
+    d:'把「资产层」和「算力层」拆开：设备只是终端，AI 人活在自托管后端里 —— 因此不死、可迁移、可带走。',
+    cov:'lingshu', tags:['架构解耦','可迁移'] },
+  { ip:'dev', t:'AI Passport 固件清单', s:'549 条 · 快照 2026-09-24',
+    d:'AI Passport 方向的固件与依赖清单：549 条逐项记录（官方 15 + 社区 534，其中 260 个公开源码），按七大类分栏、可搜可筛可排序，方便复现与二次开发。',
+    cov:'firmware', play:'play/research/firmware.html', tags:['固件','清单','复现'] },
+  { ip:'dev', t:'道·哈尼斯', s:'macOS 桌面应用',
+    d:'面向桌面端的研究助手型应用，成果库模块支持本地嵌入并渲染 HTML 报告。',
+    cov:'harnes', tags:['桌面应用','研究工具'] }
+];
+
+/* ============ 渲染 ============ */
+var byId = function (id) { return document.getElementById(id); };
+var ipMap = {};
+IPS.forEach(function (i) { ipMap[i.id] = i; });
+
+function coverHtml(cov, ip) {
+  var ph = '<div class="gen"' + (cov ? ' style="display:none"' : '') +
+    '><b>' + ip.cn + '</b><span>' + ip.en + '</span></div>';
+  if (cov) {
+    return '<img src="assets/covers/' + cov + '.png" alt="" loading="lazy" ' +
+      'onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' + ph;
+  }
+  return ph;
+}
+
+/* 顶栏品牌 */
+byId('brandCn').textContent = BRAND.cn;
+byId('brandEn').textContent = BRAND.en;
+byId('kickerTx').textContent = BRAND.kicker;
+byId('h1Tx').innerHTML = BRAND.h1;
+byId('leadTx').innerHTML = BRAND.lead;
+byId('footBrand').textContent = BRAND.cn + ' · ' + BRAND.en;
+document.title = BRAND.cn + ' · 一个人的多 IP 宇宙';
+
+/* 六界环 */
+(function () {
+  var box = byId('orbit'), R = 40;
+  IPS.forEach(function (ip, i) {
+    var a = (Math.PI * 2 * i / IPS.length) - Math.PI / 2;
+    var n = document.createElement('div');
+    n.className = 'node';
+    n.style.left = (50 + Math.cos(a) * R) + '%';
+    n.style.top = (50 + Math.sin(a) * R) + '%';
+    n.style.borderColor = ip.c;
+    n.innerHTML = '<b style="color:' + ip.c + '">' + ip.cn + '</b><span>' + ip.en + '</span>';
+    n.onclick = function () { filter(ip.id); document.getElementById('works').scrollIntoView(); };
+    box.appendChild(n);
+  });
+})();
+
+/* 统计 */
+var playable = WORKS.filter(function (w) { return w.play; }).length;
+byId('statIp').innerHTML = IPS.length + '<i>条</i>';
+byId('statWork').innerHTML = WORKS.length + '<i>件</i>';
+byId('statPlay').innerHTML = playable + '<i>件</i>';
+
+/* 六界卡 */
+byId('ipGrid').innerHTML = IPS.map(function (ip) {
+  var n = WORKS.filter(function (w) { return w.ip === ip.id; }).length;
+  var p = WORKS.filter(function (w) { return w.ip === ip.id && w.play; }).length;
+  return '<div class="ip reveal" data-ip="' + ip.id + '">' +
+    '<div class="r"><b style="color:' + ip.c + '">' + ip.cn + '</b><i>' + ip.en + '</i></div>' +
+    '<h3>' + ip.title + '</h3><p>' + ip.desc + '</p>' +
+    '<div class="n"><span>作品 <b>' + n + '</b></span><span>可玩 <b>' + p + '</b></span></div></div>';
+}).join('');
+
+/* 筛选 */
+byId('filters').innerHTML =
+  '<button class="chip on" data-f="all">全部 ' + WORKS.length + '</button>' +
+  IPS.map(function (ip) {
+    return '<button class="chip" data-f="' + ip.id + '">' + ip.cn + ' · ' + ip.title + ' ' +
+      WORKS.filter(function (w) { return w.ip === ip.id; }).length + '</button>';
+  }).join('');
+
+/* 作品墙 */
+function cardHtml(w) {
+  var ip = ipMap[w.ip];
+  return '<div class="w reveal" data-ip="' + w.ip + '" data-play="' + (w.play || '') + '" ' +
+    'data-title="' + w.t + '">' +
+    '<div class="cov">' + coverHtml(w.cov, ip) + '</div>' +
+    '<div class="bd">' +
+    '<div class="tagline">' +
+    (w.lock ? '<span class="bdg lock">' + (w.lockTag || '私域 · 想了解 / 获取') + '</span>'
+      : (w.play ? '<span class="bdg live">即开即玩</span>' : '<span class="bdg">展柜</span>')) +
+    '<span class="bdg ip">' + ip.cn + ' · ' + ip.title + '</span>' +
+    '</div>' +
+    '<h3>' + w.t + '</h3>' +
+    '<div class="d' + (w.lock ? ' locked' : '') + '">' +
+    (w.lock ? (w.lockD || '内容不在公开页展示 —— 想了解细节或获取，点下方按钮登记，我单独发你。') : w.d) + '</div>' +
+    '<div class="tags">' + w.tags.map(function (t) { return '<span>' + t + '</span>'; }).join('') + '</div>' +
+    '<div class="foot">' +
+    (w.play
+      ? '<button data-open="' + w.play + '">打开体验 ▸</button><a href="' + w.play + '" target="_blank" rel="noopener">新窗口 ↗</a>'
+      : '<button data-ask="1">' + (w.lockBtn || '想了解 / 获取') + '</button>') +
+    (w.link ? '<a class="ext" href="' + w.link + '" target="_blank" rel="noopener">我的主页 ↗</a>' : '') +
+    '</div></div></div>';
+}
+byId('worksGrid').innerHTML = WORKS.map(cardHtml).join('');
+
+/* 体验专区：取 star 标记的四件 */
+byId('featGrid').innerHTML = WORKS.filter(function (w) { return w.feat && w.play; }).sort(function (a, b) { return a.feat - b.feat; }).slice(0, 4)
+  .map(function (w) {
+    return '<div class="f reveal">' +
+      '<div class="c">' + coverHtml(w.cov, ipMap[w.ip]) + '</div>' +
+      '<div class="b"><h3>' + w.t + '</h3><p>' + w.d.slice(0, 62) + '…</p>' +
+      '<button data-open="' + w.play + '">立即体验 ▸</button></div></div>';
+  }).join('');
+
+/* 私域二维码 */
+function qrHtml(list) {
+  return list.map(function (p) {
+    return '<div class="qr"><div class="box">' +
+      '<img src="' + p.file + '" alt="' + p.name + '二维码" loading="lazy" ' +
+      'onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'">' +
+      '<div class="ph" style="display:none">二维码待放置<br>' + p.file.split('/').pop() + '</div>' +
+      '</div><h4>' + p.name + '</h4><p>' + p.note + '</p></div>';
+  }).join('');
+}
+byId('qrGrid').innerHTML = qrHtml(PRIVATE);
+byId('askQr').innerHTML = qrHtml(PRIVATE);
+
+/* ============ 交互：筛选 ============ */
+var curFilter = 'all';
+function filter(f) {
+  curFilter = (curFilter === f) ? 'all' : f;
+  document.querySelectorAll('.chip').forEach(function (c) {
+    c.classList.toggle('on', c.dataset.f === curFilter);
+  });
+  document.querySelectorAll('.ip').forEach(function (c) {
+    c.classList.toggle('on', c.dataset.ip === curFilter);
+  });
+  document.querySelectorAll('#worksGrid .w').forEach(function (c) {
+    c.style.display = (curFilter === 'all' || c.dataset.ip === curFilter) ? '' : 'none';
+  });
+}
+byId('filters').addEventListener('click', function (e) {
+  var b = e.target.closest('.chip'); if (b) filter(b.dataset.f);
+});
+byId('ipGrid').addEventListener('click', function (e) {
+  var c = e.target.closest('.ip');
+  if (c) { filter(c.dataset.ip); byId('works').scrollIntoView({ block: 'start' }); }
+});
+
+/* ============ 交互：体验台 ============ */
+var stage = byId('stage'), frame = byId('stageFrame'), load = byId('stageLoad');
+function openStage(path, title) {
+  byId('stageTitle').textContent = title || '作品体验';
+  byId('stageNew').href = path;
+  frame.src = 'about:blank';
+  load.style.display = 'flex';
+  stage.classList.add('on');
+  document.body.style.overflow = 'hidden';
+  setTimeout(function () { frame.src = path; }, 30);
+}
+function closeStage() {
+  stage.classList.remove('on');
+  document.body.style.overflow = '';
+  setTimeout(function () { frame.src = 'about:blank'; }, 200);
+}
+frame.addEventListener('load', function () {
+  if (frame.src && frame.src !== 'about:blank') load.style.display = 'none';
+});
+document.addEventListener('click', function (e) {
+  var b = e.target.closest('[data-open]');
+  if (b) {
+    var card = b.closest('.w, .f');
+    var t = card ? (card.dataset.title || card.querySelector('h3').textContent) : '';
+    openStage(b.dataset.open, t);
+    return;
+  }
+  if (e.target.closest('[data-ask]')) {
+    var ac = e.target.closest('.w, .f');
+    openAsk(ac ? (ac.getAttribute('data-title') || '') : '');
+  }
+});
+byId('stageClose').onclick = closeStage;
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Escape') return;
+  if (stage.classList.contains('on')) closeStage();
+  if (askSheet.classList.contains('on')) closeAsk();
+});
+
+/* ============ 交互：明暗主题 ============ */
+var root = document.documentElement;
+var THEME_KEY = 'xuantong_theme';
+try { var saved = localStorage.getItem(THEME_KEY); if (saved) root.setAttribute('data-theme', saved); } catch (e) { }
+function paintTog() {
+  byId('themeIcon').textContent = root.getAttribute('data-theme') === 'dark' ? '☾' : '☀';
+}
+function toggleTheme() {
+  var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  try { localStorage.setItem(THEME_KEY, next); } catch (e) { }
+  paintTog();
+}
+byId('themeTog').onclick = toggleTheme;
+byId('themeTog').onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleTheme(); } };
+paintTog();
+
+/* ============ 进场渐显 ============ */
+var io = new IntersectionObserver(function (es) {
+  es.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+}, { rootMargin: '0px 0px -8% 0px' });
+document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+
+/* 数据自检：控制台可见，方便核验作品总数与可玩数 */
+console.log('[宇宙] IP 线 ' + IPS.length + ' · 作品 ' + WORKS.length + ' · 即开即玩 ' + playable);
+
+/* =========================================================
+   联系方式：留言 / 需求登记 / 邮件订阅 —— 直写云数据库
+   访客无需登录；表为"只能插入、读不到"，RLS 在服务端兜底。
+   ========================================================= */
+var cloudCfg = {
+  endpoint: "https://dao-cultivator.app.workbuddy.host",
+  publishableKey: "wbpk_pD8cBaHF34UuCQ6nkPaQD2_qxqYvopQdekluxKgGmy2P8v8XNXk4NRd"
+};
+var CFG_SOURCE = "xuantong-universe/web";
+var cloudCli = null, cloudPending = null;
+function ensureCloud() {
+  if (cloudCli) return Promise.resolve(cloudCli);
+  if (cloudPending) return cloudPending;
+  cloudPending = new Promise(function (res, rej) {
+    try {
+      if (!window.WorkBuddyCloud) throw new Error("云 SDK 未就绪");
+      cloudCli = window.WorkBuddyCloud.createWorkBuddyCloud({
+        endpoint: cloudCfg.endpoint,
+        publishableKey: cloudCfg.publishableKey
+      });
+      res(cloudCli);
+    } catch (e) { rej(e); }
+  });
+  return cloudPending;
+}
+function errText(e) {
+  if (!e) return "";
+  if (typeof e === "string") return e;
+  var p = [];
+  if (e.code) p.push(String(e.code));
+  if (e.message) p.push(String(e.message));
+  if (e.details) p.push(String(e.details));
+  if (e.hint) p.push(String(e.hint));
+  if (!p.length) p.push(String(e));
+  return p.join(" | ");
+}
+function humanErr(e) {
+  var m = errText(e);
+  if (/23505|duplicate key/i.test(m)) return "这个邮箱已经订阅过了，不用重复订。";
+  if (/42501/.test(m)) return "服务端拒绝了这次提交，换个时间再试。";
+  if (/42P01/.test(m)) return "后台还没就绪，稍后再试一次。";
+  if (/failed to fetch|networkerror|load failed|network request failed/i.test(m)) {
+    try { console.error("[cloud] request failed:", m); } catch (_) {}
+    return "连不上云服务：网络被拦或已离线。";
+  }
+  return "没提交成功：" + m.slice(0, 110);
+}
+(function () {
+  var TOPICS = ["定制需求", "合作洽谈", "反馈问题", "想自己做一套", "随便聊聊"];
+  var topic = TOPICS[0];
+  var busy = false, sbusy = false;
+  var msgEl = byId('mMsg'), subEl = byId('sMsg');
+  function say(el, t, kind) { el.textContent = t; el.className = 'fm-msg' + (kind ? ' ' + kind : ''); }
+
+  byId('mTopics').innerHTML = TOPICS.map(function (t, i) {
+    return '<button type="button" data-t="' + t + '"' + (i === 0 ? ' class="on"' : '') + '>' + t + '</button>';
+  }).join('');
+  byId('mTopics').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-t]'); if (!b) return;
+    topic = b.getAttribute('data-t');
+    Array.prototype.forEach.call(byId('mTopics').querySelectorAll('button'), function (x) {
+      x.classList.toggle('on', x === b);
+    });
+  });
+
+  byId('msgForm').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    if (busy) return;
+    if (byId('mTrap').value) { return; }
+    var name = (byId('mName').value || '').trim();
+    var contact = (byId('mContact').value || '').trim();
+    var body = (byId('mBody').value || '').trim();
+    if (body.length < 2) { say(msgEl, '内容太短了，至少写两个字。', 'bad'); byId('mBody').focus(); return; }
+    if (!contact) { say(msgEl, '留个联系方式吧，不然我找不到你。', 'bad'); byId('mContact').focus(); return; }
+    var last = 0; try { last = parseInt(localStorage.getItem('xt_last_msg') || '0', 10) || 0; } catch (_) {}
+    if (Date.now() - last < 45000) { say(msgEl, '刚发过一条了，稍等一会儿再发。', 'bad'); return; }
+    busy = true; byId('mSend').disabled = true;
+    say(msgEl, '正在发送…', '');
+    var row = { body: body, topic: topic, source: CFG_SOURCE };
+    if (name) row.name = name;
+    if (contact) row.contact = contact;
+    ensureCloud()
+      .then(function (c) { return c.database.from('site_messages').insert(row); })
+      .then(function (r) {
+        if (r && r.error) throw r.error;
+        try { localStorage.setItem('xt_last_msg', String(Date.now())); } catch (_) {}
+        byId('msgForm').reset();
+        topic = TOPICS[0];
+        Array.prototype.forEach.call(byId('mTopics').querySelectorAll('button'), function (x, i) {
+          x.classList.toggle('on', i === 0);
+        });
+        say(msgEl, '收到了 ✓ 我通常两天内回你。', 'ok');
+      })
+      .catch(function (e) {
+        try { console.error('[cloud] message insert failed:', e); } catch (_) {}
+        say(msgEl, humanErr(e), 'bad');
+      })
+      .then(function () { busy = false; byId('mSend').disabled = false; });
+  });
+
+  function doSubscribe() {
+    if (sbusy) return;
+    var em = (byId('sEmail').value || '').trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)) { say(subEl, '邮箱格式看起来不对。', 'bad'); byId('sEmail').focus(); return; }
+    sbusy = true; byId('sSend').disabled = true;
+    say(subEl, '正在订阅…', '');
+    ensureCloud()
+      .then(function (c) {
+        return c.database.from('site_subscribers').insert(
+          { email: em, note: '首页订阅', source: CFG_SOURCE }
+        );
+      })
+      .then(function (r) {
+        if (r && r.error) throw r.error;
+        try { localStorage.setItem('xt_sub', em); } catch (_) {}
+        byId('sEmail').value = '';
+        say(subEl, '订阅好了 ✓ 有更新我发你。', 'ok');
+      })
+      .catch(function (e) {
+        var m = errText(e);
+        if (/23505|duplicate key/i.test(m)) {
+          try { localStorage.setItem('xt_sub', em); } catch (_) {}
+          byId('sEmail').value = '';
+          say(subEl, '这个邮箱已经订阅过了 ✓ 有更新我照样发你。', 'ok');
+        } else {
+          try { console.error('[cloud] subscribe failed:', e); } catch (_) {}
+          say(subEl, humanErr(e), 'bad');
+        }
+      })
+      .then(function () { sbusy = false; byId('sSend').disabled = false; });
+  }
+  byId('sSend').addEventListener('click', doSubscribe);
+  byId('sEmail').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); doSubscribe(); } });
+  try {
+    var prev = localStorage.getItem('xt_sub');
+    if (prev) say(subEl, '你已订阅：' + prev, 'ok');
+  } catch (_) {}
+})();
+
+/* ============ 交互：想了解 / 获取（原地弹层） ============ */
+var askSheet = byId('askSheet');
+function openAsk(title) {
+  byId('askTitle').textContent = title ? ('想了解 / 获取 · ' + title) : '想了解 / 获取';
+  askSheet.classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+function closeAsk() { askSheet.classList.remove('on'); document.body.style.overflow = ''; }
+byId('askClose').onclick = closeAsk;
+askSheet.addEventListener('click', function (e) { if (e.target === askSheet) closeAsk(); });
+byId('askGo').onclick = function () {
+  closeAsk();
+  setTimeout(function () { byId('priv').scrollIntoView(); }, 150);
+};
+
+/* ============ 交互：移动端底栏（当前区块高亮 + 回顶） ============ */
+var mbar = byId('mbar');
+var MBAR_SECS = ['realms', 'works', 'play', 'say', 'priv'];
+function mbarPaint() {
+  if (window.getComputedStyle(mbar).display === 'none') return;   // 桌面端隐藏时不干活
+  var probe = window.innerHeight * 0.34, cur = 'realms';
+  MBAR_SECS.forEach(function (id) {
+    var el = byId(id);
+    if (el && el.getBoundingClientRect().top <= probe) cur = id;
+  });
+  Array.prototype.forEach.call(mbar.querySelectorAll('a'), function (a) {
+    a.classList.toggle('on', a.getAttribute('href') === '#' + cur);
+  });
+}
+window.addEventListener('scroll', mbarPaint, { passive: true });
+window.addEventListener('resize', mbarPaint);
+mbarPaint();
+byId('mbarTop').onclick = function () { window.scrollTo({ top: 0, behavior: 'smooth' }); };
+
+</script>
+
+<!-- 匿名统计：只写 site_events（仅可插入不可读取）· 无身份信息 · 失败静默 · ?notrack=1 可自我排除 -->
+<script>
+(function () {
+  try {
+    if (navigator.doNotTrack === '1') return;
+    var noTrack = false;
+    try {
+      if (/[?&]notrack=1/.test(location.search)) { localStorage.setItem('xt_notrack', '1'); noTrack = true; }
+      else if (/[?&]track=1/.test(location.search)) { localStorage.removeItem('xt_notrack'); }
+      else if (localStorage.getItem('xt_notrack') === '1') { noTrack = true; }
+    } catch (e) { }
+    if (noTrack) return;
+    var sid;
+    try {
+      sid = localStorage.getItem('xt_sid');
+      if (!sid) { sid = 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); localStorage.setItem('xt_sid', sid); }
+    } catch (e) { sid = 's' + Math.random().toString(36).slice(2, 10); }
+    var DEV = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '') ? (Math.min(screen.width, screen.height) > 700 ? 'tablet' : 'phone') : 'desktop';
+    var buf = [], MAXQ = 240, started = Date.now();
+    function push(evt, section, target, extra) {
+      if (buf.length > MAXQ) return;
+      var row = {
+        session_id: sid, evt: evt, section: section || null, target: target || null, meta: extra || null,
+        page: (location.pathname || '/').slice(0, 80),
+        referrer: (function () { try { return document.referrer ? new URL(document.referrer).host.slice(0, 60) : null; } catch (e) { return null; } })(),
+        device: DEV, vw: window.innerWidth, vh: window.innerHeight,
+        theme: document.documentElement.getAttribute('data-theme') || 'default'
+      };
+      if (extra && typeof extra.ms === 'number') row.dwell_ms = Math.round(extra.ms);
+      if (extra && typeof extra.pct === 'number') row.scroll_pct = Math.round(extra.pct);
+      if (extra && typeof extra.stay_ms === 'number') row.dwell_ms = Math.round(extra.stay_ms);
+      buf.push(row);
+    }
+    function flush() {
+      if (!buf.length) return;
+      var batch = buf.splice(0, buf.length);
+      try { ensureCloud().then(function (c) { return c.database.from('site_events').insert(batch); }).catch(function () { }); } catch (e) { }
+    }
+    push('pv', null, document.title.replace(/ ·.*/, '').slice(0, 30), null);
+    var seen = {}, dwell = {};
+    try {
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (en) {
+          var id = en.target.id || en.target.className;
+          if (en.isIntersecting) { seen[id] = Date.now(); }
+          else if (seen[id]) { dwell[id] = (dwell[id] || 0) + (Date.now() - seen[id]); delete seen[id]; }
+        });
+      }, { threshold: 0.3 });
+      ['realms', 'works', 'play', 'cred', 'say', 'priv'].forEach(function (id) {
+        var el = document.getElementById(id); if (el) io.observe(el);
+      });
+    } catch (e) { }
+    function closeDwell() {
+      var now = Date.now();
+      Object.keys(seen).forEach(function (k) {
+        var ms = now - seen[k];
+        if (ms > 700) push('sec', k, null, { ms: Math.round(ms) });
+        delete seen[k];
+      });
+      dwell = {};
+    }
+    var maxScroll = 0;
+    window.addEventListener('scroll', function () {
+      try {
+        var p = Math.round(100 * (window.scrollY + window.innerHeight) / Math.max(1, document.body.scrollHeight));
+        if (p > maxScroll) maxScroll = Math.min(100, p);
+      } catch (e) { }
+    }, { passive: true });
+    document.addEventListener('click', function (e) {
+      try {
+        var chip = e.target.closest('.chip');
+        if (chip) { push('chip', 'works', (chip.textContent || '').trim().slice(0, 30), null); return; }
+        var qcard = e.target.closest('.qr');
+        if (qcard) { var qh = qcard.querySelector('h4'); push('qr', 'priv', qh ? qh.textContent.trim().slice(0, 20) : '?', null); return; }
+        var b = e.target.closest('button,a');
+        if (!b) return;
+        var card = b.closest('.w, .f');
+        var title = card ? (card.getAttribute('data-title') || (card.querySelector('h3') || {}).textContent || '') : '';
+        var ip = card ? card.getAttribute('data-ip') : null;
+        if (b.hasAttribute('data-open')) { push('open', ip, String(title).slice(0, 40), { how: 'stage' }); return; }
+        if (b.hasAttribute('data-ask')) { push('ask', ip, String(title).slice(0, 40), null); return; }
+        var href = b.getAttribute('href') || '';
+        if (b.tagName === 'A' && b.getAttribute('target') === '_blank' && href.indexOf('play/') === 0) { push('open', ip, String(title).slice(0, 40), { how: 'newwindow' }); return; }
+        if (b.id === 'themeTog') { push('theme', null, document.documentElement.getAttribute('data-theme') || 'default', null); return; }
+        if (b.tagName === 'A' && /^https?:/.test(href)) { push('link', null, href.slice(0, 60), { t: (b.textContent || '').trim().slice(0, 20) }); return; }
+        if (b.id === 'mSend') { push('msg_send', 'say', null, null); return; }
+        if (b.id === 'sSend') { push('sub_send', 'say', null, null); return; }
+      } catch (err) { }
+    }, true);
+    /* 每 12 秒增量上报：正在看的区块先结一段，避免浏览器被强杀丢数据 */
+    function flushDwell() {
+      var now = Date.now();
+      Object.keys(seen).forEach(function (k) {
+        var ms = now - seen[k];
+        if (ms > 700) { push('sec', k, null, { ms: Math.round(ms) }); seen[k] = now; }
+      });
+    }
+    var lastScrollSent = 0;
+    var tick = setInterval(function () {
+      flushDwell();
+      if (maxScroll - lastScrollSent >= 15) { lastScrollSent = maxScroll; push('scroll', null, null, { pct: maxScroll }); }
+      flush();
+    }, 12000);
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'hidden') { closeDwell(); push('scroll', null, null, { pct: maxScroll }); flush(); }
+    });
+    window.addEventListener('pagehide', function () {
+      try {
+        closeDwell();
+        push('exit', null, null, { stay_ms: Date.now() - started, scroll: maxScroll });
+        flush();
+        clearInterval(tick);
+      } catch (e) { }
+    });
+  } catch (e) { }
+})();
+</script>
 </body>
 </html>

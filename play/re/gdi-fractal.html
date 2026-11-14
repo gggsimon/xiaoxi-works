@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 本地版已移除平台注入脚本 /page/page_comm/inject.js：该脚本仅在线托管环境需要，本地打开不影响功能 -->
+<meta charset="UTF-8">
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
+<title>GDI · 泛化共轭净化动力学 · 3D 分形</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --ink:#f4efe9; --dim:rgba(244,239,233,.42); --dim2:rgba(244,239,233,.26);
+    --line:rgba(255,255,255,.085); --line2:rgba(255,255,255,.14);
+    --gold:#ffd98a; --coral:#ff6b5b; --mag:#ff4d8d; --glass:rgba(14,11,20,.58);
+  }
+  html,body{height:100%;overflow:hidden}
+  body{
+    background:radial-gradient(ellipse 90% 80% at 50% 52%, #15111f 0%, #0b0812 52%, #050409 100%);
+    font-family:"Inter","Helvetica Neue",-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    color:var(--ink); -webkit-font-smoothing:antialiased; user-select:none; cursor:grab;
+  }
+  body.dragging{cursor:grabbing}
+  body.hide-ui .panel,body.hide-ui .brand,body.hide-ui .hint{opacity:0;transform:translateY(6px);pointer-events:none;transition:opacity .35s}
+
+  #glow{position:fixed;inset:0;z-index:1}
+  #garden{position:fixed;left:28px;top:104px;z-index:6;pointer-events:none;border-radius:12px;
+    border:1px solid var(--line);box-shadow:0 14px 38px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.05);
+    background:rgba(8,6,12,.55);backdrop-filter:blur(8px);width:300px;height:236px}
+  .vignette{position:fixed;inset:0;z-index:4;pointer-events:none;
+    background:radial-gradient(ellipse 74% 66% at 50% 48%, rgba(0,0,0,0) 40%, rgba(4,3,9,.42) 76%, rgba(2,2,6,.9) 100%)}
+
+  .panel{position:fixed;z-index:10;background:var(--glass);border:1px solid var(--line);border-radius:14px;
+    backdrop-filter:blur(22px) saturate(140%);-webkit-backdrop-filter:blur(22px) saturate(140%);
+    box-shadow:0 18px 50px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.055);transition:opacity .35s}
+  .sec{padding:15px 17px}.sec + .sec{border-top:1px solid var(--line)}
+  .sec-t{font-size:9px;letter-spacing:.19em;text-transform:uppercase;color:var(--dim2);margin-bottom:13px;
+    display:flex;align-items:center;gap:9px}
+  .sec-t::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line2),transparent)}
+
+  .brand{position:fixed;top:24px;left:28px;z-index:10;transition:opacity .35s}
+  .brand h1{font-size:18px;font-weight:600;letter-spacing:.1em;
+    background:linear-gradient(100deg,#fff2dd,var(--gold) 34%,var(--mag) 68%,#8a6bff 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .brand p{margin-top:5px;font-size:10.5px;letter-spacing:.1em;color:var(--dim2)}
+  .brand .rule{width:46px;height:1px;margin-top:8px;background:linear-gradient(90deg,var(--coral),transparent)}
+
+  #info{top:24px;right:26px;width:244px}
+  .kv{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.045)}
+  .kv:last-child{border-bottom:none}
+  .kv span{font-size:10px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+  .kv b{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;font-weight:500;color:rgba(255,236,205,.95)}
+  .kv b.hot{color:var(--gold)}
+  .seedbox{display:flex;gap:7px;margin-top:11px}
+  .seedbox input{flex:1;min-width:0;background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:7px;
+    color:var(--gold);font-family:"SF Mono",ui-monospace,monospace;font-size:12px;padding:7px 9px;outline:none;letter-spacing:.06em}
+  .seedbox input:focus{border-color:rgba(255,217,138,.45)}
+  .seedbox button{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:7px;color:var(--dim);
+    font-size:10px;letter-spacing:.1em;padding:0 11px;cursor:pointer;transition:.18s}
+  .seedbox button:hover{color:var(--gold);border-color:rgba(255,217,138,.4)}
+
+  #ctrl{left:28px;bottom:24px;width:264px;max-height:calc(100vh - 400px);overflow-y:auto;overscroll-behavior:contain}
+  #ctrl::-webkit-scrollbar{width:3px}#ctrl::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:3px}
+  .ctl{margin-bottom:13px}.ctl:last-child{margin-bottom:0}
+  .ctl-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+  .ctl-h label{font-size:10px;letter-spacing:.1em;color:var(--dim)}
+  .ctl-h b{font-family:"SF Mono",ui-monospace,monospace;font-size:11px;font-weight:500;color:rgba(255,236,205,.82)}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:2px;border-radius:2px;background:rgba(255,255,255,.15);outline:none;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;
+    background:linear-gradient(140deg,#fff0d4,var(--gold) 45%,var(--coral));box-shadow:0 0 0 3px rgba(255,140,90,.14);cursor:grab}
+  input[type=range]::-moz-range-thumb{width:11px;height:11px;border:none;border-radius:50%;
+    background:linear-gradient(140deg,#fff0d4,var(--gold) 45%,var(--coral));cursor:grab}
+  input[type=range]:active::-webkit-slider-thumb{cursor:grabbing;transform:scale(1.15)}
+  input[type=range]:disabled{opacity:.35}
+  .sw{display:flex;align-items:center;gap:9px;padding:5px 0;cursor:pointer}
+  .sw input{display:none}
+  .sw .track{position:relative;width:30px;height:16px;border-radius:9px;flex:none;background:rgba(255,255,255,.09);border:1px solid var(--line);transition:.22s}
+  .sw .track::after{content:"";position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.34);transition:.22s cubic-bezier(.2,.8,.2,1)}
+  .sw input:checked + .track{background:linear-gradient(100deg,rgba(255,107,91,.55),rgba(255,217,138,.5));border-color:rgba(255,200,140,.42)}
+  .sw input:checked + .track::after{left:16px;background:#fff4e2;box-shadow:0 0 8px rgba(255,190,120,.7)}
+  .sw .txt{font-size:10.5px;letter-spacing:.06em;color:var(--dim);transition:.22s}
+  .sw input:checked ~ .txt{color:rgba(255,236,205,.9)}
+  .sw .st{margin-left:auto;font-size:8.5px;letter-spacing:.14em;color:var(--dim2);font-family:"SF Mono",monospace}
+  .sw input:checked ~ .st{color:var(--gold)}
+  .btns{display:flex;gap:8px;margin-top:4px}
+  .btn{flex:1;padding:10px 8px;border-radius:9px;cursor:pointer;background:rgba(255,255,255,.045);border:1px solid var(--line);
+    color:rgba(244,239,233,.8);font-size:10.5px;letter-spacing:.1em;transition:.2s;font-family:inherit}
+  .btn:hover{background:rgba(255,255,255,.09);border-color:var(--line2);color:#fff}
+  .btn:active{transform:translateY(1px)}
+  .btn.acc{background:linear-gradient(100deg,rgba(255,107,91,.24),rgba(255,217,138,.2));border-color:rgba(255,190,130,.35);color:#fff3e0}
+  .btn.acc:hover{background:linear-gradient(100deg,rgba(255,107,91,.36),rgba(255,217,138,.3))}
+
+  #math{right:26px;bottom:24px;width:344px;max-height:calc(100vh - 340px);overflow-y:auto}
+  #math::-webkit-scrollbar{width:3px}#math::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:3px}
+  .eq{display:flex;gap:11px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+  .eq:last-child{border-bottom:none}
+  .eq i{flex:none;width:19px;font-style:normal;font-family:"SF Mono",monospace;font-size:9px;color:rgba(255,217,138,.42);padding-top:3px}
+  .eq .body{flex:1;min-width:0}
+  .eq em{display:block;font-style:normal;font-size:9px;letter-spacing:.13em;color:var(--dim2);text-transform:uppercase;margin-bottom:3px}
+  .eq code{display:block;font-family:"Cambria Math","Latin Modern Math","Times New Roman",Georgia,serif;font-size:13px;line-height:1.55;color:rgba(255,242,224,.9);white-space:normal;word-break:break-word}
+  .eq code var{font-style:italic;color:var(--gold)}
+  .eq code sub{font-size:.66em;vertical-align:-.22em}
+  .eq code sup{font-size:.66em;vertical-align:.42em}
+  .eq code .op{color:rgba(255,150,130,.85);padding:0 .08em}
+
+  .hint{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);z-index:10;font-size:9.5px;letter-spacing:.17em;color:rgba(244,239,233,.22);text-transform:uppercase;white-space:nowrap}
+  .hint kbd{font-family:"SF Mono",monospace;color:rgba(255,217,138,.5);border:1px solid rgba(255,255,255,.1);border-radius:4px;padding:1px 5px;margin:0 2px}
+
+  #err{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;text-align:center;padding:40px;color:var(--dim)}
+  #err div{max-width:420px;font-size:13px;line-height:1.7}
+
+  @media (max-width:1180px){#math{display:none}}
+  @media (max-width:860px){
+    #info{width:188px;top:18px;right:18px}#ctrl{width:212px;left:18px;bottom:18px;max-height:46vh}
+    .brand{left:18px;top:18px}#garden{display:none}.hint{display:none}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="glow"></canvas>
+<canvas id="garden"></canvas>
+<div class="vignette"></div>
+
+<div class="brand">
+  <h1>GDI · 共轭净化动力学</h1>
+  <p>Generalized Conjugate Purification · 3D Fractal</p>
+  <div class="rule"></div>
+</div>
+
+<div class="panel" id="info">
+  <div class="sec">
+    <div class="sec-t">Parameters</div>
+    <div class="kv"><span>本征阶数 N</span><b class="hot" id="vN">2.00</b></div>
+    <div class="kv"><span>衰减 k(N)</span><b id="vK">0.7071</b></div>
+    <div class="kv"><span>旋转 θ(N)</span><b id="vT">−45°</b></div>
+    <div class="kv"><span>GDI 平衡</span><b id="vG">e/4</b></div>
+    <div class="kv"><span>场景</span><b id="vS">封闭</b></div>
+    <div class="kv"><span>种子</span><b id="vSeed">—</b></div>
+    <div class="kv"><span>迭代 / FPS</span><b id="vFps">—</b></div>
+    <div class="seedbox">
+      <input id="seedIn" max="999999" min="0" placeholder="seed" step="1" type="number">
+      <button id="seedGo">SET</button>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="ctrl">
+  <div class="sec">
+    <div class="sec-t">本征参数 N</div>
+    <div class="ctl">
+      <div class="ctl-h"><label>本征阶数 N</label><b id="lN">2.00</b></div>
+      <input id="sN" max="8" min="0.4" step="0.05" type="range" value="2">
+    </div>
+    <div class="ctl">
+      <div class="ctl-h"><label>分形幂 p</label><b id="lPow">4.0</b></div>
+      <input id="sPow" max="12" min="2" step="0.5" type="range" value="4">
+    </div>
+    <div class="ctl">
+      <div class="ctl-h"><label>扭转角 θ′</label><b id="lTh">−45°</b></div>
+      <input id="sTh" max="3.14" min="-3.14" step="0.02" type="range" value="-0.785">
+    </div>
+    <label class="sw"><input checked id="tTh" type="checkbox"><span class="track"></span><span class="txt">θ′ = θ(N) 跟随</span><span class="st">ON</span></label>
+  </div>
+
+  <div class="sec">
+    <div class="sec-t">理论机制</div>
+    <label class="sw"><input checked id="tRebirth" type="checkbox"><span class="track"></span><span class="txt">重生机制 (0.206↔0.808)</span><span class="st">ON</span></label>
+    <label class="sw"><input id="tOpen" type="checkbox"><span class="track"></span><span class="txt">开放系统 · 总势漂移</span><span class="st">OFF</span></label>
+    <label class="sw"><input checked id="tSpin" type="checkbox"><span class="track"></span><span class="txt">自动旋转</span><span class="st">ON</span></label>
+  </div>
+
+  <div class="sec">
+    <div class="sec-t">Render</div>
+    <div class="ctl">
+      <div class="ctl-h"><label>迭代次数</label><b id="lIter">84</b></div>
+      <input id="sIter" max="140" min="32" step="4" type="range" value="84">
+    </div>
+    <div class="ctl">
+      <div class="ctl-h"><label>渲染比例</label><b id="lScale">0.75</b></div>
+      <input id="sScale" max="1" min="0.4" step="0.05" type="range" value="0.75">
+    </div>
+    <div class="ctl">
+      <div class="ctl-h"><label>配色强度</label><b id="lColor">1.00</b></div>
+      <input id="sColor" max="2" min="0.3" step="0.05" type="range" value="1">
+    </div>
+    <label class="sw"><input checked id="tGlow" type="checkbox"><span class="track"></span><span class="txt">边缘辉光</span><span class="st">ON</span></label>
+    <div class="btns"><button class="btn acc" id="bRegen">重新生成</button><button class="btn" id="bSave">保存 PNG</button></div>
+    <div class="btns"><button class="btn" id="bHide">隐藏面板</button><button class="btn" id="bReset">恢复默认</button></div>
+  </div>
+</div>
+
+<div class="panel" id="math">
+  <div class="sec">
+    <div class="sec-t">Governing Equations</div>
+    <div class="eq"><i>01</i><div class="body"><em>迭代 (单本征参数)</em>
+      <code>Ψ<sub><span>n+1</span></sub> <span class="op">=</span> k(N)·e<sup>iθ(N)</sup>·Ψ<sub><span>n</span></sub></code></div></div>
+    <div class="eq"><i>02</i><div class="body"><em>刚性衰减约束</em>
+      <code>k(N) <span class="op">=</span> 2<sup>−1/N</sup> &nbsp;(每步整体减半)</code></div></div>
+    <div class="eq"><i>03</i><div class="body"><em>相位自洽构型</em>
+      <code>θ(N) <span class="op">=</span> −π / (2N)</code></div></div>
+    <div class="eq"><i>04</i><div class="body"><em>共轭势 / Lyapunov</em>
+      <code>GDIN <span class="op">=</span> |Ψ|<sup>N</sup> ≡ V &nbsp; V<sub>n+1</sub><span class="op">&lt;</span>V<sub>n</sub> ⟺ 适配</code></div></div>
+    <div class="eq"><i>05</i><div class="body"><em>重生 (物理层外嵌)</em>
+      <code>‖Ψ‖ <span class="op">&lt;</span> 0.206 → r<sub>eq</sub>≈0.808 , +π/4</code></div></div>
+    <div class="eq"><i>06</i><div class="body"><em>场景划分</em>
+      <code>封闭 S常数 &nbsp;⟋&nbsp; 开放 S<sub>n+1</sub><span class="op">=</span>S<sub>n</sub>+ΔS (→环面)</code></div></div>
+    <div class="eq"><i>07</i><div class="body"><em>永恒循环</em>
+      <code>收敛 × 重生 <span class="op">=</span> 永恒路过 e/4</code></div></div>
+  </div>
+</div>
+
+<div class="hint">
+  <kbd>拖拽</kbd> 旋转 &nbsp; <kbd>R</kbd> 重生 &nbsp; <kbd>S</kbd> 保存 &nbsp; <kbd>Space</kbd> 暂停 &nbsp; <kbd>O</kbd> 开放 &nbsp; <kbd>H</kbd> 隐藏
+</div>
+
+<div id="err"><div>当前浏览器未启用 WebGL，无法渲染 3D 分形。<br>左侧「相空间 Ψ 花园」仍可正常运行，展示真实迭代动力学。</div></div>
+
+<script id="vs" type="x-shader/x-vertex">
+attribute vec2 a;
+void main(){ gl_Position = vec4(a, 0.0, 1.0); }
+</script>
+
+<script id="fs" type="x-shader/x-fragment">
+precision highp float;
+uniform vec2  u_res;
+uniform vec3  u_ro;
+uniform int   u_iter;
+uniform float u_pow;
+uniform float u_theta;
+uniform float u_rebirth;
+uniform vec3  u_c;
+uniform float u_color;
+uniform float u_glow;
+
+vec3 sunset(float t){
+  t = clamp(t, 0.0, 1.0);
+  vec3 c0=vec3(0.29,0.20,0.84);
+  vec3 c1=vec3(0.48,0.31,0.88);
+  vec3 c2=vec3(0.92,0.30,0.55);
+  vec3 c3=vec3(1.00,0.42,0.36);
+  vec3 c4=vec3(1.00,0.62,0.36);
+  vec3 c5=vec3(1.00,0.85,0.54);
+  float s = t*5.0;
+  vec3 col = mix(c0,c1, clamp(s,0.0,1.0));
+  col = mix(col,c2, clamp(s-1.0,0.0,1.0));
+  col = mix(col,c3, clamp(s-2.0,0.0,1.0));
+  col = mix(col,c4, clamp(s-3.0,0.0,1.0));
+  col = mix(col,c5, clamp(s-4.0,0.0,1.0));
+  return col;
+}
+
+float mapDE(vec3 pos, out float orbit){
+  vec3 z = pos + u_c;
+  float dr = 1.0;
+  float r  = 0.0;
+  orbit = 1e10;
+  for(int i=0;i<200;i++){
+    if(i>=u_iter) break;
+    r = length(z);
+    if(r > 2.0){ break; }
+    if(u_rebirth > 0.5 && r < 0.206){ z = (z/r)*0.808; r = 0.808; }
+    float b = acos(clamp(z.z/r, -1.0, 1.0));
+    float a = atan(z.y, z.x);
+    dr = pow(r, u_pow - 1.0) * u_pow * dr + 1.0;
+    float zr = pow(r, u_pow);
+    b = b*u_pow + u_theta;
+    a = a*u_pow + u_theta*2.0;
+    z = zr * vec3(sin(b)*sin(a), sin(b)*cos(a), cos(b));
+    z += u_c;
+    orbit = min(orbit, r);
+  }
+  return 0.5 * log(max(r,1e-6)) * r / dr;
+}
+
+vec3 calcNormal(vec3 p){
+  float o; float e = 0.0009;
+  vec2 k = vec2(1.0, -1.0);
+  return normalize(
+    k.xyy*mapDE(p + k.xyy*e, o) +
+    k.yyx*mapDE(p + k.yyx*e, o) +
+    k.yxy*mapDE(p + k.yxy*e, o) +
+    k.xxx*mapDE(p + k.xxx*e, o));
+}
+
+void main(){
+  vec2 uv = (gl_FragCoord.xy - 0.5*u_res) / u_res.y;
+  vec3 ro = u_ro;
+  vec3 fwd = normalize(-ro);
+  vec3 rgt = normalize(cross(fwd, vec3(0.0,1.0,0.0)));
+  vec3 upv = cross(rgt, fwd);
+  vec3 rd  = normalize(fwd + uv.x*rgt + uv.y*upv);
+
+  float t = 0.0; float steps = 0.0; bool hit = false; vec3 p; float orb = 1e10;
+  for(int i=0;i<200;i++){
+    if(i>=u_iter) break;
+    p = ro + rd*t;
+    float o; float d = mapDE(p, o);
+    steps += 1.0;
+    if(d < 0.0009){ hit = true; orb = o; break; }
+    t += d*0.85;
+    if(t > 6.0){ break; }
+  }
+
+  vec3 col;
+  if(hit){
+    vec3 n = calcNormal(p);
+    vec3 L = normalize(vec3(0.6,0.8,0.4));
+    float diff = clamp(dot(n,L), 0.0, 1.0);
+    float ao   = clamp(1.0 - steps/float(u_iter), 0.0, 1.0);
+    float fres = pow(1.0 - clamp(dot(n,-rd),0.0,1.0), 3.0);
+    vec3 base  = sunset(clamp(orb*1.25, 0.0, 1.0));
+    col = base*(0.22 + 0.85*diff)*ao + base*fres*0.6*u_glow;
+    col *= u_color;
+  } else {
+    float r = length(uv);
+    col = mix(vec3(0.02,0.02,0.045), vec3(0.07,0.035,0.11), smoothstep(0.0,1.25,r));
+  }
+  float vig = smoothstep(1.3, 0.3, length(uv));
+  col *= mix(0.5, 1.0, vig);
+  col = pow(col, vec3(0.85));
+  gl_FragColor = vec4(col, 1.0);
+}
+</script>
+
+<script>
+"use strict";
+/* ══════════════════════════════════════════════════════════
+   GDI 泛化共轭净化动力学 · 3D 分形可视化
+   单一本征参数 N → 驱动分形幂 / 扭转角 / 重生机制
+   ══════════════════════════════════════════════════════════ */
+
+const clamp=(v,a,b)=>v<a?a:(v>b?b:v);
+const lerp=(a,b,t)=>a+(b-a)*t;
+function mulberry32(a){return function(){a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+/* ── 调色板（日落）─────────────────────────────────── */
+const ANCHORS=[[76,52,214],[122,70,224],[190,74,206],[234,62,138],[255,71,126],[255,107,91],[255,143,77],[255,178,92],[255,214,138]];
+const CS=18, LR=new Float32Array(CS), LG=new Float32Array(CS), LB=new Float32Array(CS);
+(function(){const n=ANCHORS.length;for(let i=0;i<CS;i++){const t=i/(CS-1)*(n-1);const a=Math.min(n-1,Math.floor(t)),b=Math.min(n-1,a+1),f=t-a;LR[i]=lerp(ANCHORS[a][0],ANCHORS[b][0],f);LG[i]=lerp(ANCHORS[a][1],ANCHORS[b][1],f);LB[i]=lerp(ANCHORS[a][2],ANCHORS[b][2],f);}})();
+
+/* ── 状态 ──────────────────────────────────────────── */
+const DEF={N:2, pow:4, iter:84, spin:0.5, thetaFollow:true, thetaMan:-0.785,
+  rebirth:true, open:false, autoSpin:true, scale:0.75, color:1.0, glow:true};
+const S=Object.assign({},DEF);
+S.k=Math.pow(2,-1/S.N); S.theta=-Math.PI/(2*S.N);
+let seed=0, rnd=mulberry32(1), seedC=[0,0,0], openPh=0;
+let camYaw=0.7, camPitch=0.42, dist=2.7;
+
+/* ── DOM ───────────────────────────────────────────── */
+const glow=document.getElementById('glow'), garden=document.getElementById('garden');
+const gctx=garden.getContext('2d');
+
+/* ════════════ WebGL ═══════════ */
+let gl=null, prog=null, U={};
+function showErr(){document.getElementById('err').style.display='flex';}
+function compile(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){console.error(gl.getShaderInfoLog(s));return null;}return s;}
+function initGL(){
+  gl=glow.getContext('webgl',{preserveDrawingBuffer:true,antialias:false})||glow.getContext('experimental-webgl',{preserveDrawingBuffer:true});
+  if(!gl){showErr();return false;}
+  const vs=compile(gl.VERTEX_SHADER,document.getElementById('vs').textContent);
+  const fs=compile(gl.FRAGMENT_SHADER,document.getElementById('fs').textContent);
+  if(!vs||!fs){showErr();return false;}
+  prog=gl.createProgram();gl.attachShader(prog,vs);gl.attachShader(prog,fs);gl.linkProgram(prog);
+  if(!gl.getProgramParameter(prog,gl.LINK_STATUS)){console.error(gl.getProgramInfoLog(prog));showErr();return false;}
+  gl.useProgram(prog);
+  const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+  const loc=gl.getAttribLocation(prog,'a');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  ['u_res','u_ro','u_iter','u_pow','u_theta','u_rebirth','u_c','u_color','u_glow'].forEach(n=>U[n]=gl.getUniformLocation(prog,n));
+  return true;
+}
+
+function resize(){
+  const W=window.innerWidth, H=window.innerHeight;
+  // WebGL 渲染分辨率（按比例）
+  const rw=Math.max(2,Math.round(W*S.scale)), rh=Math.max(2,Math.round(H*S.scale));
+  glow.width=rw; glow.height=rh; glow.style.width=W+'px'; glow.style.height=H+'px';
+  if(gl) gl.viewport(0,0,rw,rh);
+  // 花园 canvas（固定面板尺寸）
+  const gW=garden.clientWidth, gH=garden.clientHeight;
+  const gDPR=Math.min(window.devicePixelRatio||1,2);
+  garden.width=Math.round(gW*gDPR); garden.height=Math.round(gH*gDPR);
+  gctx.setTransform(gDPR,0,0,gDPR,0,0);
+  GW=gW; GH=gH; gardenInited=false;
+}
+let GW=300, GH=236, gardenInited=false;
+
+/* ════════════ 相空间 Ψ 花园（2D 真实迭代）════════════ */
+const GT=200; let gtraj=[];
+function gardenInit(){
+  gtraj=[];
+  for(let i=0;i<GT;i++){
+    const ph=i/GT*Math.PI*2;
+    gtraj.push({ph, x:Math.cos(ph)*0.808, y:Math.sin(ph)*0.808, ci:i%CS});
+  }
+  gctx.setTransform(1,0,0,1,0,0);
+  gctx.clearRect(0,0,garden.width,garden.height);
+  gctx.setTransform(Math.min(window.devicePixelRatio||1,2),0,0,Math.min(window.devicePixelRatio||1,2),0,0);
+  gardenInited=true;
+}
+function gardenFrame(){
+  if(!gardenInited) gardenInit();
+  const k=S.k, th=S.theta, N=S.N;
+  // 衰减
+  gctx.globalCompositeOperation='destination-out';
+  gctx.fillStyle='rgba(0,0,0,0.045)'; gctx.fillRect(0,0,GW,GH);
+  gctx.globalCompositeOperation='lighter';
+  gctx.lineWidth=1.0;
+  const cx=GW/2, cy=GH/2, sc=Math.min(GW,GH)*0.40;
+  for(let i=0;i<GT;i++){
+    const o=gtraj[i]; const ox=o.x, oy=o.y;
+    let nx=ox*k*Math.cos(th)-oy*k*Math.sin(th);
+    let ny=ox*k*Math.sin(th)+oy*k*Math.cos(th);
+    let r=Math.hypot(nx,ny);
+    if(r<0.206){ const a2=o.ph+Math.PI/4; nx=Math.cos(a2)*0.808; ny=Math.sin(a2)*0.808; o.ph=a2; }
+    o.x=nx; o.y=ny;
+    gctx.strokeStyle='rgba('+(LR[o.ci]|0)+','+(LG[o.ci]|0)+','+(LB[o.ci]|0)+',0.45)';
+    gctx.beginPath(); gctx.moveTo(cx+ox*sc, cy-oy*sc); gctx.lineTo(cx+nx*sc, cy-ny*sc); gctx.stroke();
+  }
+  // e/4 参考环
+  gctx.globalCompositeOperation='source-over';
+  let req=(Math.E/4); const rE=(N>0&&req>0)?Math.pow(req,1/N):0.8;
+  gctx.strokeStyle='rgba(255,217,138,0.30)'; gctx.lineWidth=1; gctx.setLineDash([3,3]);
+  gctx.beginPath(); gctx.arc(cx,cy,rE*sc,0,Math.PI*2); gctx.stroke(); gctx.setLineDash([]);
+  gctx.fillStyle='rgba(255,217,138,0.5)'; gctx.font='9px "SF Mono",monospace';
+  gctx.fillText('e/4 邻域', cx-rE*sc, cy-rE*sc-4);
+}
+
+/* ════════════ 主循环 ═══════════ */
+let lastT=performance.now(), lastShow=0, frame=0; const dtBuf=[];
+let paused=false, capture=false;
+
+function render(){
+  const now=performance.now(); const dt=now-lastT; lastT=now; dtBuf.push(dt); if(dtBuf.length>45)dtBuf.shift();
+
+  if(!paused && S.autoSpin) camYaw += 0.0016*S.spin;
+
+  if(gl){
+    // 相机
+    const cyaw=Math.cos(camYaw), syaw=Math.sin(camYaw), cp=Math.cos(camPitch), sp=Math.sin(camPitch);
+    const ro=[syaw*cp*dist, sp*dist, cyaw*cp*dist];
+    // Julia 常数：开放系统沿环面漂移
+    let cx,cy,cz;
+    if(S.open){ openPh+=0.004*S.spin+0.001; cx=0.34*Math.cos(openPh); cy=0.16*Math.sin(openPh*0.7); cz=0.34*Math.sin(openPh); }
+    else { cx=seedC[0]; cy=seedC[1]; cz=seedC[2]; }
+    const th = S.thetaFollow ? S.theta : S.thetaMan;
+    gl.uniform2f(U.u_res, glow.width, glow.height);
+    gl.uniform3f(U.u_ro, ro[0],ro[1],ro[2]);
+    gl.uniform1i(U.u_iter, S.iter|0);
+    gl.uniform1f(U.u_pow, S.pow);
+    gl.uniform1f(U.u_theta, th);
+    gl.uniform1f(U.u_rebirth, S.rebirth?1:0);
+    gl.uniform3f(U.u_c, cx,cy,cz);
+    gl.uniform1f(U.u_color, S.color);
+    gl.uniform1f(U.u_glow, S.glow?1:0);
+    gl.drawArrays(gl.TRIANGLES,0,3);
+    if(capture){ capture=false; doCapture(); }
+  }
+
+  gardenFrame();
+
+  // HUD
+  if(now-lastShow>250){
+    lastShow=now; let s=0; for(const d of dtBuf)s+=d; const fps=Math.round(1000/(s/dtBuf.length));
+    const f=document.getElementById('vFps');
+    f.textContent=S.iter+' / '+fps;
+    f.style.color=fps>=45?'rgba(160,240,190,.95)':(fps>=28?'rgba(255,217,138,.95)':'rgba(255,120,110,.95)');
+  }
+  requestAnimationFrame(render);
+}
+
+function doCapture(){
+  const e=document.createElement('canvas');
+  e.width=glow.width; e.height=glow.height;
+  const c=e.getContext('2d');
+  c.drawImage(glow,0,0);
+  // 合成花园面板
+  const k=garden.getBoundingClientRect();
+  if(k.width>0) c.drawImage(garden, k.left* (glow.width/window.innerWidth), k.top*(glow.height/window.innerHeight), k.width*(glow.width/window.innerWidth), k.height*(glow.height/window.innerHeight));
+  const a=document.createElement('a');
+  a.download='gdi-fractal-'+String(seed).padStart(6,'0')+'-N'+S.N.toFixed(2)+'.png';
+  a.href=e.toDataURL('image/png'); a.click();
+}
+
+/* ════════════ 派生量 / HUD ═══════════ */
+function derived(){
+  S.k=Math.pow(2,-1/S.N); S.theta=-Math.PI/(2*S.N);
+  const k=S.k, theta=S.thetaFollow?S.theta:S.thetaMan;
+  const deg=theta*180/Math.PI;
+  document.getElementById('vN').textContent=S.N.toFixed(2);
+  document.getElementById('vK').textContent=k.toFixed(4);
+  document.getElementById('vT').textContent=(deg>=0?'+':'−')+Math.abs(deg).toFixed(1)+'°';
+  document.getElementById('vG').textContent=(Math.abs(S.N-2)<0.005)?'e/4 ≈ 0.680':'漂移';
+  document.getElementById('vS').textContent=S.open?'开放':'封闭';
+  document.getElementById('lN').textContent=S.N.toFixed(2);
+  document.getElementById('lPow').textContent=S.pow.toFixed(1);
+  document.getElementById('lTh').textContent=(theta*180/Math.PI).toFixed(1)+'°';
+}
+
+/* ════════════ 生命周期 ═══════════ */
+function applySeed(s){
+  seed=((s|0)%1000000+1000000)%1000000;
+  rnd=mulberry32(seed);
+  const ang=rnd()*Math.PI*2, mag=0.18+rnd()*0.22;
+  seedC=[Math.cos(ang)*mag, (rnd()-0.5)*0.2, Math.sin(ang)*mag];
+  document.getElementById('vSeed').textContent=seed;
+  document.getElementById('seedIn').value=seed;
+  gardenInit();
+}
+function regenerate(){ applySeed(Math.floor(Math.random()*1000000)); }
+
+/* ════════════ UI 绑定 ═══════════ */
+const $=id=>document.getElementById(id);
+function bindRange(id,labId,fmt,fn){const el=$(id),lab=$(labId);const on=()=>{const v=+el.value;lab.textContent=fmt(v);fn(v);};el.addEventListener('input',on);return{el,on};}
+function bindSwitch(id,fn){const el=$(id),st=el.parentElement.querySelector('.st');const on=()=>{fn(el.checked);if(st)st.textContent=el.checked?'ON':'OFF';};el.addEventListener('change',on);on();}
+
+const rN   =bindRange('sN','lN',  v=>v.toFixed(2), v=>{S.N=v; derived();});
+const rPow =bindRange('sPow','lPow',v=>v.toFixed(1), v=>{S.pow=v; derived();});
+const rTh  =bindRange('sTh','lTh', v=>v.toFixed(1)+'°', v=>{S.thetaMan=v; if(!S.thetaFollow)derived();});
+const rIter=bindRange('sIter','lIter',v=>v, v=>S.iter=v);
+const rScale=bindRange('sScale','lScale',v=>v.toFixed(2), v=>{S.scale=v; resize();});
+const rColor=bindRange('sColor','lColor',v=>v.toFixed(2), v=>S.color=v);
+
+bindSwitch('tTh',v=>{S.thetaFollow=v; $('sTh').disabled=v; derived();});
+bindSwitch('tRebirth',v=>S.rebirth=v);
+bindSwitch('tOpen',v=>{S.open=v; derived();});
+bindSwitch('tSpin',v=>S.autoSpin=v);
+bindSwitch('tGlow',v=>S.glow=v);
+
+$('bRegen').addEventListener('click',regenerate);
+$('bSave').addEventListener('click',()=>{ if(gl) capture=true; else {/* 仅花园 */ const a=document.createElement('a'); a.download='gdi-garden-'+seed+'.png'; a.href=garden.toDataURL(); a.click(); }});
+$('bHide').addEventListener('click',()=>document.body.classList.toggle('hide-ui'));
+$('seedGo').addEventListener('click',()=>applySeed(+$('seedIn').value||0));
+$('seedIn').addEventListener('keydown',e=>{if(e.key==='Enter')applySeed(+e.target.value||0);});
+$('bReset').addEventListener('click',()=>{
+  Object.assign(S,DEF); S.k=Math.pow(2,-1/S.N); S.theta=-Math.PI/(2*S.N);
+  rN.el.value=DEF.N; rN.on(); rPow.el.value=DEF.pow; rPow.on(); rTh.el.value=DEF.thetaMan; rTh.on();
+  rIter.el.value=DEF.iter; rIter.on(); rScale.el.value=DEF.scale; rScale.on(); rColor.el.value=DEF.color; rColor.on();
+  ['tTh','tRebirth','tSpin','tGlow'].forEach(id=>$(id).checked=true);
+  $('tOpen').checked=false;
+  ['tTh','tRebirth','tOpen','tSpin','tGlow'].forEach(id=>$(id).dispatchEvent(new Event('change')));
+  resize();
+});
+
+/* 相机拖拽 */
+let dragging=false, lx=0, ly=0;
+glow.addEventListener('pointerdown',e=>{dragging=true;document.body.classList.add('dragging');lx=e.clientX;ly=e.clientY;});
+window.addEventListener('pointerup',()=>{dragging=false;document.body.classList.remove('dragging');});
+window.addEventListener('pointermove',e=>{if(!dragging)return;camYaw+=(e.clientX-lx)*0.006;camPitch=clamp(camPitch+(e.clientY-ly)*0.006,-1.4,1.4);lx=e.clientX;ly=e.clientY;});
+
+window.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  const k=e.key.toLowerCase();
+  if(k==='r')regenerate();
+  else if(k==='s'){ if(gl)capture=true; }
+  else if(k==='h')document.body.classList.toggle('hide-ui');
+  else if(k==='o'){ $('tOpen').checked=!$('tOpen').checked; $('tOpen').dispatchEvent(new Event('change')); }
+  else if(e.code==='Space'){ e.preventDefault(); paused=!paused; }
+});
+
+let rzT=0;
+window.addEventListener('resize',()=>{clearTimeout(rzT);rzT=setTimeout(resize,160);});
+
+/* ════════════ 启动 ═══════════ */
+const ok=initGL();
+resize();
+derived();
+applySeed(Math.floor(Math.random()*1000000));
+requestAnimationFrame(render);
+</script>
+</body>
+</html>

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 本地版已移除平台注入脚本 /page/page_comm/inject.js：该脚本仅在线托管环境需要，本地打开不影响功能 -->
+<meta charset="UTF-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
+<meta content="#1E1610" name="theme-color">
+<title>相遇 · 一卦</title>
+<link href="https://miaoda.feishu.cn" rel="preconnect">
+<link href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1E1610; --bg2:#15100b; --card:#2C2118; --card2:#241a12;
+  --gold:#D4A853; --gold-hi:#e7c884; --gold-deep:#9a7338;
+  --cinn:#C0563E; --jade:#8FA98C; --ink:#E8DCC8; --mute:#A08E72;
+  --line:rgba(212,168,83,.22); --line-soft:rgba(232,220,200,.10);
+  --serif:"Noto Serif SC","Songti SC","STSong","SimSun",serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  font-family:var(--serif); color:var(--ink); background:#0c0906;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  display:flex; justify-content:center; overflow-x:hidden;
+}
+/* 手机画布 */
+.stage{
+  position:relative; width:100%; max-width:460px; min-height:100dvh;
+  background:
+    radial-gradient(120% 60% at 50% -10%, rgba(212,168,83,.14), transparent 60%),
+    radial-gradient(140% 50% at 50% 110%, rgba(192,86,62,.10), transparent 55%),
+    linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);
+  box-shadow:0 0 80px rgba(0,0,0,.6); overflow:hidden;
+}
+/* 星象罗盘暗纹 */
+.stage::before{
+  content:""; position:fixed; top:50%; left:50%; width:760px; height:760px;
+  transform:translate(-50%,-50%); pointer-events:none; opacity:.10;
+  background:
+    repeating-conic-gradient(from 0deg, rgba(212,168,83,.5) 0deg .4deg, transparent .4deg 11.25deg),
+    radial-gradient(circle, transparent 60%, rgba(212,168,83,.35) 60.3%, transparent 60.8%,
+      transparent 72%, rgba(212,168,83,.3) 72.3%, transparent 72.8%,
+      transparent 86%, rgba(212,168,83,.28) 86.3%, transparent 86.8%);
+  -webkit-mask-image:radial-gradient(circle,#000 30%,transparent 72%);
+          mask-image:radial-gradient(circle,#000 30%,transparent 72%);
+}
+.view{display:none; position:relative; z-index:1; padding:34px 26px calc(40px + env(safe-area-inset-bottom)); animation:fade .5s ease both;}
+.view.active{display:block;}
+@keyframes fade{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+
+/* ===== 通用 ===== */
+.eyebrow{letter-spacing:.42em; font-size:11px; color:var(--gold); text-indent:.42em; text-align:center; font-weight:500;}
+.divider{display:flex;align-items:center;gap:12px;color:var(--gold-deep);margin:22px 0;}
+.divider::before,.divider::after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,var(--line));}
+.divider::after{background:linear-gradient(90deg,var(--line),transparent);}
+.btn{
+  font-family:var(--serif); cursor:pointer; display:block; width:100%;
+  border:1px solid var(--gold); color:var(--gold-hi); background:rgba(212,168,83,.08);
+  padding:15px 18px; border-radius:14px; font-size:16px; letter-spacing:.18em; text-indent:.18em;
+  transition:.2s; position:relative; overflow:hidden;
+}
+.btn:active{transform:scale(.985); background:rgba(212,168,83,.18);}
+.btn.solid{background:linear-gradient(180deg,var(--gold-hi),var(--gold-deep)); color:#241809; font-weight:700; border-color:var(--gold-hi);}
+.btn.ghost{border-color:var(--line-soft); color:var(--mute);}
+.hairline{border:1px solid var(--line); border-radius:16px;}
+
+/* ===== 开场 ===== */
+#view-home{min-height:100dvh; display:none; flex-direction:column; align-items:center; text-align:center; padding-top:14dvh;}
+#view-home.active{display:flex;}
+.seal{
+  width:62px;height:62px;border-radius:13px;display:grid;place-items:center;
+  background:linear-gradient(160deg,var(--cinn),#8e3a29); color:#f3e6cf;
+  font-size:30px;font-weight:900; box-shadow:0 6px 22px rgba(192,86,62,.35), inset 0 0 0 2px rgba(243,230,207,.25);
+  margin-bottom:26px;
+}
+.home-title{font-size:40px;font-weight:900;letter-spacing:.14em; color:var(--ink); text-indent:.14em; line-height:1.1;}
+.home-en{margin-top:10px;font-size:10px;letter-spacing:.34em;text-indent:.34em;color:var(--mute);}
+.compass{position:relative;width:230px;height:230px;margin:34px 0 30px;}
+.compass .ring{position:absolute;inset:0;border-radius:50%;border:1px solid var(--line);}
+.compass .r2{inset:22px;border-style:dashed;animation:spin 60s linear infinite;}
+.compass .r3{inset:46px;border:1px solid rgba(212,168,83,.16);}
+.compass .tick{position:absolute;left:50%;top:50%;width:1px;height:115px;transform-origin:50% 0;}
+.compass .tick::after{content:"";position:absolute;top:0;left:0;width:1px;height:9px;background:var(--gold);opacity:.55;}
+.compass .coin-big{
+  position:absolute;inset:64px;border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle at 34% 28%,var(--gold-hi),var(--gold-deep) 70%);
+  box-shadow:0 8px 26px rgba(154,115,56,.4), inset 0 0 0 3px rgba(36,24,9,.25);
+  animation:breathe 3.4s ease-in-out infinite;
+}
+.compass .coin-big span{width:26px;height:26px;background:var(--bg2);border-radius:5px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.4);}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes breathe{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
+.home-sub{font-size:14px;line-height:2;color:var(--mute);max-width:300px;margin-bottom:32px;}
+.home-foot{margin-top:auto;padding-top:30px;font-size:10px;letter-spacing:.2em;color:var(--gold-deep);}
+
+/* ===== 摇卦 ===== */
+#view-cast{min-height:100dvh;display:none;flex-direction:column;align-items:center;text-align:center;padding-top:16dvh;}
+#view-cast.active{display:flex;}
+.coins{display:flex;gap:22px;height:96px;align-items:flex-end;margin-bottom:18px;}
+.coin{
+  width:58px;height:58px;border-radius:50%;position:relative;
+  background:radial-gradient(circle at 34% 28%,var(--gold-hi),var(--gold) 45%,var(--gold-deep));
+  box-shadow:0 6px 16px rgba(154,115,56,.45), inset 0 0 0 2px rgba(36,24,9,.2);
+}
+.coin::after{content:"";position:absolute;inset:0;margin:auto;width:17px;height:17px;background:var(--bg2);border-radius:4px;}
+.coin.toss{animation:toss 1.1s cubic-bezier(.3,.7,.4,1) infinite;}
+.coin:nth-child(2).toss{animation-delay:.18s;} .coin:nth-child(3).toss{animation-delay:.36s;}
+@keyframes toss{0%{transform:translateY(0) rotateY(0);}40%{transform:translateY(-40px) rotateY(360deg);}100%{transform:translateY(0) rotateY(720deg);}}
+.cast-tip{color:var(--mute);letter-spacing:.2em;font-size:13px;margin-bottom:34px;}
+.yao-slot{display:flex;flex-direction:column-reverse;gap:11px;align-items:center;min-height:240px;justify-content:flex-start;}
+.slot-row{height:11px;display:flex;gap:14px;opacity:0;transform:translateY(8px);}
+.slot-row.drop{animation:drop .35s ease forwards;}
+.slot-row i{display:block;height:9px;width:50px;border-radius:3px;background:linear-gradient(180deg,var(--gold-hi),var(--gold-deep));box-shadow:0 2px 6px rgba(0,0,0,.4);}
+.slot-row.solid i{width:114px;}
+@keyframes drop{to{opacity:1;transform:none;}}
+
+/* ===== 结果 ===== */
+.result-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--mute);letter-spacing:.12em;margin-bottom:8px;}
+.hex-visual{display:flex;flex-direction:column;gap:10px;align-items:center;margin:18px 0 6px;}
+.hyao{height:11px;display:flex;gap:16px;position:relative;justify-content:center;}
+.hyao i{display:block;height:10px;width:54px;border-radius:3px;background:linear-gradient(180deg,#cdA455,#8f6a33);}
+.hyao.solid i{width:124px;}
+.hyao.moving i{background:linear-gradient(180deg,#d97a63,var(--cinn));box-shadow:0 0 12px rgba(192,86,62,.5);}
+.hyao.moving::before{content:"动";position:absolute;left:calc(50% + 76px);top:50%;transform:translateY(-50%);font-size:10px;color:var(--cinn);border:1px solid var(--cinn);border-radius:4px;padding:1px 4px;}
+.hex-name{text-align:center;margin:18px 0 4px;}
+.hex-name .big{font-size:34px;font-weight:900;letter-spacing:.1em;text-indent:.1em;}
+.hex-name .sym{font-size:30px;color:var(--gold);margin-left:8px;vertical-align:2px;}
+.hex-name .meta{font-size:11px;color:var(--mute);letter-spacing:.2em;margin-top:6px;}
+.guaci{background:var(--card);border:1px solid var(--line-soft);border-left:3px solid var(--gold);border-radius:12px;padding:16px 18px;margin-top:18px;font-size:15px;line-height:1.95;}
+.guaci .lab{font-size:11px;color:var(--gold);letter-spacing:.24em;display:block;margin-bottom:6px;}
+.guaci.baihua{border-left-color:var(--jade);background:var(--card2);color:var(--ink);font-size:14.5px;}
+.guaci.baihua .lab{color:var(--jade);}
+.fortune{
+  margin-top:18px;border:1px solid var(--cinn);border-radius:14px;padding:20px 20px 18px;
+  background:linear-gradient(180deg,rgba(192,86,62,.12),rgba(192,86,62,.04));position:relative;
+}
+.fortune::before{content:"相遇签";position:absolute;top:-10px;left:18px;background:var(--cinn);color:#f6e7d2;font-size:10px;letter-spacing:.2em;padding:2px 9px;border-radius:5px;}
+.fortune p{font-size:16.5px;line-height:2;letter-spacing:.02em;}
+.change{margin-top:14px;text-align:center;font-size:13px;color:var(--mute);letter-spacing:.06em;}
+.change b{color:var(--gold);font-weight:600;}
+.result-actions{display:flex;gap:12px;margin-top:22px;}
+.result-actions .btn{padding:13px 10px;font-size:14px;}
+
+/* ===== 名片 ===== */
+.meet-card{margin-top:6px;background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:20px;padding:26px 22px;text-align:center;}
+.avatar{
+  width:76px;height:76px;border-radius:50%;margin:0 auto 14px;display:grid;place-items:center;font-size:32px;font-weight:900;
+  background:radial-gradient(circle at 34% 28%,var(--gold-hi),var(--gold-deep));color:#241809;
+  box-shadow:0 8px 22px rgba(154,115,56,.4), inset 0 0 0 3px rgba(36,24,9,.18);
+}
+.m-name{font-size:24px;font-weight:700;letter-spacing:.08em;}
+.m-role{margin-top:7px;font-size:13px;color:var(--gold);letter-spacing:.06em;}
+.m-project{margin:16px 0 4px;padding:13px 14px;border:1px dashed var(--line);border-radius:12px;font-size:12.5px;line-height:1.85;color:var(--mute);text-align:left;}
+.m-project b{color:var(--ink);font-weight:600;}
+.contact{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:18px;}
+.cbtn{
+  font-family:var(--serif);cursor:pointer;border:1px solid var(--line-soft);background:rgba(232,220,200,.03);
+  color:var(--ink);border-radius:12px;padding:13px 8px;font-size:13.5px;letter-spacing:.05em;display:flex;align-items:center;justify-content:center;gap:7px;transition:.2s;
+}
+.cbtn:active{transform:scale(.97);border-color:var(--gold);color:var(--gold-hi);}
+.cbtn svg{width:15px;height:15px;stroke:var(--gold);fill:none;stroke-width:1.7;}
+.cbtn.full{grid-column:1 / -1;}
+.greet{text-align:center;font-size:12px;color:var(--mute);letter-spacing:.1em;margin:22px 0 6px;line-height:1.9;}
+.foot-note{text-align:center;font-size:10px;color:var(--gold-deep);letter-spacing:.18em;margin-top:10px;}
+.toast{
+  position:fixed;left:50%;bottom:12%;transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;
+  background:rgba(20,14,9,.94);border:1px solid var(--gold);color:var(--gold-hi);padding:11px 20px;border-radius:30px;
+  font-size:13px;letter-spacing:.08em;transition:.28s;z-index:99;max-width:84%;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;}}
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <!-- ============ 视图：开场 ============ -->
+  <section class="view active" id="view-home">
+    <div class="seal">易</div>
+    <h1 class="home-title">相遇 · 一卦</h1>
+    <div class="home-en">A HEXAGRAM FOR THIS MEETING</div>
+    <div class="compass" id="compass">
+      <div class="ring"></div><div class="ring r2"></div><div class="ring r3"></div>
+      <div class="coin-big"><span></span></div>
+    </div>
+    <p class="home-sub">轻触之间，为你我这场相遇<br>起一卦，留个念想</p>
+    <button class="btn solid" id="btn-start" style="max-width:280px">屏 息 · 起 一 卦</button>
+    <div class="home-foot">AI PASSPORT · 易经口袋</div>
+  </section>
+
+  <!-- ============ 视图：摇卦 ============ -->
+  <section class="view" id="view-cast">
+    <div class="eyebrow">铜 钱 起 卦</div>
+    <div class="coins" style="margin-top:30px">
+      <div class="coin toss"></div><div class="coin toss"></div><div class="coin toss"></div>
+    </div>
+    <div class="cast-tip" id="cast-tip">凝神，六爻自下而生……</div>
+    <div class="yao-slot" id="yao-slot"></div>
+  </section>
+
+  <!-- ============ 视图：结果 + 名片 ============ -->
+  <section class="view" id="view-result">
+    <div class="result-meta"><span id="r-shichen"></span><span id="r-count"></span></div>
+    <div class="hex-visual" id="r-yao"></div>
+    <div class="hex-name">
+      <div><span class="big" id="r-name"></span><span class="sym" id="r-sym"></span></div>
+      <div class="meta" id="r-meta"></div>
+    </div>
+    <div class="guaci"><span class="lab">卦 辞</span><span id="r-guaci"></span></div>
+    <div class="guaci baihua"><span class="lab">白 话</span><span id="r-baihua"></span></div>
+    <div class="fortune"><p id="r-fortune"></p></div>
+    <div class="change" id="r-change"></div>
+    <div class="result-actions">
+      <button class="btn ghost" id="btn-again">再 起 一 卦</button>
+      <button class="btn" id="btn-save">存 下 此 签</button>
+    </div>
+
+    <div class="divider">留 下 我</div>
+
+    <div class="meet-card">
+      <div class="avatar" id="m-avatar"></div>
+      <div class="m-name" id="m-name"></div>
+      <div class="m-role" id="m-role"></div>
+      <div class="m-project" id="m-project"></div>
+      <div class="contact" id="m-contact"></div>
+    </div>
+    <div class="greet" id="m-greet"></div>
+    <div class="foot-note">AI PASSPORT · I CHING POCKET · OFFLINE</div>
+  </section>
+
+  <div class="toast" id="toast"></div>
+</div>
+<script>
+// 自动生成：卦辞/白话来自 hexagrams.json，相遇签语为定制；勿手改
+const HEX = [{"t":"乾为天","s":"䷀","g":"乾：元亨。利贞。","b":"大为亨通，适宜守持正固。","q":"这场相遇像天风起于青萍，你主动一分，自有回响。"},{"t":"坤为地","s":"䷁","g":"坤：元亨。利牝马之贞。君子有攸往，先迷后得主，利。西南得朋，东北丧朋。安贞，吉。","b":"大为亨通，有利于像母马那样柔顺而守正。君子有所前往，起初迷失，后来能得到主导而有利；向西南可得同类相助，向东北会失去同类。安于正道则吉。","q":"别急着说，温柔地接住对方，缘分自会在厚土里生芽。"},{"t":"水雷屯","s":"䷂","g":"屯：元亨，利贞。勿用有攸往，利建侯。","b":"初创艰难之时仍可亨通，适宜守正；不宜急于有所前往，利于建立根基、确立领导。","q":"初识都带点生涩，别被开场的卡顿劝退，好关系都是慢慢屯出来的。"},{"t":"山水蒙","s":"䷃","g":"蒙：亨。匪我求童蒙，童蒙求我。初筮告，再三渎，渎则不告。利贞。","b":"蒙昧可以亨通。不是老师求童蒙来学，而是童蒙来求教；初次诚敬占问可以告知，再三亵渎就不再告知。守正有利。","q":"谁心里没点蒙昧？这场相遇，是来互相启蒙的。"},{"t":"水天需","s":"䷄","g":"需：有孚，光亨。贞吉，利涉大川。","b":"有诚信，则光明显达而亨通；守正则吉，利于涉越大川、承担险难。","q":"云还没成雨，先把诚意备好，时机到了自然开席。"},{"t":"天水讼","s":"䷅","g":"讼：有孚，窒，惕，中吉，终凶。利见大人，不利涉大川。","b":"虽有诚信，但受阻而须警惕；中途适可则吉，争讼到底则凶。利见大人，不利涉越大川。","q":"观点会撞，争赢一场不如留三分体面，中途和解最难得。"},{"t":"地水师","s":"䷆","g":"师：贞丈人吉，无咎。","b":"出师用兵贵在正道，并由成熟稳重的长者统领，吉而无咎。","q":"人多要有个牵头的，这段关系里成熟比热情更管用。"},{"t":"水地比","s":"䷇","g":"比：吉。原筮元永贞，无咎。不宁方来，后夫凶。","b":"亲比相辅则吉。重新审慎考察，具备元善、长久、守正，才无咎；不安者会来归附，迟疑后来者则凶。","q":"气场是合的，主动靠近一步，你们能成彼此的帮手。"},{"t":"风天小畜","s":"䷈","g":"小畜：亨。密云不雨，自我西郊。","b":"小有所蓄，亨通；云密而雨未下，像雨气来自西郊但尚未施行。","q":"话到嘴边还差一点，先攒着，这层窗户纸别急着捅破。"},{"t":"天泽履","s":"䷉","g":"履：履虎尾，不咥人，亨。","b":"踩在虎尾上，老虎不咬人，亨通。意为行险而能谨慎守礼，则可通达。","q":"有点小紧张很正常，守着分寸与礼貌，再险的局也踩得过去。"},{"t":"地天泰","s":"䷊","g":"泰：小往大来，吉亨。","b":"小者退去，大者到来，吉而亨通。","q":"上下通气、彼此投缘，这是一场很顺的相遇，好好接住。"},{"t":"天地否","s":"䷋","g":"否：否之匪人，不利君子贞，大往小来。","b":"闭塞不通，非人道之正，不利于君子守正；大者往外，小者来到。","q":"眼下频道对不上，不必硬聊，否极才会泰来，先放一放。"},{"t":"天火同人","s":"䷌","g":"同人：同人于野，亨。利涉大川，利君子贞。","b":"与人在旷野中公开同心，亨通；利于涉越大川，利于君子守正。","q":"这是同路人的卦，坦荡走到明处来，你们能一起做点事。"},{"t":"火天大有","s":"䷍","g":"大有：元亨。","b":"大的拥有与富盛，根本亨通。","q":"你手里有东西、对方也有光，这场相遇格局不小，别藏着。"},{"t":"地山谦","s":"䷎","g":"谦：亨，君子有终。","b":"谦逊可以亨通，君子能有善终。","q":"放低半分姿态，你越谦和，这段缘分越有好收场。"},{"t":"雷地豫","s":"䷏","g":"豫：利建侯行师。","b":"安乐和顺之时，利于建立诸侯、出师行动。","q":"气氛轻松愉快，顺势而为就好，但别乐过了头忘了分寸。"},{"t":"泽雷随","s":"䷐","g":"随：元亨。利贞。无咎。","b":"随顺时势，大亨通；守正有利，无咎。","q":"别拧着来，顺着这股劲走，该跟的人值得你跟一程。"},{"t":"山风蛊","s":"䷑","g":"蛊：元亨。利涉大川。先甲三日，后甲三日。","b":"整治积弊可以大亨通，利于涉越大川；行动前后都要审度时机，如先甲三日、后甲三日。","q":"这场相遇或许是来帮你收拾旧摊子的，直面问题才有新生。"},{"t":"地泽临","s":"䷒","g":"临：元亨。利贞。至于八月有凶。","b":"临近、治理、施临，大亨通而利于守正；但发展到八月会有凶险，提醒盛势不可久恃。","q":"好势头正在靠近，真诚地多走一步，对方一定感受得到。"},{"t":"风地观","s":"䷓","g":"观：盥而不荐，有孚颙若。","b":"祭祀时盥洗而未献祭，内有诚信，庄敬仰望。","q":"先别急着掏心，彼此多看一会儿，你的认真别人都看在眼里。"},{"t":"火雷噬嗑","s":"䷔","g":"噬嗑：亨。利用狱。","b":"咬合决断而亨通，利于使用刑狱、明断是非。","q":"中间卡着点东西，有话直说、果断咬开，路才通。"},{"t":"山火贲","s":"䷕","g":"贲：亨。小利有攸往。","b":"文饰有亨通；小事或有限度的前往有利。","q":"第一印象很重要，但别只装点门面，耐看靠的是里子。"},{"t":"山地剥","s":"䷖","g":"剥：不利有攸往。","b":"剥落衰败之时，不利有所前往。","q":"此刻不宜推进，缘分在剥落期，守好自己比什么都强。"},{"t":"地雷复","s":"䷗","g":"复：亨。出入无疾，朋来无咎。反复其道，七日来复，利有攸往。","b":"回复亨通。出入无病，朋友到来无咎；循环往复，七日而复，利有所往。","q":"走散的会回来、冷掉的会回暖，给这场相遇一点回头的时间。"},{"t":"天雷无妄","s":"䷘","g":"无妄：元亨。利贞。其匪正有眚，不利有攸往。","b":"无妄则大亨通、利守正；若不合正道就有灾眚，不利有所往。","q":"别耍心机、别硬设计，以本色相见，反而最顺。"},{"t":"山天大畜","s":"䷙","g":"大畜：利贞，不家食吉，利涉大川。","b":"大蓄积，利于守正；不在家中自食其力而受养贤之食则吉，利于涉越大川。","q":"你们都有积累，这是厚积者的相逢，值得深交。"},{"t":"山雷颐","s":"䷚","g":"颐：贞吉。观颐，自求口实。","b":"颐养守正则吉；观察养人之道，也要反观自己如何谋求口腹之实。","q":"关系是养出来的：好好说话、好好吃饭，养人也养心。"},{"t":"泽风大过","s":"䷛","g":"大过：栋桡，利有攸往，亨。","b":"栋梁弯曲，形势负担过重；利有所往，仍可亨通。","q":"这段缘分担子不轻，要么一起扛、要么别硬撑，弯梁要趁早扶。"},{"t":"坎为水","s":"䷜","g":"习坎：有孚，维心亨。行有尚。","b":"重重险陷中，有诚信，内心维系亨通；行动会受到推重。","q":"前路有几道坎，别怕，心里那点诚，就是渡你的船。"},{"t":"离为火","s":"䷝","g":"离：利贞。亨。畜牝牛，吉。","b":"依附光明，利于守正而亨通；畜养柔顺的母牛则吉。","q":"像两簇火互相照亮，找对那束可依附的光，越靠越亮。"},{"t":"泽山咸","s":"䷞","g":"咸：亨。利贞。取女吉。","b":"感应相通，亨通；利于守正，娶女吉。","q":"无心之感最动人，这是一场会让心跳漏拍的相遇，跟着感觉走。"},{"t":"雷风恒","s":"䷟","g":"恒：亨，无咎。利贞，利有攸往。","b":"恒久之道亨通而无咎；利于守正，也利有所往。","q":"别急着求快，能走远的关系，都靠日复一日的恒常。"},{"t":"天山遁","s":"䷠","g":"遁：亨。小利贞。","b":"退避可亨通；小事守正有利。","q":"适当退一步、留点白，不是疏远，是让彼此都喘得过气。"},{"t":"雷天大壮","s":"䷡","g":"大壮：利贞。","b":"强盛之时，利于守正。","q":"势头很足，但越是热络越要克制，别用力过猛吓着人。"},{"t":"火地晋","s":"䷢","g":"晋：康侯用锡马蕃庶，昼日三接。","b":"晋升进展，如安邦之侯受赐众马，一日之内多次被接见。","q":"关系在往上走，主动展示自己，你会被看见、被善待。"},{"t":"地火明夷","s":"䷣","g":"明夷：利艰贞。","b":"光明受伤，利于在艰难中守正。","q":"眼下或许不被理解，把光先收进怀里，正的人终会等到天明。"},{"t":"风火家人","s":"䷤","g":"家人：利女贞。","b":"治家之道，利于女子守正，也指家庭成员各守其正。","q":"处着像家人一样自在，各守本分，这份舒服很难得。"},{"t":"火泽睽","s":"䷥","g":"睽：小事吉。","b":"乖离分歧之时，小事可吉。","q":"你们不一样、甚至有点对着干，但小事上找共识，殊途也能同归。"},{"t":"水山蹇","s":"䷦","g":"蹇：利西南，不利东北；利见大人，贞吉。","b":"遇险阻，利向西南平易之方，不利向东北险阻之方；利见大人，守正则吉。","q":"一个人走有点难，别硬扛，去找那个能拉你一把的人。"},{"t":"雷水解","s":"䷧","g":"解：利西南，无所往，其来复吉。有攸往，夙吉。","b":"解除险难，利向西南。若无所前往，回来安定则吉；若必须有所前往，及早行动则吉。","q":"卡住的结要松了，一场及时雨似的相遇，别再揪着不放。"},{"t":"山泽损","s":"䷨","g":"损：有孚，元吉。无咎，可贞，利有攸往。曷之用？二簋可用享。","b":"减损中有诚信，则大吉无咎，可以守正，利有所往。用什么祭享？即使用两簋薄礼，也可因诚而用于祭享。","q":"适当放下点自我、吃点小亏，损出去的诚意会加倍回来。"},{"t":"风雷益","s":"䷩","g":"益：利有攸往。利涉大川。","b":"增益之时，利有所往，利于涉越大川。","q":"这是来帮你的人，互相成全、一起往上走，大胆去赴约。"},{"t":"泽天夬","s":"䷪","g":"夬：扬于王庭，孚号，有厉，告自邑，不利即戎，利有攸往。","b":"决断之事要在王庭公开宣告，以诚信呼号但仍有危险；告诫本邑，不利立即用兵，利有所往。","q":"该说的话当面说清，柔中带刚地决断，别拖泥带水。"},{"t":"天风姤","s":"䷫","g":"姤：女壮，勿用取女。","b":"相遇之时，女子势盛，不宜娶这样的女子。","q":"一次偶然的擦肩，别轻许、也别轻视，邂逅最看分寸。"},{"t":"泽地萃","s":"䷬","g":"萃：亨。王假有庙，利见大人，亨。利贞。用大牲吉，利有攸往。","b":"聚集亨通。王来到宗庙；利见大人而亨通，利于守正。用大牲祭祀吉，利有所往。","q":"气味相投的人终会聚到一起，这场相遇值得你郑重赴约。"},{"t":"地风升","s":"䷭","g":"升：元亨，用见大人，勿恤，南征吉。","b":"升进大亨通。宜见大人，不必忧虑；向南进发则吉。","q":"关系会一步步往上长，不用急，南风向好、见贤思齐。"},{"t":"泽水困","s":"䷮","g":"困：亨，贞大人吉，无咎，有言不信。","b":"困窘中仍可亨通；守正，大人吉，无咎。言语不被信任。","q":"或许都在难处，少说多做，守得住的人困不住。"},{"t":"水风井","s":"䷯","g":"井：改邑不改井，无丧无得。往来井井。汔至，亦未繘井，羸其瓶，凶。","b":"城邑可以迁改，井不可改；井水无所谓丧失或获得。人们往来取井水；快到井口却未把井绳提出，又打破水瓶，则凶。","q":"像一口老井，靠谱、常在、取之不竭，去做彼此稳定的滋养。"},{"t":"泽火革","s":"䷰","g":"革：巳日乃孚，元亨。利贞。悔亡。","b":"变革要到合宜之日才获得信任；大亨通，利守正，悔恨消亡。","q":"这场相遇会刷新你，时机到了就大胆改，悔意自会消散。"},{"t":"火风鼎","s":"䷱","g":"鼎：元吉，亨。","b":"鼎象征承载与更新，大吉而亨通。","q":"鼎能煮新饭、也能托众人，你们能一起端出点新东西。"},{"t":"震为雷","s":"䷲","g":"震：亨。震来虩虩，笑言哑哑。震惊百里，不丧匕鬯。","b":"震动可以亨通。雷震来时恐惧警惕，之后笑谈如常；震动百里，也不丧失祭器，表示临震不失守。","q":"像一声雷把人叫醒，有点猝不及防，清醒过来反是好事。"},{"t":"艮为山","s":"䷳","g":"艮：艮其背，不获其身，行其庭，不见其人，无咎。","b":"止于其背，不为自身欲望所牵；行于庭中而不见其人，无咎。","q":"话到此处、行止有度，该停就停，安静本身就是一种力量。"},{"t":"风山渐","s":"䷴","g":"渐：女归吉，利贞。","b":"循序渐进，如女子出嫁则吉，利于守正。","q":"像大雁一只只有序飞来，慢慢来的关系最稳，水到自然渠成。"},{"t":"雷泽归妹","s":"䷵","g":"归妹：征凶，无攸利。","b":"归妹之事不正，征进则凶，没有什么有利。","q":"别急着在关系里定名分、站错位置，名不正则行不远，先看清。"},{"t":"雷火丰","s":"䷶","g":"丰：亨。王假之，勿忧，宜日中。","b":"丰盛亨通。王亲至，不必忧虑；宜如日中那样光明盛大。","q":"正是最热闹丰盛的时候，尽兴，但要懂得盛极而惜。"},{"t":"火山旅","s":"䷷","g":"旅：小亨。旅贞吉。","b":"旅居在外，小事亨通；旅途中守正则吉。","q":"都是路上的人，彼此客气些、周到些，旅途相遇贵在体贴。"},{"t":"巽为风","s":"䷸","g":"巽：小亨。利有攸往。利见大人。","b":"巽顺入微，小有亨通；利有所往，利见大人。","q":"像风一样在细处着力，不急不躁地渗透，温柔的坚持最有力量。"},{"t":"兑为泽","s":"䷹","g":"兑：亨。利贞。","b":"悦顺亨通，利于守正。","q":"聊得来、笑得出来，这是让人愉快的相遇，惜取这份欢喜。"},{"t":"风水涣","s":"䷺","g":"涣：亨。王假有庙，利涉大川，利贞。","b":"涣散中可亨通。王来到宗庙，利涉大川，利于守正。","q":"原本散着的人和心，会因这场相遇重新聚起来，涣然冰释。"},{"t":"水泽节","s":"䷻","g":"节：亨。苦节不可贞。","b":"节制可以亨通；过分痛苦苛刻的节制不可固守。","q":"舒服的关系都有节度，守好边界、不过界，才长久。"},{"t":"风泽中孚","s":"䷼","g":"中孚：豚鱼吉，利涉大川，利贞。","b":"中诚信实，连豚鱼这样微小之物也可感通而吉；利涉大川，利守正。","q":"真心能打动最微小的生灵，带着诚意，这扇门一定为你开。"},{"t":"雷山小过","s":"䷽","g":"小过：亨。利贞。可小事，不可大事。飞鸟遗之音，不宜上宜下，大吉。","b":"小过可亨通，利守正。可以做小事，不可做大事；飞鸟留下声音，不宜上而宜下，大吉。","q":"大事别急、小事可做，低飞的鸟最稳，把细节做到位就好。"},{"t":"水火既济","s":"䷾","g":"既济：亨小。利贞。初吉终乱。","b":"事情已经完成，小处亨通，利于守正；开始吉，最终若不谨慎会乱。","q":"火候刚刚好、事情快成了，越是临门越要谨慎，别功亏一篑。"},{"t":"火水未济","s":"䷿","g":"未济：亨。小狐汔济，濡其尾，无攸利。","b":"尚未完成但可亨通；小狐快要渡过河却濡湿尾巴，表示临近成功而失慎则无所利。","q":"还差最后一步，别慌，未济不是失败，是故事正要开始。"}];
+const KEY2IDX = [1,23,6,18,14,35,45,10,15,50,39,53,61,54,31,33,7,2,28,59,38,62,47,4,44,16,46,57,30,48,27,42,22,26,3,40,51,21,17,25,34,20,63,37,55,29,49,13,19,41,58,60,52,36,56,8,11,24,5,9,32,12,43,0];
+
+(function(){
+"use strict";
+
+/* =========================================================
+   只改这一段：把下面换成你自己的名片信息。
+   留空的字段不会显示对应按钮（不会出现点了没反应的死按钮）；
+   填了就会自动出现。avatarChar 留空则自动取名字最后一个字。
+   ========================================================= */
+const CONFIG = {
+  name: "你的名字",
+  role: "AI Passport 二创 · 易经口袋",
+  avatarChar: "",
+  project: {
+    title: "AI Passport · 易经口袋",
+    desc: "一枚复古胸牌上的离线六十四卦与梅花易数，软硬件一体的小造物。"
+  },
+  wechat: "",                 // 例如 "your_wechat"，填了出现「加微信」
+  email: "",                  // 例如 "me@example.com"，填了出现「发邮件」
+  links: [                    // 想放几个放几个，留空数组即可
+    // {label:"GitHub", url:"https://github.com/你的ID"},
+    // {label:"作品主页", url:"https://你的主页"}
+  ]
+};
+
+/* ---------- 小工具 ---------- */
+const $=s=>document.querySelector(s);
+const ZHI=["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
+function shichenOf(d){return ZHI[Math.floor(((d.getHours()+1)%24)/2)];}
+function pad(n){return String(n).padStart(2,"0");}
+function weekday(d){return ["周日","周一","周二","周三","周四","周五","周六"][d.getDay()];}
+function greetOf(d){
+  const h=d.getHours();
+  let seg = h<4?"夜深了":h<8?"清晨":h<11?"上午":h<13?"正午":h<17?"午后":h<19?"傍晚":h<23?"晚上":"夜深了";
+  return `${weekday(d)}${seg}，幸会。`;
+}
+let toastTimer;
+function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),1900);}
+function view(id){document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));$("#"+id).classList.add("active");window.scrollTo(0,0);}
+const real=v=>!!v && !/你的|example\.com/i.test(v) && !/^https?:\/\/$/.test(v);
+
+/* ---------- 罗盘 24 山向刻度 ---------- */
+(function(){const c=$("#compass");for(let i=0;i<24;i++){const t=document.createElement("div");t.className="tick";t.style.transform=`rotate(${i*15}deg)`;c.appendChild(t);}})();
+
+/* ---------- 铜钱起卦（三枚铜钱，自下而上六爻） ----------
+   每枚：字(正面)=3，背=2；三枚之和 6老阴(阴,动) 7少阳(阳) 8少阴(阴) 9老阳(阳,动) */
+function tossYao(){
+  let sum=0;for(let i=0;i<3;i++) sum += Math.random()<0.5?3:2;
+  return {yang: sum===7||sum===9, moving: sum===6||sum===9, code:sum};
+}
+function keyOf(bu){ // bu: 初->上；下卦=初二三，上卦=四五上
+  const bit=(i)=>bu[i].yang?1:0;
+  const lo=bit(0)+2*bit(1)+4*bit(2), hi=bit(3)+2*bit(4)+4*bit(5);
+  return lo+8*hi;
+}
+function cast(){
+  view("view-cast");
+  $("#yao-slot").innerHTML="";
+  const bu=Array.from({length:6},tossYao);
+  const slot=$("#yao-slot"), tip=$("#cast-tip");
+  const phases=["初爻，事之始","二爻，见端倪","三爻，下卦成","四爻，转入外","五爻，近其成","上爻，势已定"];
+  let i=0;
+  const timer=setInterval(()=>{
+    const y=bu[i];
+    const row=document.createElement("div");
+    row.className="slot-row drop"+(y.yang?" solid":"");
+    row.innerHTML = y.yang?"<i></i>":"<i></i><i></i>";
+    slot.appendChild(row);
+    tip.textContent=phases[i];
+    i++;
+    if(i===6){
+      clearInterval(timer);
+      setTimeout(()=>render(bu),520);
+    }
+  },330);
+}
+
+/* ---------- 渲染结果 ---------- */
+function render(bu){
+  const now=new Date();
+  const ben=HEX[KEY2IDX[keyOf(bu)]];
+  const moved=bu.map(y=>({yang:y.moving?!y.yang:y.yang,moving:false}));
+  const hasMove=bu.some(y=>y.moving);
+  const bian=hasMove?HEX[KEY2IDX[keyOf(moved)]]:null;
+  const moveN=bu.filter(y=>y.moving).length;
+
+  // 卦画：上爻在最上
+  const yaoBox=$("#r-yao");yaoBox.innerHTML="";
+  for(let k=5;k>=0;k--){
+    const y=bu[k];const d=document.createElement("div");
+    d.className="hyao"+(y.yang?" solid":"")+(y.moving?" moving":"");
+    d.innerHTML=y.yang?"<i></i>":"<i></i><i></i>";
+    yaoBox.appendChild(d);
+  }
+  const benIdx=KEY2IDX[keyOf(bu)]+1;
+  $("#r-name").textContent=ben.t;
+  $("#r-sym").textContent=ben.s;
+  $("#r-meta").textContent=`周易第 ${benIdx} 卦 · 本卦`;
+  $("#r-guaci").textContent=ben.g;
+  $("#r-baihua").textContent=ben.b;
+  $("#r-fortune").textContent=ben.q;
+  $("#r-shichen").textContent=`${shichenOf(now)}时 · ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  let count=parseInt(localStorage.getItem("meet_count")||"0",10)+1;
+  localStorage.setItem("meet_count",String(count));
+  $("#r-count").textContent=`与你的第 ${count} 次相逢`;
+  $("#r-change").innerHTML = hasMove
+    ? `${moveN} 爻发动，变为 <b>「${bian.t}」${bian.s}</b>——那是这段缘分接下来的走向。`
+    : "六爻安静、无动爻，便以本卦看去，当下平稳，顺势即可。";
+
+  window.__last={bu,ben,bian,hasMove,moveN,now};
+  view("view-result");
+}
+
+/* ---------- 存下此签：优先系统分享，否则复制 ---------- */
+function saveSign(){
+  const L=window.__last;if(!L)return;
+  const z=shichenOf(L.now);
+  const change=L.hasMove?`${L.moveN}爻动，变为「${L.bian.t}」${L.bian.s}`:"六爻安静";
+  const text=`【相遇·一卦】${z}时得「${L.ben.t}」${L.ben.s}\n卦辞：${L.ben.g}\n${L.ben.q}\n（${change}）\n—— ${CONFIG.name}｜${CONFIG.role}`;
+  if(navigator.share){navigator.share({title:"相遇·一卦",text}).catch(()=>{});}
+  else if(navigator.clipboard){navigator.clipboard.writeText(text).then(()=>toast("签文已复制，去粘贴给对方")).catch(()=>toast("长按页面可手动复制"));}
+  else toast("可截图保存这一卦");
+}
+
+/* ---------- 名片渲染 ---------- */
+const ICON={
+  wechat:'<svg viewBox="0 0 24 24"><path d="M9 4C5.1 4 2 6.6 2 9.8c0 1.8 1 3.4 2.6 4.5L4 16.5l2.4-1.2c.8.2 1.7.3 2.6.3h.4a5 5 0 0 1-.2-1.4c0-3 2.9-5.3 6.4-5.3h.4C15.4 6 12.5 4 9 4z"/><path d="M22 14.2c0-2.6-2.5-4.7-5.6-4.7s-5.6 2.1-5.6 4.7 2.5 4.7 5.6 4.7c.7 0 1.4-.1 2-.3l1.9 1-.5-1.7c1.4-.9 2.2-2.2 2.2-3.7z"/></svg>',
+  mail:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>',
+  link:'<svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1.5 1.5"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1.5-1.5"/></svg>',
+  save:'<svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"/><path d="M14 3v4h4"/><path d="M9 13h6"/></svg>'
+};
+function copyText(t,ok){navigator.clipboard?.writeText(t).then(()=>toast(ok)).catch(()=>toast(ok));}
+function saveVCard(){
+  const v=["BEGIN:VCARD","VERSION:3.0",`FN:${CONFIG.name}`,`TITLE:${CONFIG.role}`,
+    real(CONFIG.email)?`EMAIL:${CONFIG.email}`:"",
+    CONFIG.links[0]?`URL:${CONFIG.links[0].url}`:"",
+    `NOTE:${CONFIG.project.title}`,"END:VCARD"].filter(Boolean).join("\r\n");
+  const url=URL.createObjectURL(new Blob([v],{type:"text/vcard"}));
+  const a=document.createElement("a");a.href=url;a.download=`${CONFIG.name}-名片.vcf`;a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);toast("名片已生成，按提示存入通讯录");
+}
+function renderCard(){
+  $("#m-name").textContent=CONFIG.name;
+  $("#m-role").textContent=CONFIG.role;
+  $("#m-avatar").textContent=CONFIG.avatarChar||CONFIG.name.slice(-1);
+  $("#m-project").innerHTML=`<b>${CONFIG.project.title}</b><br>${CONFIG.project.desc}`;
+  $("#m-greet").textContent=greetOf(new Date());
+  const box=$("#m-contact");box.innerHTML="";
+  const add=(html,onclick)=>{const b=document.createElement("button");b.className="cbtn";b.innerHTML=html;b.onclick=onclick;box.appendChild(b);return b;};
+  if(real(CONFIG.wechat))add(`${ICON.wechat}加微信`,()=>copyText(CONFIG.wechat,"微信号已复制，去微信添加"));
+  if(real(CONFIG.email))add(`${ICON.mail}发邮件`,()=>{location.href=`mailto:${CONFIG.email}`;});
+  CONFIG.links.forEach(l=>{if(real(l.url))add(`${ICON.link}${l.label}`,()=>window.open(l.url,"_blank","noopener"));});
+  add(`${ICON.save}存下联系`,saveVCard).classList.add("full");
+}
+
+/* ---------- 事件 ---------- */
+$("#btn-start").onclick=cast;
+$("#btn-again").onclick=cast;
+$("#btn-save").onclick=saveSign;
+renderCard();
+})();
+
+</script>
+</body>
+</html>

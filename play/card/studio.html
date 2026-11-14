@@ -1,0 +1,973 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>电子镭射卡 · HoloCard Studio</title>
+
+<!-- ============================================================
+     === 可复用样式系统：HoloCard styles（零依赖，可直接抽取）===
+     依赖：现代浏览器（CSS transform / conic-gradient /
+           mix-blend-mode / aspect-ratio / color-mix，均 baseline）
+     ============================================================ -->
+<style id="holo-styles">
+  .holo-card{
+    --primary:#7b4bff; --secondary:#ff5fa2; --border:#caa45a;
+    --intensity:.85;
+    position:relative; width:300px; max-width:100%; aspect-ratio:5/7;
+    perspective:900px; cursor:pointer; font-family:inherit; isolation:isolate;
+    color:#fff;
+  }
+  .holo-rotator{
+    position:relative; width:100%; height:100%;
+    transform-style:preserve-3d;
+    transform: rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));
+    transition: transform .25s cubic-bezier(.2,.8,.3,1);
+    will-change: transform;
+  }
+  .holo-flipper{ position:absolute; inset:0; transform-style:preserve-3d;
+    transition: transform .6s cubic-bezier(.2,.8,.3,1); }
+  .holo-card.is-flipped .holo-flipper{ transform: rotateY(180deg); }
+  .holo-front,.holo-back{
+    position:absolute; inset:0; border-radius:14px; overflow:hidden;
+    backface-visibility:hidden; -webkit-backface-visibility:hidden;
+    border:2px solid var(--border);
+    box-shadow:0 18px 40px -18px rgba(0,0,0,.55);
+    background:#15131f;
+  }
+  .holo-back{ transform: rotateY(180deg); display:flex; flex-direction:column;
+    padding:18px; gap:10px; color:#e9e2ff;
+    background:linear-gradient(160deg,#1a1530,#0c0a16); }
+  .holo-back .b-title{ font-weight:800; font-size:16px; }
+  .holo-back .b-meta{ font-size:12px; opacity:.85; line-height:1.7; }
+  .holo-back .b-flavor{ margin-top:auto; font-size:12px; font-style:italic;
+    opacity:.92; border-top:1px solid rgba(255,255,255,.15); padding-top:10px; }
+
+  .holo-art{ position:absolute; inset:0; background-size:cover; background-position:center; }
+  .holo-art.img{ background-image:var(--art); }
+  .holo-art.noimg{
+    background:
+      radial-gradient(120% 90% at 30% 18%, color-mix(in srgb,var(--primary) 80%,#fff) 0%, transparent 55%),
+      radial-gradient(120% 90% at 82% 92%, color-mix(in srgb,var(--secondary) 80%,#fff) 0%, transparent 55%),
+      linear-gradient(160deg,#211d33,#0d0b16);
+  }
+  .holo-foil,.holo-shine,.holo-glare{ position:absolute; inset:0; pointer-events:none; }
+  .holo-foil{
+    mix-blend-mode:color-dodge; filter:brightness(1.05) contrast(1.25) saturate(1.35);
+    background-size:300% 300%,200% 200%,200% 200%;
+    background-position: var(--px,50%) var(--py,50%), center, center;
+    opacity:calc(var(--intensity) * (.35 + var(--pf,0)*.65));
+  }
+  .holo-shine{
+    mix-blend-mode:overlay; opacity:0; transition:opacity .4s;
+    background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,.55) 48%, rgba(255,255,255,.1) 52%, transparent 70%);
+    background-size:300% 300%; background-position:-50% 0;
+    animation: holo-sweep 6s linear infinite;
+  }
+  .holo-card.is-live .holo-shine{ opacity:.5; }
+  .holo-glare{
+    mix-blend-mode:overlay;
+    background:radial-gradient(circle at var(--px,50%) var(--py,50%), rgba(255,255,255,.9), rgba(255,255,255,0) 45%);
+    opacity:var(--glare-o,0);
+  }
+  @keyframes holo-sweep{ 0%{background-position:200% 0} 100%{background-position:-100% 0} }
+  @media (prefers-reduced-motion: reduce){
+    .holo-shine{ animation:none; } .holo-rotator{ transition:none; }
+  }
+
+  /* 内容层 */
+  .holo-content{ position:absolute; inset:0; display:flex; flex-direction:column;
+    justify-content:space-between; padding:12px; pointer-events:none; }
+  .holo-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  .holo-name{ font-weight:800; font-size:18px; line-height:1.1; max-width:70%;
+    background:linear-gradient(100deg,#fff,var(--primary),var(--secondary),#fff);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 1px 2px rgba(0,0,0,.3); }
+  .holo-no{ font-size:11px; color:#fff; background:rgba(0,0,0,.45); padding:2px 7px;
+    border-radius:999px; border:1px solid rgba(255,255,255,.25); white-space:nowrap; }
+  .holo-bottom{ }
+  .holo-type{ display:inline-block; font-size:11px; color:#fff;
+    background:color-mix(in srgb,var(--primary) 72%,#000); padding:3px 9px; border-radius:999px; }
+  .holo-rarity{ font-size:11px; font-weight:700; color:#ffe9a8; letter-spacing:.05em; margin-left:6px; }
+  .holo-flavor{ margin-top:6px; font-size:11px; line-height:1.35; color:#f2e9ff;
+    background:linear-gradient(0deg, rgba(0,0,0,.6), transparent); padding:6px 8px; border-radius:8px; }
+
+  /* 稀有度 → 边框/辉光 */
+  .holo-card[data-rarity="普通"]{ --border:#9aa0b5; }
+  .holo-card[data-rarity="稀有"]{ --border:#4da3ff; }
+  .holo-card[data-rarity="史诗"]{ --border:#b06bff; }
+  .holo-card[data-rarity="传说"]{ --border:#e7b94e; filter:drop-shadow(0 0 12px rgba(231,185,78,.4)); }
+  .holo-card[data-rarity="神话"]{ --border:#ff5fa2; filter:drop-shadow(0 0 16px rgba(255,95,162,.55)); }
+
+  /* ---- 9 种镭射 foil ---- */
+  .holo-card[data-foil="rainbow"] .holo-foil{
+    background-image:
+      repeating-linear-gradient(110deg, rgba(255,40,140,.7) 0 6%, rgba(40,180,255,.7) 10% 16%, rgba(120,255,60,.7) 20% 26%, rgba(255,220,40,.7) 30% 36%, rgba(190,40,255,.7) 40% 46%, rgba(40,255,210,.7) 50% 56%, rgba(255,40,140,.7) 60% 66%),
+      linear-gradient(115deg, transparent 25%, rgba(255,255,255,.85) 50%, transparent 75%);
+  }
+  .holo-card[data-foil="prism"] .holo-foil{
+    background-image:
+      conic-gradient(from 0deg at var(--px,50%) var(--py,50%), #ff4d6d, #ffd24d, #4dff9e, #4dd2ff, #b04dff, #ff4d6d),
+      repeating-linear-gradient(60deg, rgba(255,255,255,.22) 0 3%, transparent 3% 6%);
+  }
+  .holo-card[data-foil="gold"] .holo-foil{
+    mix-blend-mode:screen;
+    background-image:
+      linear-gradient(115deg, transparent 20%, #ffe9a8 45%, #fff7e0 50%, #d9a23a 55%, transparent 80%),
+      repeating-linear-gradient(45deg, rgba(255,215,120,.5) 0 4%, rgba(180,120,30,.5) 4% 8%);
+  }
+  .holo-card[data-foil="oil"] .holo-foil{
+    filter:brightness(1.1) contrast(1.4) saturate(1.5) hue-rotate(calc(var(--pf,0)*60deg));
+    background-image:
+      repeating-radial-gradient(circle at var(--px,50%) var(--py,50%), rgba(255,80,200,.6) 0 6%, rgba(80,200,255,.6) 6% 12%, rgba(120,255,120,.6) 12% 18%, rgba(255,220,80,.6) 18% 24%);
+  }
+  /* 闪粉 Glitter：细密虹彩微光（无点阵平铺） */
+  .holo-card[data-foil="glitter"] .holo-foil{
+    mix-blend-mode:screen; filter:brightness(1.1) contrast(1.3) saturate(1.5);
+    background-image:
+      conic-gradient(from 0deg at var(--px,50%) var(--py,50%), #ff7eb3, #7afcff, #feff9c, #b6ffe0, #ff7eb3),
+      radial-gradient(52% 52% at var(--px,50%) var(--py,50%), rgba(255,255,255,.6), rgba(255,255,255,0) 70%),
+      radial-gradient(120% 92% at 20% 14%, rgba(255,220,255,.34), transparent 70%);
+    background-size:300% 300%, 150% 150%, 170% 170%;
+    background-position: var(--px,50%) var(--py,50%), var(--px,50%) var(--py,50%), center;
+  }
+  /* 星河 Cosmos：柔光星云（无点阵平铺） */
+  .holo-card[data-foil="cosmos"] .holo-foil{
+    mix-blend-mode:screen;
+    background-image:
+      radial-gradient(34% 26% at 26% 24%, rgba(255,255,255,.6), rgba(255,255,255,0) 72%),
+      radial-gradient(30% 22% at 74% 56%, rgba(196,218,255,.58), rgba(196,218,255,0) 74%),
+      radial-gradient(42% 32% at 56% 86%, rgba(150,190,255,.4), rgba(150,190,255,0) 76%),
+      conic-gradient(from 20deg at var(--px,50%) var(--py,50%), #6a5cff, #ff6ad5, #5cffd6, #ffd86a, #6a5cff);
+    background-size:190% 190%, 210% 210%, 230% 230%, 300% 300%;
+    background-position: center, center, center, var(--px,50%) var(--py,50%);
+  }
+  .holo-card[data-foil="matrix"] .holo-foil{
+    mix-blend-mode:screen;
+    background-image:
+      repeating-linear-gradient(90deg, rgba(60,255,140,.5) 0 4%, transparent 4% 8%),
+      repeating-linear-gradient(0deg, rgba(60,255,140,.35) 0 4%, transparent 4% 8%),
+      linear-gradient(115deg, transparent 30%, rgba(120,255,180,.7) 50%, transparent 70%);
+  }
+  .holo-card[data-foil="aurora"] .holo-foil{
+    mix-blend-mode:overlay;
+    background-image:
+      linear-gradient(115deg, rgba(120,255,200,.6), transparent 42%),
+      linear-gradient(245deg, rgba(255,150,220,.6), transparent 42%),
+      conic-gradient(from 0deg at var(--px,50%) var(--py,50%), #a0f0ff, #ffc0f0, #d0ffb0, #a0f0ff);
+  }
+  .holo-card[data-foil="none"] .holo-foil{ opacity:0 !important; }
+</style>
+
+<!-- ============================================================
+     === 应用外框样式（暖棕风格，与卡片彩色区分）===
+     ============================================================ -->
+<style>
+  :root{
+    --bg:#faf8f5; --panel:#fffdf9; --ink:#3b2f25; --muted:#8a7a68;
+    --line:#e6dccd; --accent:#8b5e3c; --accent2:#b07a4e; --chip:#f1e9dd;
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--ink);
+    font-family:system-ui,'Segoe UI',sans-serif; font-size:14px; }
+  header.app-bar{ display:flex; align-items:center; gap:14px; padding:12px 20px;
+    border-bottom:1px solid var(--line); background:var(--panel); position:sticky; top:0; z-index:20; }
+  .logo{ width:30px; height:30px; border-radius:8px;
+    background:conic-gradient(from 0deg,#ff5fa2,#7b4bff,#4dd2ff,#ffd24d,#ff5fa2); }
+  .app-title{ font-weight:800; font-size:16px; }
+  .app-sub{ color:var(--muted); font-size:12px; }
+  .spacer{ flex:1; }
+  .tabs{ display:flex; gap:6px; }
+  .tab{ padding:7px 16px; border:1px solid var(--line); background:var(--panel);
+    border-radius:999px; cursor:pointer; font-weight:600; color:var(--muted); }
+  .tab.active{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  main{ max-width:1180px; margin:0 auto; padding:20px; }
+  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; }
+  .grid2{ display:grid; grid-template-columns:1fr 360px; gap:18px; align-items:start; }
+  @media (max-width:860px){ .grid2{ grid-template-columns:1fr; } }
+  label{ display:block; font-size:12px; color:var(--muted); margin:12px 0 5px; font-weight:600; }
+  input[type=text],input[type=number],textarea,select{
+    width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:9px;
+    background:#fff; color:var(--ink); font-size:13px; font-family:inherit; }
+  textarea{ resize:vertical; min-height:64px; }
+  input[type=range]{ width:100%; accent-color:var(--accent); }
+  input[type=color]{ width:42px; height:34px; border:1px solid var(--line); border-radius:8px; background:#fff; padding:2px; vertical-align:middle; }
+  .row{ display:flex; gap:10px; } .row>*{ flex:1; }
+  .swatch{ display:flex; align-items:center; gap:8px; }
+  .swatch input[type=checkbox]{ width:16px; height:16px; accent-color:var(--accent); margin:0; }
+  button.btn{ border:1px solid var(--line); background:var(--panel); color:var(--ink);
+    padding:9px 14px; border-radius:9px; cursor:pointer; font-weight:600; font-size:13px; }
+  button.btn:hover{ border-color:var(--accent); }
+  button.primary{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  button.primary:hover{ background:var(--accent2); }
+  .preview-wrap{ position:sticky; top:78px; display:grid; place-items:center;
+    background:radial-gradient(120% 90% at 50% 0%, #efe7da, var(--bg)); border-radius:14px; padding:18px; min-height:520px; }
+  .hint{ font-size:11px; color:var(--muted); margin-top:6px; line-height:1.5; }
+  .chips{ display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; }
+  .chip{ padding:5px 11px; border:1px solid var(--line); border-radius:999px; cursor:pointer; font-size:12px; color:var(--muted); background:var(--panel); }
+  .chip.active{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  .gallery{ display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:18px; margin-top:14px; }
+  .card-cell{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .card-cell .cap{ font-size:12px; color:var(--ink); font-weight:600; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .card-cell .sub{ font-size:11px; color:var(--muted); }
+  .album-bar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .album-pill{ display:flex; align-items:center; gap:8px; padding:6px 12px; border:1px solid var(--line);
+    border-radius:999px; cursor:pointer; background:var(--panel); font-size:13px; font-weight:600; }
+  .album-pill.active{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  .album-pill .cov{ width:22px; height:30px; border-radius:4px; background-size:cover; background-position:center; border:1px solid rgba(0,0,0,.2); }
+  .stats{ font-size:12px; color:var(--muted); margin-top:10px; }
+  .modal-mask{ position:fixed; inset:0; background:rgba(40,30,20,.45); display:none;
+    align-items:center; justify-content:center; z-index:50; padding:20px; }
+  .modal-mask.show{ display:flex; }
+  .modal{ background:var(--panel); border-radius:16px; padding:20px; max-width:760px; width:100%;
+    max-height:92vh; overflow:auto; display:grid; grid-template-columns:340px 1fr; gap:20px; }
+  @media (max-width:680px){ .modal{ grid-template-columns:1fr; } }
+  .modal h3{ margin:0 0 6px; }
+  .modal .acts{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+  .toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:#3b2f25; color:#fff; padding:10px 18px; border-radius:999px; font-size:13px; opacity:0;
+    transition:.3s; z-index:80; pointer-events:none; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .toolbar{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .empty{ text-align:center; color:var(--muted); padding:50px 10px; }
+  .filebtn{ display:inline-block; }
+  /* 环境告警条 */
+  .env-warn{ margin:0 0 16px; padding:12px 16px; border-radius:12px; font-size:12.5px; line-height:1.7;
+    background:#fff6e8; border:1px solid #e6cda9; color:#6b4a22; }
+  .env-warn b{ color:#8b5e3c; }
+  .env-warn code{ background:#fff; padding:1px 5px; border-radius:5px; font-size:11.5px; }
+  /* 输出 / 兜底面板 */
+  .modal.out-modal{ grid-template-columns:1fr; max-width:840px; }
+  .out-modal h3{ margin:0 0 4px; }
+  .out-modal .app-sub{ margin-bottom:12px; }
+  .out-modal .acts{ flex-direction:row; flex-wrap:wrap; align-items:center; }
+  .out-modal .acts .btn{ text-decoration:none; display:inline-flex; align-items:center; justify-content:center; }
+  .out-code{ width:100%; height:46vh; min-height:220px; resize:vertical; box-sizing:border-box;
+    font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:11.5px; line-height:1.55;
+    padding:12px; border:1px solid var(--line); border-radius:10px; background:#fbf8f3; color:var(--ink);
+    white-space:pre; overflow:auto; }
+  .out-img{ display:block; max-width:100%; max-height:58vh; margin:0 auto; border-radius:12px;
+    border:1px solid var(--line); background:#fff; }
+</style>
+</head>
+<body>
+
+<header class="app-bar">
+  <div class="logo"></div>
+  <div>
+    <div class="app-title">电子镭射卡 · HoloCard Studio</div>
+    <div class="app-sub">零依赖可复用镭射卡能力模块 + 制作 / 卡册</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="tabs">
+    <div class="tab active" id="tab-studio">制作</div>
+    <div class="tab" id="tab-album">卡册</div>
+  </div>
+</header>
+
+<div id="env-warn" class="env-warn" style="display:none"></div>
+
+<main>
+  <!-- ===================== 制作视图 ===================== -->
+  <section id="view-studio">
+    <div class="grid2">
+      <div class="panel">
+        <h3 style="margin:0 0 4px">自定义生成</h3>
+        <div class="hint">左侧填写，右侧实时预览。移动鼠标到卡片上即可看到镭射随角度流动。</div>
+
+        <div class="row">
+          <div>
+            <label>名称</label>
+            <input type="text" id="f-name" placeholder="例如：星界游侠" value="星界游侠">
+          </div>
+          <div style="flex:0 0 120px">
+            <label>编号</label>
+            <input type="text" id="f-no" placeholder="No.001" value="No.007">
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>类型</label>
+            <select id="f-type">
+              <option>角色</option><option>道具</option><option>场景</option>
+              <option>宠物</option><option>纪念</option><option>组织</option>
+            </select>
+          </div>
+          <div>
+            <label>稀有度</label>
+            <select id="f-rarity">
+              <option>普通</option><option>稀有</option><option>史诗</option>
+              <option selected>传说</option><option>神话</option>
+            </select>
+          </div>
+        </div>
+
+        <label>描述 /  flavor text</label>
+        <textarea id="f-flavor" placeholder="一句话设定，会出现在卡面与卡背">来自星海彼端的旅人，所到之处镭射如极光流转。</textarea>
+
+        <label>镭射样式（foil）</label>
+        <select id="f-foil">
+          <option value="rainbow">彩虹 Rainbow</option>
+          <option value="prism">棱镜 Prism</option>
+          <option value="gold">鎏金 Gold</option>
+          <option value="oil">油膜 Oil-slick</option>
+          <option value="glitter">闪粉 Glitter</option>
+          <option value="cosmos">星河 Cosmos</option>
+          <option value="matrix">数码 Matrix</option>
+          <option value="aurora">极光 Aurora</option>
+          <option value="none">无（纯色卡）</option>
+        </select>
+
+        <div class="row">
+          <div>
+            <label>镭射强度 <span id="v-intensity">0.85</span></label>
+            <input type="range" id="f-intensity" min="0" max="1" step="0.05" value="0.85">
+          </div>
+          <div>
+            <label>倾斜角 <span id="v-maxtilt">14°</span></label>
+            <input type="range" id="f-maxtilt" min="0" max="28" step="1" value="14">
+          </div>
+        </div>
+
+        <label>色板</label>
+        <div class="row">
+          <div class="swatch"><input type="color" id="f-primary" value="#7b4bff"><span>主色</span></div>
+          <div class="swatch"><input type="color" id="f-secondary" value="#ff5fa2"><span>副色</span></div>
+          <div class="swatch"><input type="color" id="f-border" value="#e7b94e"><span>边框色</span></div>
+          <div class="swatch"><input type="checkbox" id="f-border-auto" checked><span>边框跟随稀有度</span></div>
+        </div>
+
+        <label>卡面图（可选，自动压缩存储）</label>
+        <input type="file" id="f-image" accept="image/*">
+        <div class="hint">不上传则使用主/副色生成的渐变底图。上传图片建议竖构图。</div>
+
+        <div class="toolbar" style="margin-top:16px">
+          <button class="btn primary" id="save-btn">保存为卡片</button>
+          <button class="btn" id="copy-html-btn">复制本卡 HTML</button>
+          <button class="btn" id="reset-btn">重置示例</button>
+        </div>
+        <div class="hint" id="env-check"></div>
+      </div>
+
+      <div class="preview-wrap">
+        <div id="preview"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 卡册视图 ===================== -->
+  <section id="view-album" style="display:none">
+    <div class="panel">
+      <div class="album-bar">
+        <strong style="font-size:13px">卡册：</strong>
+        <div id="album-list" style="display:flex; gap:8px; flex-wrap:wrap"></div>
+        <button class="btn" id="new-album-btn">+ 新建卡册</button>
+      </div>
+      <div class="toolbar" style="margin-top:12px">
+        <input type="text" id="search" placeholder="搜索名称 / 编号…" style="max-width:240px">
+        <div class="chips" id="filters"></div>
+        <div class="spacer"></div>
+        <button class="btn" id="export-json">导出卡册 JSON</button>
+        <button class="btn" id="import-json">导入 JSON</button>
+        <input type="file" id="import-file" accept="application/json" style="display:none">
+      </div>
+      <div class="stats" id="stats"></div>
+      <div class="gallery" id="gallery"></div>
+    </div>
+  </section>
+</main>
+
+<!-- 详情弹窗 -->
+<div class="modal-mask" id="modal">
+  <div class="modal">
+    <div id="modal-card" style="display:grid; place-items:center"></div>
+    <div>
+      <h3 id="m-name"></h3>
+      <div class="app-sub" id="m-meta"></div>
+      <div class="acts">
+        <button class="btn" id="m-flip">翻面 / 卡背</button>
+        <button class="btn" id="m-copy">复制可分享 HTML</button>
+        <button class="btn" id="m-png">导出 PNG 图片</button>
+        <button class="btn" id="m-cover">设为卡册封面</button>
+        <button class="btn" id="m-del" style="color:#b3261e">删除此卡</button>
+        <button class="btn" id="m-close">关闭</button>
+      </div>
+      <div class="hint" id="m-hint"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 输出 / 兜底面板：预览环境阻断剪贴板或下载时的可视化出口 -->
+<div class="modal-mask" id="out">
+  <div class="modal out-modal">
+    <h3 id="out-title">输出</h3>
+    <div class="app-sub" id="out-hint"></div>
+    <div id="out-body"></div>
+    <div class="acts">
+      <button class="btn primary" id="out-action">复制到剪贴板</button>
+      <a class="btn out-dl" id="out-dl" download>下载文件</a>
+      <button class="btn" id="out-close">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     === 可复用模块：HoloCard（零依赖 IIFE，可整体抽取复用）===
+     核心接口：
+       HoloCard.create(el, opts) -> api
+         opts: { tilt, maxTilt, glare, maxGlare, gyro }
+         返回的 api: { el, setFoil, setOption, flip, destroy }
+       HoloCard.FOILS        -> 可用 foil 名数组
+       HoloCard.DEFAULTS     -> 默认参数
+     桥接机制：指针位置 -> CSS 变量(--px,--py,--rx,--ry,--pf,--glare-o)
+     由 CSS 中的 .holo-foil / .holo-glare / .holo-rotator 消费。
+     卡片 DOM 约定（调用方提供）：
+       .holo-card > .holo-rotator > .holo-flipper
+         > .holo-front (含 .holo-art/.holo-foil/.holo-shine/.holo-glare/.holo-content)
+         > .holo-back
+     ============================================================ -->
+<script>
+function holoFactory(){
+  const FOILS = ['rainbow','prism','gold','oil','glitter','cosmos','matrix','aurora','none'];
+  const DEFAULTS = { tilt:true, maxTilt:14, glare:true, maxGlare:.5, gyro:false };
+  function create(el, opts){
+    opts = Object.assign({}, DEFAULTS, opts||{});
+    let raf=null;
+    function setVars(x,y){
+      const rx = opts.tilt ? (0.5 - y) * opts.maxTilt * 2 : 0;
+      const ry = opts.tilt ? (x - 0.5) * opts.maxTilt * 2 : 0;
+      const pf = Math.min(1, Math.hypot(x-0.5, y-0.5)*2);
+      el.style.setProperty('--rx', rx.toFixed(2)+'deg');
+      el.style.setProperty('--ry', ry.toFixed(2)+'deg');
+      el.style.setProperty('--px', (x*100).toFixed(1)+'%');
+      el.style.setProperty('--py', (y*100).toFixed(1)+'%');
+      el.style.setProperty('--pf', pf.toFixed(3));
+      el.style.setProperty('--glare-o', opts.glare ? (pf*opts.maxGlare).toFixed(3) : '0');
+    }
+    function onMove(e){
+      const r = el.getBoundingClientRect();
+      const t = (e.touches && e.touches[0]) || e;
+      const x = Math.min(1, Math.max(0, (t.clientX - r.left)/r.width));
+      const y = Math.min(1, Math.max(0, (t.clientY - r.top)/r.height));
+      if(raf) return;
+      raf = requestAnimationFrame(function(){ setVars(x,y); raf=null; });
+    }
+    function onEnter(){ el.classList.add('is-live'); }
+    function onLeave(){
+      el.classList.remove('is-live');
+      el.style.setProperty('--rx','0deg'); el.style.setProperty('--ry','0deg');
+      el.style.setProperty('--px','50%'); el.style.setProperty('--py','50%');
+      el.style.setProperty('--pf','0'); el.style.setProperty('--glare-o', opts.glare? '0':'0');
+    }
+    el.addEventListener('pointerenter', onEnter);
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerleave', onLeave);
+    el.addEventListener('touchmove', onMove, {passive:true});
+    let gyroHandler=null;
+    if(opts.gyro && window.DeviceOrientationEvent){
+      gyroHandler = function(e){
+        const x = Math.min(1, Math.max(0, (e.gamma||0)/45*0.5 + 0.5));
+        const y = Math.min(1, Math.max(0, (e.beta||0)/45*0.5 + 0.5));
+        setVars(x,y);
+      };
+      window.addEventListener('deviceorientation', gyroHandler);
+    }
+    return {
+      el: el, setVars: setVars,
+      setFoil: function(f){ if(FOILS.indexOf(f)>=0) el.setAttribute('data-foil', f); },
+      setOption: function(k,v){ if(k in opts) opts[k]=v; },
+      flip: function(){ el.classList.toggle('is-flipped'); },
+      destroy: function(){
+        el.removeEventListener('pointerenter', onEnter);
+        el.removeEventListener('pointermove', onMove);
+        el.removeEventListener('pointerleave', onLeave);
+        el.removeEventListener('touchmove', onMove);
+        if(gyroHandler) window.removeEventListener('deviceorientation', gyroHandler);
+      }
+    };
+  }
+  return { create: create, FOILS: FOILS, DEFAULTS: DEFAULTS };
+}
+const HoloCard = holoFactory();
+window.HoloCard = HoloCard;
+</script>
+
+<!-- ============================================================
+     === 应用逻辑：制作 / 卡册 / 持久化 / 导出 ===
+     ============================================================ -->
+<script>
+(function(){
+  "use strict";
+  const $ = function(s){ return document.querySelector(s); };
+  const STORE_KEY = 'holo_cards_v1';
+  const foilsCN = {rainbow:'彩虹',prism:'棱镜',gold:'鎏金',oil:'油膜',glitter:'闪粉',cosmos:'星河',matrix:'数码',aurora:'极光',none:'无'};
+  function foilLabel(f){ return foilsCN[f]||f; }
+  function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function uid(){ return 'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+  function toast(msg){
+    const t=$('#toast'); t.textContent=msg; t.classList.add('show');
+    clearTimeout(toast._t); toast._t=setTimeout(function(){ t.classList.remove('show'); },1800);
+  }
+
+  // ---------- 输出 / 兜底面板 ----------
+  // 内置预览面板多为跨域 iframe，clipboard-write 与 allow-downloads 常被策略拦截。
+  // 因此「复制」「下载」都不能只有一条路：失败时必须落到可视化出口。
+  const out=$('#out');
+  function openOutput(cfg){
+    $('#out-title').textContent = cfg.title || '输出';
+    $('#out-hint').textContent = cfg.hint || '';
+    const body=$('#out-body'); body.innerHTML='';
+    const act=$('#out-action'), dl=$('#out-dl');
+    act.style.display='none'; dl.style.display='none'; dl.removeAttribute('href');
+    if(cfg.mode==='image'){
+      const im=document.createElement('img'); im.className='out-img'; im.src=cfg.dataUrl;
+      im.alt=cfg.filename||'导出图片'; body.appendChild(im);
+      dl.href=cfg.dataUrl; dl.download=cfg.filename||'holo.png'; dl.textContent='下载 PNG'; dl.style.display='';
+    } else {
+      const ta=document.createElement('textarea'); ta.className='out-code'; ta.value=cfg.text||'';
+      ta.readOnly=true; body.appendChild(ta);
+      act.style.display=''; act.textContent='复制到剪贴板';
+      act.onclick=function(){
+        if(execCopy(cfg.text)) toast('已复制到剪贴板');
+        else { ta.focus(); ta.select(); toast('请按 Ctrl+C 复制'); }
+      };
+      setTimeout(function(){ ta.focus(); ta.select(); },60);
+    }
+    out.classList.add('show');
+  }
+  $('#out-close').addEventListener('click', function(){ out.classList.remove('show'); });
+  out.addEventListener('click', function(e){ if(e.target===out) out.classList.remove('show'); });
+
+  // 同步复制：iframe 下比异步 Clipboard API 更可靠（无需权限授予）
+  function execCopy(text){
+    const ta=document.createElement('textarea');
+    ta.value=text; ta.setAttribute('readonly','');
+    ta.style.cssText='position:fixed;top:0;left:-9999px;opacity:0';
+    document.body.appendChild(ta);
+    ta.select(); ta.setSelectionRange(0, ta.value.length);
+    let ok=false;
+    try{ ok=document.execCommand('copy'); }catch(e){ ok=false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+  // 三级降级：execCommand → Clipboard API → 输出面板手动复制
+  function copyOrShow(text, title){
+    if(execCopy(text)){ toast('已复制到剪贴板'); return; }
+    const hint='当前预览环境禁止写入剪贴板。代码已全选，直接按 Ctrl+C 即可；也可点下方按钮重试。';
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(
+        function(){ toast('已复制到剪贴板'); },
+        function(){ openOutput({ title:title, mode:'code', text:text, hint:hint }); });
+      return;
+    }
+    openOutput({ title:title, mode:'code', text:text, hint:hint });
+  }
+  // 下载兜底：程序化点击可能被沙箱静默丢弃，调用方须同时给出面板出口
+  function tryDownload(href, filename){
+    try{
+      const a=document.createElement('a'); a.href=href; a.download=filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      return true;
+    }catch(e){ return false; }
+  }
+
+  // ---------- 存储适配层（预览环境可能直接禁用 localStorage）----------
+  const memStore={};
+  const LS_OK=(function(){
+    try{ localStorage.setItem('__holo_probe__','1'); localStorage.removeItem('__holo_probe__'); return true; }
+    catch(e){ return false; }
+  })();
+  function lsGet(k){
+    if(LS_OK){ try{ return localStorage.getItem(k); }catch(e){} }
+    return Object.prototype.hasOwnProperty.call(memStore,k) ? memStore[k] : null;
+  }
+  function lsSet(k,v){
+    if(LS_OK){ try{ localStorage.setItem(k,v); return true; }catch(e){} }
+    memStore[k]=v; return false;
+  }
+
+  // ---------- 状态 ----------
+  let state = load() || seed();
+  function load(){
+    try{ const raw=lsGet(STORE_KEY); if(!raw) return null;
+      const d=JSON.parse(raw); if(!d.cards) return null; return d; }catch(e){ return null; }
+  }
+  let persistWarned=false;
+  function save(){
+    const ok=lsSet(STORE_KEY, JSON.stringify(state));
+    if(!ok && !persistWarned){ persistWarned=true; toast('本次会话已暂存（预览环境禁用了本地存储）'); }
+    return ok;
+  }
+  function seed(){
+    const mk=function(o){ return Object.assign({id:uid(),no:'No.000',type:'角色',rarity:'普通',
+      flavor:'',foil:'rainbow',intensity:.85,maxTilt:14,glare:true,primary:'#7b4bff',secondary:'#ff5fa2',border:''}, o); };
+    const cards=[
+      mk({name:'星界游侠',no:'No.001',type:'角色',rarity:'传说',foil:'rainbow',primary:'#7b4bff',secondary:'#ff5fa2',
+        flavor:'来自星海彼端的旅人，所到之处镭射如极光流转。'}),
+      mk({name:'熔金守卫',no:'No.002',type:'道具',rarity:'史诗',foil:'gold',primary:'#e7b94e',secondary:'#b06bff',
+        flavor:'以落日熔铸的盾，挡下过三千次冲击。'}),
+      mk({name:'油膜水母',no:'No.003',type:'宠物',rarity:'稀有',foil:'oil',primary:'#4dd2ff',secondary:'#ff7eb3',
+        flavor:'深海发光体，体表随潮汐泛起油彩。'})
+    ];
+    return { cards:cards, albums:[{id:'a1',name:'我的卡册',coverId:cards[0].id,cardIds:cards.map(c=>c.id)}], activeAlbum:'a1' };
+  }
+
+  // ---------- 构建卡片 DOM（模块复用入口）----------
+  function buildCardEl(card){
+    const el=document.createElement('div');
+    el.className='holo-card';
+    el.setAttribute('data-foil', card.foil||'rainbow');
+    el.setAttribute('data-rarity', card.rarity||'普通');
+    el.style.setProperty('--primary', card.primary||'#7b4bff');
+    el.style.setProperty('--secondary', card.secondary||'#ff5fa2');
+    el.style.setProperty('--intensity', (card.intensity==null?0.85:card.intensity));
+    if(card.border) el.style.setProperty('--border', card.border);
+    const art = card.art
+      ? '<div class="holo-art img"></div>'
+      : '<div class="holo-art noimg"></div>';
+    el.innerHTML =
+      '<div class="holo-rotator"><div class="holo-flipper">'+
+        '<div class="holo-front">'+ art +
+          '<div class="holo-foil"></div><div class="holo-shine"></div><div class="holo-glare"></div>'+
+          '<div class="holo-content">'+
+            '<div class="holo-top"><div class="holo-name">'+escapeHtml(card.name||'未命名')+'</div>'+
+              '<div class="holo-no">'+escapeHtml(card.no||'No.000')+'</div></div>'+
+            '<div class="holo-bottom"><span class="holo-type">'+escapeHtml(card.type||'角色')+'</span>'+
+              '<span class="holo-rarity">'+escapeHtml(card.rarity||'普通')+'</span>'+
+              (card.flavor?'<div class="holo-flavor">'+escapeHtml(card.flavor)+'</div>':'')+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="holo-back"><div class="b-title">'+escapeHtml(card.name||'未命名')+'</div>'+
+          '<div class="b-meta">编号 '+escapeHtml(card.no||'No.000')+'<br>类型 '+escapeHtml(card.type||'角色')+
+            '<br>稀有度 '+escapeHtml(card.rarity||'普通')+'<br>镭射 '+escapeHtml(foilLabel(card.foil))+'</div>'+
+          '<div class="b-flavor">'+(escapeHtml(card.flavor)||'——')+'</div></div>'+
+      '</div></div>';
+    if(card.art) el.querySelector('.holo-art').style.setProperty('--art', "url('"+card.art+"')");
+    return el;
+  }
+  function mountCard(card, container, opts){
+    const el=buildCardEl(card);
+    container.appendChild(el);
+    HoloCard.create(el, { maxTilt: card.maxTilt==null?14:card.maxTilt, glare: card.glare!==false, foil: card.foil });
+    return el;
+  }
+
+  // ---------- 制作页 ----------
+  function readDraft(){
+    return {
+      name:$('#f-name').value.trim()||'未命名',
+      no:$('#f-no').value.trim()||'No.000',
+      type:$('#f-type').value,
+      rarity:$('#f-rarity').value,
+      flavor:$('#f-flavor').value.trim(),
+      foil:$('#f-foil').value,
+      intensity:parseFloat($('#f-intensity').value),
+      maxTilt:parseInt($('#f-maxtilt').value,10),
+      glare:true,
+      primary:$('#f-primary').value,
+      secondary:$('#f-secondary').value,
+      border: $('#f-border-auto').checked ? '' : $('#f-border').value,
+      art: draftArt || ''
+    };
+  }
+  let draftArt = '';
+  function renderPreview(){
+    const d = readDraft();
+    $('#v-intensity').textContent = d.intensity.toFixed(2);
+    $('#v-maxtilt').textContent = d.maxTilt+'°';
+    $('#f-border').disabled = $('#f-border-auto').checked;
+    const box = $('#preview'); box.innerHTML='';
+    mountCard(d, box);
+  }
+  ['#f-name','#f-no','#f-type','#f-rarity','#f-flavor','#f-foil','#f-intensity','#f-maxtilt','#f-primary','#f-secondary','#f-border','#f-border-auto']
+    .forEach(function(sel){ const el=$(sel); if(el) el.addEventListener('input', renderPreview); });
+
+  $('#f-image').addEventListener('change', function(e){
+    const file=e.target.files && e.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=function(){
+      const img=new Image();
+      img.onload=function(){
+        const max=1000, sc=Math.min(1, max/Math.max(img.width,img.height));
+        const w=Math.round(img.width*sc), h=Math.round(img.height*sc);
+        const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        try{ draftArt=cv.toDataURL('image/jpeg',0.82); }catch(err){ draftArt=reader.result; }
+        renderPreview();
+      };
+      img.src=reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  $('#save-btn').addEventListener('click', function(){
+    const d=readDraft();
+    const card=Object.assign({id:uid()}, d);
+    state.cards.push(card);
+    let album=state.albums.find(function(a){ return a.id===state.activeAlbum; }) || state.albums[0];
+    if(album){ album.cardIds.push(card.id); if(!album.coverId) album.coverId=card.id; }
+    if(!album){ album={id:uid(),name:'我的卡册',coverId:card.id,cardIds:[card.id]}; state.albums.push(album); state.activeAlbum=album.id; }
+    save();
+    toast(LS_OK ? ('已保存：'+card.name) : ('已存入本次会话：'+card.name));
+    switchTab('album');   // switchTab 内部已调用 renderAlbums() + renderGallery()
+  });
+
+  $('#copy-html-btn').addEventListener('click', function(){
+    const d=readDraft();
+    copyOrShow(buildStandalone(d), '可分享 HTML：'+(d.name||'未命名'));
+  });
+
+  $('#reset-btn').addEventListener('click', function(){
+    $('#f-name').value='星界游侠'; $('#f-no').value='No.007'; $('#f-type').value='角色';
+    $('#f-rarity').value='传说'; $('#f-flavor').value='来自星海彼端的旅人，所到之处镭射如极光流转。';
+    $('#f-foil').value='rainbow'; $('#f-intensity').value='0.85'; $('#f-maxtilt').value='14';
+    $('#f-primary').value='#7b4bff'; $('#f-secondary').value='#ff5fa2';
+    $('#f-border').value='#e7b94e'; $('#f-border-auto').checked=true;
+    draftArt=''; $('#f-image').value=''; renderPreview();
+  });
+
+  // 复制单卡为自包含 HTML（复用 holo-styles + holoFactory 源码，单一事实来源）
+  function buildStandalone(card){
+    const css=document.getElementById('holo-styles').textContent;
+    const js='('+holoFactory.toString()+')()';
+    const el=buildCardEl(card);
+    el.style.width='320px';
+    const body=el.outerHTML;
+    return '<!doctype html><html lang="zh"><head><meta charset="utf-8">'+
+      '<title>'+escapeHtml(card.name)+'</title>'+
+      '<style>'+css+'\nbody{display:grid;place-items:center;min-height:100vh;margin:0;background:#faf8f5;font-family:system-ui}</style>'+
+      '</head><body>\n'+body+'\n<script>var HoloCard='+js+';'+
+      'document.querySelectorAll(".holo-card").forEach(function(e){HoloCard.create(e,{maxTilt:'+(card.maxTilt==null?14:card.maxTilt)+',glare:'+(card.glare!==false)+',foil:"'+(card.foil||'rainbow')+'"});});<\/script>'+
+      '\n</body></html>';
+  }
+
+  // ---------- 卡册 ----------
+  let filterRarity='全部', searchText='';
+  const RARITIES=['普通','稀有','史诗','传说','神话'];
+  function renderFilters(){
+    const box=$('#filters'); box.innerHTML='';
+    ['全部'].concat(RARITIES).forEach(function(r){
+      const c=document.createElement('div'); c.className='chip'+(filterRarity===r?' active':'');
+      c.textContent=r; c.onclick=function(){ filterRarity=r; renderFilters(); renderGallery(); };
+      box.appendChild(c);
+    });
+  }
+  function renderAlbums(){
+    const box=$('#album-list'); box.innerHTML='';
+    state.albums.forEach(function(a){
+      const pill=document.createElement('div'); pill.className='album-pill'+(a.id===state.activeAlbum?' active':'');
+      const cov=a.coverId ? state.cards.find(function(c){return c.id===a.coverId;}) : null;
+      const covHtml = cov && cov.art ? '<div class="cov" style="background-image:url(\''+cov.art+'\')"></div>'
+        : '<div class="cov" style="background:linear-gradient(160deg,'+(cov?cov.primary:'#999')+','+(cov?cov.secondary:'#555')+')"></div>';
+      pill.innerHTML=covHtml+'<span>'+escapeHtml(a.name)+' ('+a.cardIds.length+')</span>';
+      pill.onclick=function(){ state.activeAlbum=a.id; save(); renderAlbums(); renderGallery(); };
+      box.appendChild(pill);
+    });
+  }
+  function activeCards(){
+    const album=state.albums.find(function(a){return a.id===state.activeAlbum;}) || state.albums[0];
+    let ids = album ? album.cardIds : [];
+    let list = state.cards.filter(function(c){ return ids.indexOf(c.id)>=0; });
+    if(filterRarity!=='全部') list=list.filter(function(c){ return c.rarity===filterRarity; });
+    if(searchText){ const q=searchText.toLowerCase();
+      list=list.filter(function(c){ return (c.name+''+c.no).toLowerCase().indexOf(q)>=0; }); }
+    return list;
+  }
+  function renderGallery(){
+    const g=$('#gallery'); g.innerHTML='';
+    const list=activeCards();
+    $('#stats').textContent='当前卡册：'+list.length+' 张'+(filterRarity!=='全部'?' · 筛选：'+filterRarity:'')+(searchText?' · 搜索：'+searchText:'');
+    if(!list.length){ g.innerHTML='<div class="empty">暂无卡片。去「制作」生成第一张吧。</div>'; return; }
+    list.forEach(function(card){
+      const cell=document.createElement('div'); cell.className='card-cell';
+      mountCard(card, cell);
+      const cap=document.createElement('div'); cap.className='cap'; cap.textContent=card.name;
+      const sub=document.createElement('div'); sub.className='sub'; sub.textContent=card.no+' · '+card.rarity;
+      cell.appendChild(cap); cell.appendChild(sub);
+      cell.querySelector('.holo-card').addEventListener('click', function(){ openDetail(card.id); });
+      g.appendChild(cell);
+    });
+  }
+  $('#search').addEventListener('input', function(e){ searchText=e.target.value.trim(); renderGallery(); });
+  $('#new-album-btn').addEventListener('click', function(){
+    const name=prompt('新卡册名称：','新卡册'); if(!name) return;
+    const a={id:uid(),name:name.trim(),coverId:null,cardIds:[]};
+    state.albums.push(a); state.activeAlbum=a.id; save(); renderAlbums(); renderGallery();
+  });
+  $('#export-json').addEventListener('click', function(){
+    const text=JSON.stringify(state,null,2);
+    const blob=new Blob([text],{type:'application/json'});
+    const name='holo-album.json';
+    let url=null;
+    try{ url=URL.createObjectURL(blob); }catch(e){ url=null; }
+    if(url) tryDownload(url, name);
+    openOutput({ title:'导出卡册 JSON', mode:'code', text:text,
+      hint:'若未自动下载，可直接全选复制内容，手动存成 '+name+'；此文件是卡册的唯一可靠备份。' });
+  });
+  $('#import-json').addEventListener('click', function(){ $('#import-file').click(); });
+  $('#import-file').addEventListener('change', function(e){
+    const f=e.target.files&&e.target.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=function(){
+      try{ const d=JSON.parse(r.result);
+        if(!d.cards) throw 0;
+        // id 去重合并
+        const exist={}; state.cards.forEach(function(c){ exist[c.id]=1; });
+        d.cards.forEach(function(c){ if(!exist[c.id]) state.cards.push(c); });
+        (d.albums||[]).forEach(function(a){ if(!state.albums.find(function(x){return x.id===a.id;})) state.albums.push(a); });
+        save(); renderAlbums(); renderGallery(); toast('已导入 '+d.cards.length+' 张卡片');
+      }catch(err){ toast('导入失败：JSON 格式错误'); }
+    };
+    r.readAsText(f); e.target.value='';
+  });
+
+  // ---------- 详情弹窗 ----------
+  let detailId=null;
+  function openDetail(id){
+    const card=state.cards.find(function(c){return c.id===id;}); if(!card) return;
+    detailId=id;
+    const box=$('#modal-card'); box.innerHTML='';
+    const wrapped=document.createElement('div'); wrapped.style.width='300px';
+    const el=mountCard(card, wrapped);
+    el.style.width='300px';
+    box.appendChild(wrapped);
+    $('#m-name').textContent=card.name;
+    $('#m-meta').textContent=card.no+' · '+card.type+' · '+card.rarity+' · 镭射'+foilLabel(card.foil);
+    $('#m-hint').textContent='提示：鼠标在卡片上移动可看镭射流动；点击「翻面」看卡背。';
+    $('#modal').classList.add('show');
+  }
+  function closeDetail(){ $('#modal').classList.remove('show'); detailId=null; }
+  $('#m-close').addEventListener('click', closeDetail);
+  $('#modal').addEventListener('click', function(e){ if(e.target===$('#modal')) closeDetail(); });
+  $('#m-flip').addEventListener('click', function(){
+    const el=$('#modal-card .holo-card'); if(el) el.classList.toggle('is-flipped');
+  });
+  $('#m-copy').addEventListener('click', function(){
+    const card=state.cards.find(function(c){return c.id===detailId;}); if(!card) return;
+    copyOrShow(buildStandalone(card), '可分享 HTML：'+(card.name||'未命名'));
+  });
+  $('#m-png').addEventListener('click', function(){
+    const card=state.cards.find(function(c){return c.id===detailId;}); if(!card) return;
+    exportPNG(card);
+  });
+  $('#m-cover').addEventListener('click', function(){
+    const card=state.cards.find(function(c){return c.id===detailId;}); if(!card) return;
+    const album=state.albums.find(function(a){return a.id===state.activeAlbum;});
+    if(album){ album.coverId=card.id; save(); renderAlbums(); toast('已设为封面'); }
+  });
+  $('#m-del').addEventListener('click', function(){
+    if(!detailId) return;
+    if(!confirm('确定删除这张卡片？')) return;
+    state.cards=state.cards.filter(function(c){return c.id!==detailId;});
+    state.albums.forEach(function(a){ a.cardIds=a.cardIds.filter(function(id){return id!==detailId;});
+      if(a.coverId===detailId) a.coverId=a.cardIds[0]||null; });
+    save(); closeDetail(); renderAlbums(); renderGallery(); toast('已删除');
+  });
+
+  // ---------- 导出 PNG（canvas 复刻镭射：color-dodge + 流光）----------
+  function exportPNG(card){
+    const W=600,H=840,scale=2;
+    const cv=document.createElement('canvas'); cv.width=W*scale; cv.height=H*scale;
+    const x=cv.getContext('2d'); x.scale(scale,scale);
+    function round(clip){ x.beginPath();
+      const r=22; x.moveTo(r,0); x.arcTo(W,0,W,H,r); x.arcTo(W,H,0,H,r); x.arcTo(0,H,0,0,r); x.arcTo(0,0,W,0,r); x.closePath(); x.clip(); }
+    function drawBase(){
+      round();
+      const g=x.createLinearGradient(0,0,W,H); g.addColorStop(0,'#15131f'); g.addColorStop(1,'#0c0a16');
+      x.fillStyle=g; x.fillRect(0,0,W,H);
+    }
+    function drawArt(done){
+      if(card.art){ const im=new Image();
+        im.onload=function(){ const s=Math.max(W/im.width,H/im.height); const dw=im.width*s,dh=im.height*s;
+          x.drawImage(im,(W-dw)/2,(H-dh)/2,dw,dh); done(); };
+        im.onerror=done; im.src=card.art;
+      } else { const rg=x.createRadialGradient(W*0.3,H*0.2,0,W*0.3,H*0.2,W*0.8);
+        rg.addColorStop(0,card.primary); rg.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=rg; x.fillRect(0,0,W,H);
+        const rg2=x.createRadialGradient(W*0.8,H*0.9,0,W*0.8,H*0.9,W*0.8);
+        rg2.addColorStop(0,card.secondary); rg2.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=rg2; x.fillRect(0,0,W,H); done(); }
+    }
+    function drawFoil(){
+      x.save(); x.globalCompositeOperation='color-dodge'; x.globalAlpha=(card.intensity==null?0.85:card.intensity)*0.55;
+      if(x.createConicGradient){ const cg=x.createConicGradient(0,W/2,H/2);
+        for(let i=0;i<=6;i++) cg.addColorStop(i/6,'hsl('+(i*60)+',100%,65%)');
+        x.fillStyle=cg; x.fillRect(0,0,W,H); }
+      const lg=x.createLinearGradient(0,0,W,H);
+      lg.addColorStop(0,'rgba(255,255,255,0)'); lg.addColorStop(.5,'rgba(255,255,255,.28)'); lg.addColorStop(1,'rgba(255,255,255,0)');
+      x.globalCompositeOperation='overlay'; x.globalAlpha=0.5; x.fillStyle=lg; x.fillRect(0,0,W,H);
+      // glare
+      const rg=x.createRadialGradient(W*0.7,H*0.3,0,W*0.7,H*0.3,W*0.5);
+      rg.addColorStop(0,'rgba(255,255,255,.5)'); rg.addColorStop(1,'rgba(255,255,255,0)');
+      x.fillStyle=rg; x.fillRect(0,0,W,H); x.restore();
+    }
+    function drawText(){
+      x.textBaseline='top';
+      x.font='800 30px system-ui,sans-serif';
+      const grad=x.createLinearGradient(0,30,W,30); grad.addColorStop(0,'#fff'); grad.addColorStop(.5,card.primary); grad.addColorStop(1,'#fff');
+      x.fillStyle=grad; x.fillText(card.name||'未命名',18,16);
+      x.font='600 14px system-ui,sans-serif'; x.fillStyle='rgba(255,255,255,.85)';
+      x.textAlign='right'; x.fillText(card.no||'No.000',W-18,22); x.textAlign='left';
+      // bottom plate
+      x.fillStyle='rgba(0,0,0,.45)'; x.fillRect(0,H-92,W,92);
+      x.fillStyle=card.primary; x.fillRect(18,H-78,72,22);
+      x.fillStyle='#fff'; x.font='600 13px system-ui'; x.fillText(card.type||'角色',26,H-74);
+      x.fillStyle='#ffe9a8'; x.font='700 13px system-ui'; x.fillText(card.rarity||'普通',100,H-74);
+      if(card.flavor){ x.fillStyle='rgba(242,233,255,.92)'; x.font='12px system-ui';
+        wrapText(card.flavor,18,H-46,W-36,16); }
+    }
+    function wrapText(t,px,py,maxW,lh){ const words=t.split(''); let line='',yy=py;
+      for(let i=0;i<words.length;i++){ const test=line+words[i];
+        if(x.measureText(test).width>maxW && line){ x.fillText(line,px,yy); line=words[i]; yy+=lh; }
+        else line=test; } if(line) x.fillText(line,px,yy); }
+    drawBase(); drawArt(function(){ drawFoil(); drawText();
+      const fname=(card.name||'holo')+'.png';
+      let dataUrl=null;
+      try{ dataUrl=cv.toDataURL('image/png'); }
+      catch(err){ toast('导出失败：画布被跨域图片污染，请改用本地上传的卡面图'); return; }
+      if(!dataUrl){ toast('导出失败：画布无法导出'); return; }
+      tryDownload(dataUrl, fname);
+      openOutput({ title:'导出 PNG：'+fname, mode:'image', dataUrl:dataUrl, filename:fname,
+        hint:'若未自动下载，点「下载 PNG」；或直接右键图片 → 图片另存为。'
+           + '（内置预览面板常拦截自动下载，这是环境限制，非卡片本身问题。）' });
+    });
+  }
+
+  // ---------- Tab 切换 ----------
+  function switchTab(t){
+    if(t==='studio'){ $('#tab-studio').classList.add('active'); $('#tab-album').classList.remove('active');
+      $('#view-studio').style.display='block'; $('#view-album').style.display='none'; }
+    else { $('#tab-album').classList.add('active'); $('#tab-studio').classList.remove('active');
+      $('#view-studio').style.display='none'; $('#view-album').style.display='block'; renderAlbums(); renderGallery(); }
+  }
+  $('#tab-studio').addEventListener('click', function(){ switchTab('studio'); });
+  $('#tab-album').addEventListener('click', function(){ switchTab('album'); });
+
+  // ---------- 环境自检 ----------
+  (function(){
+    const clip=!!(navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext);
+    const chk=$('#env-check');
+    if(chk) chk.textContent='环境自检 — 本地存储：'+(LS_OK?'可用':'被禁用')
+      +' · 剪贴板：'+(clip?'可用':'受限')+' · 自动下载：可能被环境拦截（已内置兜底面板，不会丢结果）';
+    if(!LS_OK){
+      const w=$('#env-warn');
+      w.innerHTML='<b>⚠ 当前预览环境禁用了本地存储</b>：新增或修改的卡片只在本次会话内有效，刷新即丢失。'
+        +'要真正持久保存，任选其一 —— ① 卡册页点「导出卡册 JSON」备份数据；'
+        +'② 把 holo-card-studio.html 下载到本地后双击打开（本地打开时存储正常）；'
+        +'③ 用「复制本卡 HTML」把单卡导出成独立文件。';
+      w.style.display='';
+    }
+  })();
+
+  // ---------- 初始化 ----------
+  renderFilters();
+  renderPreview();
+  renderAlbums();
+  renderGallery();
+})();
+</script>
+</body>
+</html>

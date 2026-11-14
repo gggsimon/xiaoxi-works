@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GDI · 共轭净化动力学 · 可视化（两个入口）</title>
+<meta name="description" content="GDI（共轭净化动力学）可视化装置：三维轨迹场与 3D 分形两个入口，共用同一组控制方程，参数全开放。">
+<style>
+:root[data-theme="dark"]{
+  --bg:#0a0908; --bg2:#100e0b; --bg3:#16130f;
+  --panel:rgba(255,255,255,.038); --panel2:rgba(255,255,255,.065);
+  --line:rgba(201,165,92,.15); --line2:rgba(201,165,92,.34);
+  --tx:#ece7dd; --tx2:#a89e91; --tx3:#736758;
+  --gold:#c9a55c; --gold2:#e8c987; --blue:#7b8fc0; --plum:#a97ba0;
+}
+:root[data-theme="light"]{
+  --bg:#faf8f5; --bg2:#f4efe7; --bg3:#efe8dd;
+  --panel:rgba(139,94,60,.045); --panel2:rgba(139,94,60,.075);
+  --line:rgba(139,94,60,.17); --line2:rgba(139,94,60,.4);
+  --tx:#2a231c; --tx2:#6b5c4c; --tx3:#9c8d7c;
+  --gold:#8b5e3c; --gold2:#a97b4e; --blue:#4a628f; --plum:#8a5f80;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--tx);
+  font:15px/1.62 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  padding:0 0 64px;
+}
+.wrap{max-width:960px;margin:0 auto;padding:0 20px}
+.top{padding:22px 0 0}
+.top a{color:var(--tx2);text-decoration:none;font-size:12.5px;letter-spacing:.04em}
+.top a:hover{color:var(--gold2)}
+header{padding:34px 0 26px;border-bottom:1px solid var(--line)}
+.kicker{font-size:11.5px;letter-spacing:.22em;color:var(--tx3);text-transform:uppercase}
+h1{font-size:31px;line-height:1.24;letter-spacing:-.01em;margin:12px 0 0;font-weight:700}
+h1 em{font-style:normal;color:var(--gold2)}
+.lead{margin-top:14px;color:var(--tx2);font-size:14.5px;max-width:74ch}
+.lead b{color:var(--tx);font-weight:600}
+section{padding:30px 0 0}
+h2{font-size:13px;letter-spacing:.14em;color:var(--tx3);font-weight:600;text-transform:uppercase;margin-bottom:14px}
+/* 两个入口 */
+.entries{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:720px){.entries{grid-template-columns:1fr}}
+.entry{display:block;text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--line);
+  border-radius:14px;padding:20px 20px 18px;transition:.2s;position:relative;overflow:hidden}
+.entry:hover{border-color:var(--line2);background:var(--panel2);transform:translateY(-2px)}
+.entry .num{font-size:11px;letter-spacing:.2em;color:var(--gold);font-weight:600}
+.entry h3{font-size:19px;margin:9px 0 8px;font-weight:700;letter-spacing:-.005em}
+.entry p{color:var(--tx2);font-size:13.5px;line-height:1.68}
+.entry .tags{margin-top:13px;display:flex;flex-wrap:wrap;gap:6px}
+.entry .tags span{font-size:11px;color:var(--tx2);border:1px solid var(--line);border-radius:99px;padding:3px 9px}
+.entry .go{margin-top:15px;font-size:12.5px;color:var(--gold2);font-weight:600}
+.entry::after{content:"";position:absolute;inset:auto -30% -60% auto;width:190px;height:190px;border-radius:50%;
+  background:radial-gradient(circle,var(--line2),transparent 70%);opacity:.5;pointer-events:none}
+/* 方程 */
+.eqs{display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.eqs div{background:var(--bg2);padding:13px 15px}
+.eqs b{display:block;font-size:11px;letter-spacing:.1em;color:var(--gold);font-weight:600;margin-bottom:6px}
+.eqs code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;color:var(--tx);display:block;line-height:1.75;word-break:break-word}
+.eqs small{display:block;margin-top:6px;font-size:12px;color:var(--tx3);line-height:1.6}
+.note{margin-top:18px;color:var(--tx3);font-size:12.5px;line-height:1.75;border-left:2px solid var(--line2);padding-left:12px}
+footer{margin-top:36px;padding-top:20px;border-top:1px solid var(--line);color:var(--tx3);font-size:12px}
+footer a{color:var(--tx2);text-decoration:none}
+footer a:hover{color:var(--gold2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="../../index.html">← 玄同宇宙 · 作品总台</a></div>
+
+  <header>
+    <div class="kicker">研 · RES &nbsp;/&nbsp; GDI</div>
+    <h1>GDI · <em>共轭净化动力学</em></h1>
+    <p class="lead">
+      把一组控制方程写成 <b>可以亲手调的装置</b>。下面是两个入口 —— 它们共用同一套内核（本征阶数 N · 刚性衰减 k(N) · 相位自洽 θ(N) · 共轭势 GDIN = |Ψ|<sup>N</sup>），
+      一个看 <b>轨迹怎么走</b>，一个看 <b>结构长什么样</b>。
+    </p>
+  </header>
+
+  <section>
+    <h2>两个入口</h2>
+    <div class="entries">
+      <a class="entry" href="gdi-trace.html">
+        <div class="num">入口 01</div>
+        <h3>三维轨迹场</h3>
+        <p>把 90 条 Ψ 轨迹丢进三维相空间：横轴 A = 确定性（净化），纵轴 B = 歧义性（生成），竖轴 GDIN = |Ψ|<sup>N</sup>。
+           每条彩线螺旋沉降，触及 <b>0.206</b> 后重生、跳回 <b>e/4</b> 邻域 —— 关掉「重生」就回归死寂收敛。</p>
+        <div class="tags"><span>90 条轨迹</span><span>拖拽旋转</span><span>参数全开</span><span>存 PNG</span></div>
+        <div class="go">进入三维轨迹场 →</div>
+      </a>
+      <a class="entry" href="gdi-fractal.html">
+        <div class="num">入口 02</div>
+        <h3>3D 分形 · 泛化版</h3>
+        <p>同一组方程换个看法：迭代 84 次渲染成 <b>3D 分形</b>，分形幂 p 与扭转角 θ′ 可调（θ′ 可跟随 θ(N)）。
+           无 WebGL 的环境会自动退回左侧「相空间 Ψ 花园」，照样跑真实迭代动力学。</p>
+        <div class="tags"><span>3D 分形</span><span>迭代 84 次</span><span>分形幂 p</span><span>WebGL</span></div>
+        <div class="go">进入 3D 分形 →</div>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <h2>共用的内核 · 七条控制方程</h2>
+    <div class="eqs">
+      <div><b>01 迭代</b><code>Ψ<sub>n+1</sub> = k(N)·e<sup>iθ(N)</sup>·Ψ<sub>n</sub></code><small>单本征参数驱动的一步演化</small></div>
+      <div><b>02 刚性衰减</b><code>k(N) = 2<sup>−1/N</sup></code><small>每步整体减半</small></div>
+      <div><b>03 相位自洽</b><code>θ(N) = −π / (2N)</code><small>由 N 反解出的相位</small></div>
+      <div><b>04 共轭势</b><code>GDI<sub>N</sub> = |Ψ|<sup>N</sup> ≡ V</code><small>V<sub>n+1</sub> &lt; V<sub>n</sub> ⟺ 适配</small></div>
+      <div><b>05 重生</b><code>‖Ψ‖ &lt; 0.206 → r<sub>eq</sub> ≈ 0.808, +π/4</code><small>物理层外嵌，不是方程内的解</small></div>
+      <div><b>06 场景划分</b><code>封闭 S 常数 ⟋ 开放 S<sub>n+1</sub> = S<sub>n</sub> + ΔS</code><small>开放侧趋于环面</small></div>
+      <div><b>07 永恒循环</b><code>收敛 × 重生 = 永恒路过 e/4</code><small>平衡点不落在 e/4 上，只被反复路过</small></div>
+    </div>
+    <p class="note">
+      两个入口都是纯前端、离线可跑，不传任何数据到服务器；参数改动只发生在你这一侧。图形可导出 PNG 自行留档。
+    </p>
+  </section>
+
+  <footer>
+    <a href="../../index.html">← 回到作品总台</a> &nbsp;·&nbsp; GDI · 共轭净化动力学 · 可视化装置
+  </footer>
+</div>
+<script>
+(function () {
+  try {
+    var s = localStorage.getItem('xuantong_theme');
+    if (s) document.documentElement.setAttribute('data-theme', s);
+  } catch (e) { }
+  try {
+    var a = document.querySelectorAll('a[href^="gdi-"]');
+    for (var i = 0; i < a.length; i++) {
+      a[i].addEventListener('click', function () {
+        try { localStorage.setItem('xuantong_theme', document.documentElement.getAttribute('data-theme')); } catch (e) { }
+      });
+    }
+  } catch (e) { }
+})();
+</script>
+</body>
+</html>

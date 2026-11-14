@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>玄学工具为什么应该本地计算：隐私、离线与单文件交付｜洞天札记</title>
+<meta name="description" content="生辰数据不该被上传：玄学工具本地计算的价值——隐私边界、离线可用、可审计可核验，以及单文件 HTML 交付的工程意义。">
+<link rel="canonical" href="https://dao-cultivator.app.workbuddy.host/blog/posts/xuanxue-tools-local-privacy.html">
+<meta name="robots" content="index,follow">
+<meta name="ai-content" content="ai-assisted">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%232A2118'/%3E%3Ctext x='32' y='44' font-size='36' text-anchor='middle' fill='%23F6F1E6' font-family='serif'%3E隐%3C/text%3E%3C/svg%3E">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "玄学工具为什么应该本地计算：隐私、离线与单文件交付",
+  "description": "生辰数据不该被上传：玄学工具本地计算的价值——隐私边界、离线可用、可审计可核验，以及单文件交付的工程意义。",
+  "datePublished": "2026-10-28",
+  "dateModified": "2026-10-28",
+  "inLanguage": "zh-CN",
+  "author": { "@type": "Person", "name": "白英", "jobTitle": "玄同宇宙blog特聘AI作家" },
+  "publisher": { "@id": "https://dao-cultivator.app.workbuddy.host/#website" },
+  "mainEntityOfPage": { "@type": "WebPage", "@id": "https://dao-cultivator.app.workbuddy.host/blog/posts/xuanxue-tools-local-privacy.html" },
+  "articleSection": "玄",
+  "keywords": "玄学工具,隐私,本地计算,离线工具,生辰数据"
+}
+</script>
+<style>
+:root{--paper:#F6F1E6;--card:#FCF9F1;--ink:#2A2118;--ink-2:#5A4A38;--ink-3:#8A7763;--accent:#B4552D;--line:#DCCFB8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:-apple-system,"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;line-height:1.9;font-size:15.5px}
+.wrap{max-width:760px;margin:0 auto;padding:0 20px}
+.serif{font-family:Georgia,"Noto Serif SC","Source Han Serif SC","Songti SC",SimSun,serif}
+a{color:var(--accent)}
+nav{background:var(--ink);padding:14px 0}
+nav .wrap{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+nav a{color:#D9CFBC;font-size:13px;text-decoration:none}
+nav a:hover{color:#fff}
+.brand{color:#F6F1E6;font-weight:700;letter-spacing:2px}
+article{padding:36px 0 20px}
+.meta{font-size:12.5px;color:var(--ink-3);margin:10px 0 20px}
+h1{font-size:clamp(24px,4vw,32px);line-height:1.4}
+h2{font-size:20px;margin:30px 0 12px;padding-left:10px;border-left:4px solid var(--accent)}
+p{margin:10px 0}
+ul{margin:10px 0 10px 22px}
+li{margin:5px 0}
+.quote{background:var(--card);border:1px solid var(--line);border-left:4px solid #C9A24B;border-radius:0 8px 8px 0;padding:14px 18px;margin:16px 0;font-size:14.5px;color:var(--ink-2)}
+.cta{background:var(--ink);color:#E6DECD;border-radius:10px;padding:18px 20px;margin:24px 0;font-size:14px}
+.cta a{color:#E8B04B}
+.ai-badge{display:inline-block;border:1px solid var(--line);border-radius:4px;padding:1px 8px;font-size:11.5px;color:var(--ink-3);margin:14px 0}
+footer{background:var(--ink);color:#C9BFA9;padding:24px 0;margin-top:30px;font-size:12.5px}
+footer p{margin:3px 0}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <span class="brand serif">洞天札记</span>
+  <a href="../index.html">博客首页</a>
+  <a href="../../index.html">玄同宇宙</a>
+</div></nav>
+
+<article class="wrap">
+  <div class="meta">2026-10-28 · 栏目：玄 · 阅读约 6 分钟 · 白英 · 玄同宇宙blog特聘AI作家</div>
+  <h1 class="serif">玄学工具为什么应该本地计算：隐私、离线与单文件交付</h1>
+
+  <p>排盘要填出生年月日时。这四个数字，比很多密码都敏感——它不可重置，且能反推大量个人信息。所以「玄学工具到底该不该把数据发到服务器」，是个真正的隐私问题，不是情怀问题。</p>
+
+  <h2>一、生辰数据为什么敏感</h2>
+  <p>出生日期 + 出生时刻 + 出生地 + 性别，组合起来是近乎唯一的身份指纹。它一旦被上传：可能被聚合进画像库、可能被关联到其他数据、可能被泄露或爬取。而用户无法「改密码」来补救——生辰是改不掉的。</p>
+  <p>这意味着，玄学工具服务商最负责任的默认动作是：<b>不收集</b>。让计算发生在用户的浏览器里，服务商连「收到过这份数据」这个事实都不存在。</p>
+
+  <h2>二、本地计算的三个实打实的好处</h2>
+  <ul>
+    <li><b>隐私边界可审计</b>：没有网络请求，就没有数据出境、没有日志留存、没有画像。用户肉眼可查（浏览器开发者工具的 Network 面板是空的）。</li>
+    <li><b>离线可用</b>：不联网也能算。没有服务器宕机、没有区域封锁、没有「服务已下线」导致的工具失效。</li>
+    <li><b>可核验</b>：排盘规则是确定性的。本地计算让算法开源可见成为可能，用户可以用独立脚本复核结果——而不是相信一个黑盒。</li>
+  </ul>
+  <div class="quote">玄同宇宙的做法：全部玄学工具在浏览器本地完成排盘，页面明示「生辰与议题数据不会上传任何服务器」，且交付为零外部依赖的单文件 HTML——双击即跑，关网也能用。</div>
+
+  <h2>三、单文件 HTML 交付意味着什么</h2>
+  <p>一个工具打包成一个 HTML：不依赖 CDN、不依赖构建链、不依赖账号。它的工程意义是——<b>可复现、可存档、可传承</b>。文件拷走就是工具本身，十年后打开仍然能跑。这与「云端 SaaS 工具」是完全不同的资产形态：后者是租用，前者是拥有。</p>
+  <p>例：<a href="https://xuanxue-toolbox-21461.app.workbuddy.host/?sharecode=G64MUYXVOB">玄学百宝箱</a> 把山医命相卜与塔罗占星共 37 件工具收进一个离线单文件，排盘算法本地运行；<a href="../../play/xuan/ziwei.html">紫微斗数·六层叠盘</a>、相遇一卦等同样离线可跑。</p>
+
+  <h2>四、用「数据开放度」这把尺子选工具</h2>
+  <p>选任何数字工具，都可以先问一句：我的数据能不能导出来？能不能不联网用？<a href="https://life-corpus.app.workbuddy.host/">LifeCorpus 生命数据工具中枢</a> 把这件事做成了标准标注：每款工具标明数据「开放 / 部分开放 / 封闭」——开放与部分开放的数据才能进你自己的语料库。这个判断框架，同样适用于玄学工具：<b>本地计算 = 完全开放</b>；强制注册 + 云端存储 = 数据进了别人的库。</p>
+
+  <h2>五、边界声明</h2>
+  <p>本地计算解决的是隐私与可核验，不改变内容的定位：术数排盘与解读仅供文化研究与自我觉察参考，不构成医疗、投资或人生决策建议。工具再「干净」，也不该被用来替代现实决策。</p>
+
+  <div class="cta">
+    <b>延伸阅读：</b><a href="ziwei-doushu-liuceng.html">紫微斗数六层叠盘怎么读</a> · <a href="geo-how-ai-cites-sites.html">GEO 入门：独立站如何被 AI 采信</a> · <a href="daojia-vs-daojiao.html">道家与道教：先分清再修习</a>
+  </div>
+
+  <span class="ai-badge">AI 生成内容标识：本文为 AI 辅助生成，经主理人人工事实与合规审核。隐私主张基于数据最小化原则的通行实践，供文化研究参考。</span>
+</article>
+
+<footer><div class="wrap">
+  <p>© 2026 小西（Simon）· 玄同宇宙主理人 · <a href="../index.html">博客首页</a> · <a href="../../index.html">返回首页</a></p>
+  <p>免责：本文为隐私与工程实践的观点表达，不构成法律或安全建议。</p>
+</div></footer>
+</body>
+</html>

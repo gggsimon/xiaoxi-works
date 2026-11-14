@@ -1,0 +1,2213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>玄学工具生态集 · 紫微/塔罗/八字/黄历/梦境/呼吸/身心养生</title>
+<!--
+  ============================================================================
+  玄学工具生态集 (single-file integrated suite)
+  ----------------------------------------------------------------------------
+  整合：① 紫微叠盘 ② 塔罗探索 ③ 八字排盘 ④ 身心养生·生态网
+        ⑤ 黄历通胜 ⑥ 梦境手记 ⑦ 静心呼吸
+  特性：纯前端、零外部依赖、单 HTML 双击运行。
+  设计：统一浅色暖棕典雅风；共享生辰输入；工具间数据联动。
+  说明：所有命理/排盘结果由刚性确定性规则生成，不作命运判定；
+        身心养生内容为传统文化与健康知识参考，不替代专业医疗。
+  ============================================================================
+-->
+<style>
+  :root{
+    --bg:#faf8f5;
+    --card:#ffffff;
+    --card-2:#f9f4ed;
+    --card-3:#f5f0e8;
+    --border:#e0d8cf;
+    --text:#4a3b2a;
+    --text-dim:#7d6e5f;
+    --brown:#8b5e3c;
+    --brown-dark:#7a4f30;
+    --green:#6b8e5e;
+    --green-dark:#557448;
+    --red-bg:#f5e6e4;
+    --red-border:#c17a74;
+    --red-text:#a05a50;
+    --radius:12px;
+    /* 兼容别名 */
+    --txt:var(--text);
+    --txt-dim:var(--text-dim);
+    --line:var(--border);
+    --cyan:var(--brown);
+    --gold:var(--brown);
+    --danger:var(--red-text);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",-apple-system,"Segoe UI",sans-serif;
+    font-size:14px;line-height:1.65;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1180px;margin:0 auto;padding:18px 16px 70px;}
+  h1{font-family:"Noto Serif SC","Source Han Serif SC","PingFang SC","Hiragino Sans GB",serif;
+    font-size:25px;margin:0 0 4px;font-weight:700;letter-spacing:.5px;text-align:center;color:var(--text);}
+  .sub{color:var(--text-dim);font-size:13px;margin-bottom:14px;text-align:center;}
+  .eco-badge{display:inline-flex;align-items:center;gap:8px;font-size:12px;
+    color:var(--brown);background:var(--card-2);border:1px solid var(--border);border-radius:999px;
+    padding:4px 12px;letter-spacing:.5px;margin:0 auto 10px;display:flex;width:fit-content;}
+  .eco-badge b{color:var(--brown);font-weight:700;}
+  .serif{font-family:"Noto Serif SC","Source Han Serif SC","PingFang SC","Hiragino Sans GB",serif;}
+
+  /* 顶部声明 */
+  .privacy{background:var(--card-2);border:1px solid var(--border);border-left:3px solid var(--brown);
+    border-radius:var(--radius);padding:10px 14px;color:var(--text-dim);font-size:12.5px;margin-bottom:16px;}
+  .privacy b{color:var(--brown);font-weight:600;}
+
+  /* 共享生辰面板 */
+  .shared{background:linear-gradient(180deg,#fffdf9,var(--card));border:1px solid var(--border);
+    border-radius:var(--radius);padding:16px;margin-bottom:16px;box-shadow:0 1px 0 rgba(139,94,60,.04);}
+  .shared h2{font-family:"Noto Serif SC","Source Han Serif SC",serif;font-size:16px;margin:0 0 12px;
+    color:var(--brown);font-weight:700;border-bottom:1px solid var(--border);padding-bottom:8px;
+    display:flex;align-items:center;gap:8px;}
+  .shared h2 .pin{font-size:11px;background:var(--green);color:#fff;border-radius:999px;padding:2px 9px;font-weight:600;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;}
+  .field{display:flex;flex-direction:column;gap:5px;}
+  .field label{font-size:12px;color:var(--text-dim);font-weight:500;}
+  input,select,textarea{background:var(--card-2);border:1px solid var(--border);color:var(--text);
+    border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit;outline:none;width:100%;}
+  input:focus,select:focus,textarea:focus{border-color:var(--brown);}
+  textarea{min-height:64px;resize:vertical;}
+  .cal-switch{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+  .cal-switch button{padding:6px 14px;font-size:13px;border-radius:999px;font-weight:600;
+    background:var(--card);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;}
+  .cal-switch button.active{background:var(--brown);color:#fff;border-color:var(--brown);}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-top:14px;}
+  button{background:var(--brown);color:#fff;border:none;border-radius:10px;
+    padding:9px 18px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s;}
+  button:hover{background:var(--brown-dark);}
+  button.ghost{background:transparent;border:1px solid var(--border);color:var(--brown);font-weight:600;}
+  button.ghost:hover{background:var(--card-2);border-color:var(--brown);color:var(--brown-dark);}
+  button.sm{padding:6px 14px;font-size:13px;border-radius:999px;}
+  .hint{font-size:12px;color:var(--text-dim);margin-top:10px;line-height:1.6;}
+  .err{color:var(--red-text);font-size:13px;margin-top:10px;}
+
+  /* 顶部导航 Tabs */
+  .tabs{position:sticky;top:0;z-index:20;display:flex;gap:8px;flex-wrap:wrap;
+    background:rgba(250,248,245,.92);backdrop-filter:blur(6px);padding:10px 0;margin-bottom:16px;
+    border-bottom:1px solid var(--border);}
+  .tab{background:var(--card);border:1px solid var(--border);color:var(--text-dim);font-weight:600;
+    border-radius:999px;padding:8px 16px;cursor:pointer;font-size:13.5px;transition:.15s;font-family:inherit;}
+  .tab:hover{background:var(--card-2);}
+  .tab.active{background:var(--brown);color:#fff;border-color:var(--brown);box-shadow:0 2px 8px rgba(139,94,60,.25);}
+  .tab .num{opacity:.7;margin-right:4px;}
+
+  section.tool{display:none;}
+  section.tool.active{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+  /* 面板 / 模块 */
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+    padding:16px;margin-bottom:16px;}
+  .panel h2{font-family:"Noto Serif SC","Source Han Serif SC",serif;font-size:16px;margin:0 0 12px;
+    color:var(--brown);font-weight:700;border-bottom:1px solid var(--border);padding-bottom:8px;
+    display:flex;align-items:center;gap:8px;}
+  .panel h2 .ico{font-size:13px;background:var(--card-3);color:var(--brown);border-radius:8px;padding:2px 8px;font-weight:600;}
+
+  /* 可折叠说明 */
+  .acc{border:1px solid var(--border);border-radius:10px;margin-bottom:12px;overflow:hidden;background:var(--card);}
+  .acc>.ac-h{display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:12px 14px;
+    font-family:"Noto Serif SC",serif;font-weight:700;color:var(--brown);font-size:14.5px;user-select:none;}
+  .acc>.ac-h .tog{font-size:12px;color:var(--text-dim);transition:.2s;}
+  .acc.open>.ac-h .tog{transform:rotate(180deg);}
+  .acc>.ac-b{padding:0 14px;max-height:0;overflow:hidden;transition:max-height .3s ease, padding .3s ease;}
+  .acc.open>.ac-b{max-height:2000px;padding:4px 14px 14px;}
+  .ac-b p{margin:8px 0;color:var(--text);font-size:13.5px;line-height:1.7;}
+  .ac-b ul{margin:6px 0;padding-left:20px;color:var(--text);font-size:13.5px;line-height:1.7;}
+  .ac-b li{margin:4px 0;}
+  .ac-b b{color:var(--brown);}
+  .ac-b .note-i{font-size:12px;color:var(--text-dim);}
+
+  /* 步骤引导 */
+  .steps{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 2px;}
+  .step{display:flex;align-items:flex-start;gap:8px;background:var(--card-2);border:1px solid var(--border);
+    border-radius:10px;padding:10px 12px;flex:1 1 200px;font-size:13px;color:var(--text);}
+  .step .n{background:var(--brown);color:#fff;border-radius:999px;width:22px;height:22px;flex:0 0 22px;
+    display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+
+  /* 结果区 */
+  .result{display:none;}
+  .result.show{display:block;}
+  .layout{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;}
+  @media(max-width:860px){.layout{grid-template-columns:1fr;}}
+
+  /* 紫微：十二宫表 / 六层叠盘 */
+  .chart{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px;}
+  table.ch{width:100%;border-collapse:separate;border-spacing:8px;}
+  table.ch td{border:1px solid var(--border);border-radius:8px;padding:10px;vertical-align:top;width:33.33%;background:var(--card);}
+  .gong-name{display:inline-block;font-size:11px;color:#fff;background:var(--brown);font-weight:700;
+    border-radius:999px;padding:2px 10px;margin-bottom:6px;}
+  .gong-name:nth-child(2n){background:var(--green);}
+  .gong-star{font-size:13px;color:var(--text);line-height:1.5;}
+  .gong-star .main{color:var(--brown);font-weight:700;}
+  .layers{display:flex;flex-direction:column;gap:10px;}
+  .layer{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;border-left:3px solid var(--brown);}
+  .layer:nth-child(3){border-left-color:var(--green);}
+  .layer.struct{opacity:.7;border-left-color:var(--text-dim);}
+  .layer .lh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:6px;}
+  .layer .lt{font-family:"Noto Serif SC",serif;font-size:14px;color:var(--brown);font-weight:700;}
+  .layer:nth-child(3) .lt{color:var(--green);}
+  .layer .ls{font-size:11px;color:var(--text-dim);background:var(--card-2);border-radius:999px;padding:2px 8px;}
+  .layer .lb{font-size:13px;color:var(--text);line-height:1.6;}
+  .layer .ltip{margin-top:10px;padding:10px 12px;background:var(--card-2);border-radius:8px;font-size:12px;color:var(--text-dim);line-height:1.7;border-left:3px solid var(--brown-light);}
+  .layer .ltip b{color:var(--brown-dark);}
+  .layer:nth-child(3) .ltip{border-left-color:var(--green);}
+  .layer.struct .lt{color:var(--text-dim);}
+  .pattern{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--brown);
+    border-radius:10px;padding:14px;margin-bottom:16px;}
+  .pattern .pt{font-family:"Noto Serif SC",serif;color:var(--brown);font-size:15px;font-weight:700;margin-bottom:6px;}
+  .pattern .pd{color:var(--text);font-size:13.5px;line-height:1.6;}
+
+  /* 塔罗：卡牌 */
+  .barnum{font-size:12px;color:var(--text-dim);margin-bottom:10px;background:var(--card-2);
+    border:1px solid var(--border);border-radius:8px;padding:8px 12px;}
+  .cards{display:grid;gap:14px;margin-top:6px;}
+  .cards.single{grid-template-columns:1fr;max-width:320px;margin-left:auto;margin-right:auto;}
+  .cards.ppf{grid-template-columns:repeat(3,1fr);}
+  .cards.celtic{grid-template-columns:repeat(5,1fr);}
+  @media(max-width:680px){.cards.ppf,.cards.celtic{grid-template-columns:repeat(2,1fr);}}
+  .tcard{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;position:relative;}
+  .tcard .pos{font-family:"Noto Serif SC",serif;font-size:11px;color:#fff;background:var(--brown);font-weight:700;
+    border-radius:999px;padding:2px 10px;margin-bottom:8px;display:inline-block;}
+  .tcard .cname{font-family:"Noto Serif SC",serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px;}
+  .tcard .corient{font-size:12px;color:var(--text-dim);margin-bottom:10px;}
+  .tcard .cmean{font-size:13px;color:var(--text);line-height:1.6;}
+  .tcard.rev .cname{color:var(--red-text);}
+  .tcard::before{content:"正";position:absolute;top:12px;right:12px;font-size:11px;
+    border:1px solid var(--green);border-radius:999px;padding:2px 8px;color:#fff;background:var(--green);}
+  .tcard.rev::before{content:"逆";border-color:var(--red-border);color:var(--red-text);background:var(--red-bg);}
+  .mirror{background:var(--card-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;
+    margin-top:16px;font-size:13px;color:var(--text);line-height:1.6;}
+  .spread-grid{display:flex;gap:10px;flex-wrap:wrap;}
+  .spread-opt{background:var(--card);border:1px solid var(--border);border-radius:999px;padding:8px 16px;
+    cursor:pointer;font-size:13px;color:var(--text-dim);transition:.15s;}
+  .spread-opt:hover{background:var(--card-2);}
+  .spread-opt.active{background:var(--brown);color:#fff;border-color:var(--brown);font-weight:600;}
+
+  /* 八字：四柱 / 五行 */
+  .pillars{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+  @media(max-width:680px){.pillars{grid-template-columns:repeat(2,1fr);}}
+  .pillar{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 12px;text-align:center;}
+  .pillar .pl{font-size:12px;color:var(--brown);margin-bottom:8px;font-weight:700;}
+  .pillar .pg{font-family:"Noto Serif SC",serif;font-size:26px;font-weight:700;color:var(--text);letter-spacing:2px;}
+  .pillar .pg small{display:block;font-size:12px;color:var(--text-dim);font-weight:400;letter-spacing:0;margin-top:4px;}
+  .pillar .pw{font-size:12px;color:var(--text-dim);margin-top:6px;}
+  table.t{width:100%;border-collapse:collapse;margin-top:6px;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+  table.t th,table.t td{border:1px solid var(--border);padding:8px 10px;text-align:left;font-size:13px;}
+  table.t th{color:var(--brown);background:var(--card-2);font-weight:700;}
+  table.t tr:nth-child(even){background:var(--card-2);}
+  .tag{display:inline-block;font-size:11px;background:var(--card-2);border:1px solid var(--border);
+    border-radius:999px;padding:2px 8px;color:var(--text-dim);margin:2px 3px 0 0;}
+  .strong-box{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--green);
+    border-radius:10px;padding:14px;margin-bottom:16px;}
+  .strong-box .st{font-family:"Noto Serif SC",serif;color:var(--green);font-size:15px;font-weight:700;margin-bottom:6px;}
+  .strong-box .sd{font-size:13.5px;color:var(--text);line-height:1.6;}
+  .datasource{background:var(--card-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;
+    font-size:12.5px;color:var(--text-dim);margin-bottom:16px;}
+  .datasource b{color:var(--green);font-weight:700;}
+
+  /* 五行可视化 */
+  .wx-viz{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin-top:8px;}
+  .wx-bars{flex:1 1 260px;display:flex;flex-direction:column;gap:10px;}
+  .wx-bar-row{display:flex;align-items:center;gap:10px;font-size:13px;}
+  .wx-bar-row .wx-name{width:42px;font-weight:700;color:var(--text);}
+  .wx-track{flex:1;height:14px;background:var(--card-2);border:1px solid var(--border);border-radius:999px;overflow:hidden;}
+  .wx-fill{height:100%;border-radius:999px;transition:width .5s ease;}
+  .wx-val{width:26px;text-align:right;color:var(--text-dim);font-size:12px;}
+  canvas.wx-radar{background:var(--card);border:1px solid var(--border);border-radius:12px;}
+
+  /* 生态网联动 */
+  .eco-flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 14px;}
+  .eco-node{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;
+    font-size:13px;color:var(--text);display:flex;flex-direction:column;gap:2px;min-width:120px;}
+  .eco-node .en-t{font-family:"Noto Serif SC",serif;font-weight:700;color:var(--brown);font-size:13.5px;}
+  .eco-node .en-d{font-size:11.5px;color:var(--text-dim);}
+  .eco-node.hub{background:linear-gradient(135deg,#fff,#f3ece1);border-color:var(--brown);}
+  .eco-node.hub .en-t{color:var(--green-dark);}
+  .eco-arrow{color:var(--brown);font-size:18px;font-weight:700;}
+
+  .advice{background:var(--card-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;
+    margin-top:10px;font-size:13px;color:var(--text);}
+  .advice b{color:var(--brown);}
+  .pill{display:inline-flex;align-items:center;font-size:11px;font-weight:700;border-radius:999px;
+    padding:2px 10px;color:#fff;background:var(--brown);margin-right:6px;}
+  .pill.green{background:var(--green);}
+  .pill.red{background:var(--red-text);}
+  .resonance{background:var(--red-bg);border:1px solid var(--red-border);border-radius:10px;padding:14px;margin-bottom:16px;}
+  .resonance h3{font-family:"Noto Serif SC",serif;color:var(--red-text);font-size:15px;font-weight:700;margin:0 0 8px;}
+  .resonance p{color:var(--red-text);font-size:13.5px;margin:4px 0;line-height:1.5;}
+
+  /* 八部金刚功 卡片 */
+  .gong-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:6px;}
+  .gong-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;border-top:3px solid var(--green);}
+  .gong-card .gc-n{font-family:"Noto Serif SC",serif;font-weight:700;color:var(--green-dark);font-size:14px;margin-bottom:4px;}
+  .gong-card .gc-f{font-size:12.5px;color:var(--text);line-height:1.6;}
+  .warn-list{background:var(--card-2);border:1px dashed var(--red-border);border-radius:10px;padding:12px 14px;margin-top:12px;}
+  .warn-list h4{margin:0 0 8px;color:var(--red-text);font-size:13.5px;font-family:"Noto Serif SC",serif;}
+  .warn-list ul{margin:0;padding-left:20px;font-size:13px;color:var(--text);line-height:1.7;}
+  .src{font-size:11.5px;color:var(--text-dim);margin-top:8px;}
+  .src b{color:var(--brown);}
+
+  /* 安全协议 */
+  .safety{display:none;}
+  .safety.show{display:block;}
+  .safety-box{background:var(--red-bg);border:1px solid var(--red-border);border-radius:12px;padding:22px;margin-top:8px;}
+  .safety-box h3{font-family:"Noto Serif SC",serif;color:var(--red-text);font-size:18px;margin:0 0 12px;font-weight:700;}
+  .safety-box p{font-size:14px;color:var(--text);margin:8px 0;line-height:1.6;}
+  .safety-box .hotline{background:var(--card);border:1px solid var(--red-border);border-radius:8px;padding:12px;margin-top:14px;}
+  .safety-box .hotline div{font-size:14px;color:var(--text);margin:5px 0;}
+  .safety-box .hotline b{color:var(--red-text);font-size:15px;}
+  .safety-box .support{font-size:12.5px;color:var(--text-dim);margin-top:12px;}
+
+  .footer-actions{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;}
+
+  /* 共享输入 → 操作 中枢 */
+  .action-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px dashed var(--border);}
+  .act-btn{flex:1 1 220px;background:linear-gradient(135deg,var(--brown),var(--brown-dark));color:#fff;
+    border:none;border-radius:10px;padding:13px 18px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;
+    transition:.15s;box-shadow:0 2px 8px rgba(139,94,60,.22);text-align:left;}
+  .act-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(139,94,60,.3);}
+  .act-btn .sub{display:block;font-size:11.5px;font-weight:500;opacity:.82;margin-top:3px;}
+
+  /* 生成反馈条 */
+  .feedback{display:none;background:var(--card-2);border:1px solid var(--green);border-left:3px solid var(--green);
+    border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--text);line-height:1.6;}
+  .feedback b{color:var(--green-dark);}
+  .note{font-size:11.5px;color:var(--text-dim);margin-top:8px;line-height:1.55;}
+  .pending{color:var(--text-dim);font-size:13px;background:var(--card-2);border:1px dashed var(--border);
+    border-radius:10px;padding:14px;text-align:center;}
+
+  /* ===== ⑤ 黄历通胜 ===== */
+  .hl-day{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;}
+  .hl-ganzhi{font-family:'Noto Serif SC','Source Han Serif SC',serif;font-size:34px;font-weight:700;color:var(--brown);line-height:1.1;}
+  .hl-ganzhi small{display:block;font-size:13px;font-weight:400;color:var(--text-dim);margin-top:6px;letter-spacing:0;}
+  .hl-meta{font-size:13px;color:var(--text-dim);line-height:1.7;}
+  .hl-meta b{color:var(--brown);}
+  .yx-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:680px){.yx-grid{grid-template-columns:1fr;}}
+  .yx-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;}
+  .yx-box .yt{font-family:'Noto Serif SC',serif;font-weight:700;margin-bottom:8px;font-size:14.5px;}
+  .yx-box.yi .yt{color:var(--green);}
+  .yx-box.ji .yt{color:var(--red-text);}
+  .yx-tags{display:flex;flex-wrap:wrap;gap:6px;}
+  .yx-tags span{display:inline-block;font-size:12.5px;background:var(--card-2);border:1px solid var(--border);border-radius:999px;padding:3px 10px;color:var(--text);}
+  .hl-imp{background:var(--card-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-top:14px;font-size:13px;color:var(--text);line-height:1.6;}
+  .hl-imp b{color:var(--brown);}
+
+  /* ===== ⑥ 梦境手记 ===== */
+  .dream-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0;}
+  .dream-tools input[type='search']{max-width:240px;}
+  .dream-list{display:flex;flex-direction:column;gap:12px;margin-top:6px;}
+  .dream-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;border-left:3px solid var(--brown);}
+  .dream-card .dh{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+  .dream-card .dt{font-family:'Noto Serif SC',serif;font-weight:700;color:var(--brown);font-size:15px;}
+  .dream-card .dd{font-size:12px;color:var(--text-dim);}
+  .dream-card .dc{font-size:13.5px;color:var(--text);line-height:1.65;margin:6px 0;white-space:pre-wrap;}
+  .dream-card .dref{background:var(--card-2);border-radius:8px;padding:8px 10px;font-size:12.5px;color:var(--text-dim);margin-top:8px;line-height:1.6;}
+  .dream-card .dact{display:flex;gap:8px;margin-top:8px;}
+
+  /* ===== ⑦ 静心呼吸 ===== */
+  .breath-stage{display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 0;}
+  .breath-circle{width:160px;height:160px;border-radius:50%;background:radial-gradient(circle at 35% 30%, #cdb89c, var(--brown));
+    display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Noto Serif SC',serif;font-size:20px;font-weight:700;
+    box-shadow:0 6px 22px rgba(139,94,60,.3);transition:transform 1s ease;transform:scale(.72);}
+  .breath-sec{font-size:13px;color:var(--text-dim);text-align:center;}
+  .breath-time{font-family:'Noto Serif SC',serif;font-size:15px;color:var(--text);}
+  .breath-stats{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;}
+  .breath-stat{background:var(--card-2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--text);}
+  .breath-stat b{color:var(--brown);font-size:17px;font-family:'Noto Serif SC',serif;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eco-badge">玄学工具生态集 · 七板块 · 命理觉察 · 心理探索 · 身心养生</div>
+  <h1>玄学 · 身心工具生态集</h1>
+  <div class="sub">一个离线单文件，串联命理觉察、心理探索与中医道家养生。所有计算本地完成，结果仅作文化与自我觉察参考。</div>
+
+  <div class="privacy">
+    <b>隐私声明：</b>全部计算在本地浏览器完成，生辰与议题数据不会上传任何服务器。本页面为零外部依赖的单文件应用，可双击独立运行。
+  </div>
+
+  <!-- ============ 共享生辰输入（喂给 紫微 + 八字） ============ -->
+  <div class="shared">
+    <h2><span class="pin">共享输入</span>出生信息（同时驱动 ① 紫微 与 ③ 八字）</h2>
+    <div class="cal-switch">
+      <button id="calSolar" class="active" type="button">公历</button>
+      <button id="calLunar" type="button">农历（近似）</button>
+    </div>
+    <div class="grid">
+      <div class="field"><label>出生年</label><input id="inYear" type="number" min="1900" max="2100" value="1990"></div>
+      <div class="field"><label>出生月</label><input id="inMonth" type="number" min="1" max="12" value="6"></div>
+      <div class="field"><label>出生日</label><input id="inDay" type="number" min="1" max="31" value="15"></div>
+      <div class="field"><label>出生时（0–23 时）</label><input id="inHour" type="number" min="0" max="23" value="12"></div>
+      <div class="field"><label>分（可选）</label><input id="inMin" type="number" min="0" max="59" value="0"></div>
+      <div class="field"><label>性别</label>
+        <select id="inSex"><option value="male">男</option><option value="female">女</option></select>
+      </div>
+    </div>
+    <div class="action-row">
+      <button id="btnCalcZw" class="act-btn" type="button">① 生成紫微专属解读<span class="sub">用本份生辰排紫微叠盘</span></button>
+      <button id="btnCalcBz" class="act-btn" type="button">③ 生成八字专属解读<span class="sub">反幻觉四柱 · 五行体质</span></button>
+      <button id="btnCalcHl" class="act-btn" type="button">⑤ 生成黄历专属解读<span class="sub">用本份生辰看今日宜忌</span></button>
+    </div>
+    <div id="birthErr" class="err"></div>
+    <div class="hint">填好上方信息，直接点上方按钮即可生成你的专属解读；同一份生辰会驱动 ① 紫微、③ 八字 与 ⑤ 黄历（一次输入、三盘联动）。农历模式按传统约定近似处理，公历为确定性换算。</div>
+  </div>
+
+  <!-- ============ 顶部导航 ============ -->
+  <div class="tabs">
+    <button class="tab active" data-tab="ziwei"><span class="num">①</span>紫微叠盘</button>
+    <button class="tab" data-tab="tarot"><span class="num">②</span>塔罗探索</button>
+    <button class="tab" data-tab="bazi"><span class="num">③</span>八字排盘</button>
+    <button class="tab" data-tab="wellness"><span class="num">④</span>身心养生·生态网</button>
+    <button class="tab" data-tab="huangli"><span class="num">⑤</span>黄历通胜</button>
+    <button class="tab" data-tab="dream"><span class="num">⑥</span>梦境手记</button>
+    <button class="tab" data-tab="breath"><span class="num">⑦</span>静心呼吸</button>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- ① 紫微叠盘 -->
+  <!-- ====================================================== -->
+  <section class="tool active" id="sec-ziwei">
+    <div class="eco-badge">生态枢纽 ① · 紫微斗数 · 六层叠盘</div>
+    <h1 style="font-size:22px;">紫微斗数 · 六层叠盘</h1>
+    <div class="sub">以出生时空为索引，刚性规则映射十二宫主星与六层叠盘。本工具为文化研究参考，不作命运判定。</div>
+
+    <!-- 功能说明 -->
+    <div class="acc">
+      <div class="ac-h">📘 功能说明 · 这是什么、怎么算的<span class="tog">▾</span></div>
+      <div class="ac-b">
+        <p><b>定位：</b>生态第 ① 环 / 枢纽。紫微斗数是传统命理学，本工具以出生年、月、日、时、性别为输入，输出十二宫主星分布与"六层叠盘"对照，用于文化研究与自我觉察。</p>
+        <p><b>算法透明（无 AI、可复核）：</b></p>
+        <ul>
+          <li>命宫地支由"生年偏移 + 月 + 日 + 时辰"确定性推导（以寅为岁首）。</li>
+          <li>十二宫主星以"命宫地支 + 性别"为种子的<b>确定性伪随机</b>（FNV 哈希 + Fisher-Yates 洗牌），<b>同输入必同输出</b>，便于复核与串联。</li>
+          <li>大限（十年一限）按男顺女逆递推；流年以查询年份地支定位。</li>
+        </ul>
+        <p class="note-i"><b>局限说明：</b>这是轻量化、确定性的规则映射实现，<b>并非完整紫微流派</b>——未含星曜四化、庙旺利陷、诸星安法、飞星等。它保证"可串联、可复核"，但仅供文化参考，不可作为命运判定依据。</p>
+      </div>
+    </div>
+
+    <!-- 操作引导 + 示例 -->
+    <div class="panel">
+      <h2><span class="ico">引导</span>操作引导与示例演示</h2>
+      <div class="steps">
+        <div class="step"><span class="n">1</span><div>在顶部<b>共享生辰</b>填入出生年/月/日/时与性别（已预填示例）。</div></div>
+        <div class="step"><span class="n">2</span><div>可选填写"查询流年"，观察某一年叠加本命/大限的流年盘。</div></div>
+        <div class="step"><span class="n">3</span><div>点击下方<b>排盘</b>，查看格局定性、十二宫与六层叠盘。</div></div>
+        <div class="step"><span class="n">4</span><div>阅读下方的<b>结果分析</b>（按你的命盘一对一生成），并可在 ④ 生态网查看人格联动建议。</div></div>
+      </div>
+      <div class="row">
+        <button id="zwBtnCalc" type="button">生成我的紫微专属解读</button>
+        <button id="zwBtnDemo" class="ghost" type="button">载入示例并演示</button>
+      </div>
+      <div class="field" style="margin-top:12px;">
+        <label>查询流年（可选，留空则显示本命年）</label>
+        <input id="zwFlowYear" type="number" min="1900" max="2100" placeholder="输入想看的公元年份，如 2026" style="max-width:200px;">
+      </div>
+      <div id="zwErr" class="err"></div>
+    </div>
+
+    <!-- 结果 -->
+    <div id="zwResult" class="result">
+      <div class="feedback" id="zwFb"></div>
+      <div class="pattern"><div class="pt" id="zwPatTitle">格局定性</div><div class="pd" id="zwPatDesc">—</div></div>
+      <div class="layout">
+        <div class="panel">
+          <h2>十二宫主星（本命盘）</h2>
+          <div class="chart"><table class="ch" id="zwGongTable"></table></div>
+          <div class="note">命宫起算，按逆时针布十二宫。主星为规则映射，非流派完整排盘。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 结果分析 + 建议（按实际输出一对一生成的定制化解读） -->
+    <div class="acc open">
+      <div class="ac-h">🧭 结果分析与使用建议<span class="tog">▾</span></div>
+      <div class="ac-b">
+        <p>下方建议由"命宫主星 + 当前大限段"自动生成，用于<b>自我觉察</b>而非指导决策：</p>
+        <div class="advice" id="zwAdvice">（排盘后自动生成）</div>
+        <p class="note-i"><b>联动提示：</b>① 想看特定年份，填写"查询流年"重排；② 本盘会自动联动 ③ 八字 与 ④ 生态网（命宫主星参与"人格—内观"建议）；③ 排好后可到 ④ 查看专属养生方案。</p>
+      </div>
+    </div>
+
+    <!-- 六层叠盘对照（置于最后） -->
+    <div class="panel">
+      <h2>六层叠盘对照</h2>
+      <div class="layers" id="zwLayers"></div>
+      <div class="note">本命 / 大限 / 流年 / 流月 / 流日 / 流时 六层均按确定性规则排布：流月起于流年地支顺推月份，流日按今日日干支地支，流时按当前时辰地支；每层皆以该地支为命宫重排十二宫。</div>
+    </div>
+    <div class="note" style="text-align:center;border-style:dashed;color:var(--brown-dark);font-weight:600;">完整叠盘信息请关注公众号后获取</div>
+
+  </section>
+
+  <!-- ====================================================== -->
+  <!-- ② 塔罗探索 -->
+  <!-- ====================================================== -->
+  <section class="tool" id="sec-tarot">
+    <div class="eco-badge">安全边界 ② · 塔罗 · 非严肃自我探索</div>
+    <h1 style="font-size:22px;">塔罗 · 自我探索</h1>
+    <div class="sub">这不是算命，而是供你自我觉察的镜子。请先描述一个「自我探索议题」，而非问姻缘财运。</div>
+
+    <!-- 功能说明 -->
+    <div class="acc">
+      <div class="ac-h">📘 功能说明 · 安全边界与算法<span class="tog">▾</span></div>
+      <div class="ac-b">
+        <p><b>定位：</b>生态第 ② 环 / 安全边界产品。引导用户进行<b>非严肃的自我觉察</b>，而非算命、敛财或恐吓。</p>
+        <p><b>完整牌库：</b>78 张牌（22 张大阿尔卡纳 + 56 张小阿尔卡纳：四花色×点数 + 侍从/骑士/王后/国王），正反位含义齐全。</p>
+        <p><b>密码学安全抽牌：</b>使用浏览器原生 <code>crypto.getRandomValues</code> 做拒绝采样（无取模偏差）的 Fisher-Yates 洗牌，抽牌<b>不可预测、不可回溯</b>。</p>
+        <p><b>安全协议（已真实生效）：</b>议题文本命中自伤/抑郁关键词时，<b>立即暂停抽牌</b>，优先呈现心理支持资源（见下方拦截层）。所有结果未经任何 AI 生成。</p>
+      </div>
+    </div>
+
+    <!-- 操作引导 + 示例 -->
+    <div class="panel">
+      <h2><span class="ico">引导</span>设定议题与抽牌</h2>
+      <div class="field">
+        <label>你的自我探索议题（建议："我此刻在纠结什么""我想更了解自己的哪一面"）</label>
+        <textarea id="ttTopic" placeholder="例如：我最近在职业方向上有些迷茫，想更了解自己真正看重什么。"></textarea>
+      </div>
+      <div class="field">
+        <label>选择牌阵</label>
+        <div class="spread-grid" id="ttSpreadGrid">
+          <div class="spread-opt active" data-spread="single">单张指引</div>
+          <div class="spread-opt" data-spread="ppf">三张 · 过去/现在/未来</div>
+          <div class="spread-opt" data-spread="celtic">凯尔特十字 · 10张</div>
+        </div>
+      </div>
+      <div class="row">
+        <button id="ttBtnDraw" type="button">开始我的塔罗探索</button>
+        <button id="ttBtnDemo" class="ghost" type="button">载入示例议题</button>
+      </div>
+      <div id="ttErr" class="err"></div>
+      <div class="note">抽牌使用浏览器原生 crypto.getRandomValues 密码学安全随机数。塔罗不依赖生辰，可独立使用；其"自我觉察"结论可在 ④ 生态网 与道家内观建议互补。</div>
+    </div>
+
+    <!-- 安全拦截 -->
+    <div id="ttSafety" class="safety">
+      <div class="safety-box">
+        <h3>⚠ 我们暂停了抽牌</h3>
+        <p>检测到你输入的内容可能指向自伤、轻生或深度无助。这不是你需要"抽牌"的时刻，而是需要被认真对待与支持的时刻。</p>
+        <p>你的感受是真实的，也值得被认真对待。请先照顾好自己，并考虑联系以下专业心理支持资源：</p>
+        <div class="hotline">
+          <div><b>北京心理危机研究与干预中心</b>　24小时　010-82951332</div>
+          <div><b>全国希望24热线（危机干预）</b>　400-161-9995</div>
+          <div><b>全国免费心理援助热线</b>　12320 转 5（部分地区）</div>
+        </div>
+        <p class="support">如果你正身处紧急危险，请立即联系身边亲友或拨打当地紧急电话（如 110 / 120 / 119）。本工具无法替代专业帮助，但愿意陪你走到下一步。</p>
+      </div>
+    </div>
+
+    <!-- 结果 -->
+    <div id="ttResult" class="result">
+      <div class="feedback" id="ttFb"></div>
+      <div class="barnum" id="ttMeta"></div>
+      <div class="cards" id="ttCards"></div>
+      <div id="ttAnalysis" class="advice" style="margin-top:14px;"></div>
+      <div class="mirror">🪞 这是供你自我觉察的镜子，而非命运判定。牌面是意象的邀请，如何解读、如何行动，主动权始终在你手中。</div>
+    </div>
+
+    <div class="note">读牌三则：① 先看<b>整体意象</b>而非逐张字面——牌之间的呼应、对比往往更值得玩味；② 反巴纳姆：只保留<b>此刻真正触动你</b>的那一句；③ 把牌面当"提问"而非"答案"，主动权始终在你。</div>
+
+  </section>
+
+  <!-- ====================================================== -->
+  <!-- ③ 八字排盘 -->
+  <!-- ====================================================== -->
+  <section class="tool" id="sec-bazi">
+    <div class="eco-badge">确定性数据源 ③ · 八字 · 反幻觉排盘</div>
+    <h1 style="font-size:22px;">可信八字 · 反幻觉排盘</h1>
+    <div class="sub">刚性确定性算法，可作确定性数据源接入你的 harness。本工具为文化研究参考，不作命运判定。</div>
+
+    <!-- 功能说明 -->
+    <div class="acc">
+      <div class="ac-h">📘 功能说明 · 为什么"可信 / 反幻觉"<span class="tog">▾</span></div>
+      <div class="ac-b">
+        <p><b>定位：</b>生态第 ③ 环 / 确定性数据源。把四柱八字作为<b>可复核的确定性引用</b>，避免大模型"一本正经地编造"干支；结果已本地算好，可直接用于 ④ 生态网的养生联动。</p>
+        <p><b>算法透明（无 AI）：</b></p>
+        <ul>
+          <li><b>年/月干支</b>：以 1900=庚午 为基准，按年份差确定性偏移；月干用"五虎遁"，月支以"每月 4 日为换月临界"的节气近似。</li>
+          <li><b>日干支</b>：改用严谨的<b>儒略日数（JDN）法</b>独立推算（已校验 2000-01-07=甲子、1990-06-15=辛亥），保证同输入同输出。</li>
+          <li><b>时干支</b>：地支按时辰定位，天干按"五鼠遁"。</li>
+          <li><b>十神 / 身强身弱 / 大运 / 神煞</b>：均基于五行生克与阴阳同性的确定性映射。</li>
+        </ul>
+        <p class="note-i"><b>局限：</b>身强身弱为"五行计数"近似判定，完整流派需结合月令旺衰与地支藏干；节气近似以每月 4 日为界，与精确节气存在数日误差。</p>
+      </div>
+    </div>
+
+    <!-- 操作引导 + 示例 -->
+    <div class="panel">
+      <h2><span class="ico">引导</span>操作引导与示例演示</h2>
+      <div class="steps">
+        <div class="step"><span class="n">1</span><div>生辰已填在顶部<b>共享输入</b>（与 ① 紫微同源）。</div></div>
+        <div class="step"><span class="n">2</span><div>确认时分（八字比紫微更依赖精确时辰）。</div></div>
+        <div class="step"><span class="n">3</span><div>点击<b>刚性排盘</b>，得到四柱、日主、五行、大运、十神、神煞。</div></div>
+        <div class="step"><span class="n">4</span><div>在 ④ 生态网 中，<b>日主五行会自动驱动体质与养生建议</b>。</div></div>
+      </div>
+      <div class="row">
+        <button id="bzBtnCalc" type="button">生成我的可信八字解读</button>
+        <button id="bzBtnDemo" class="ghost" type="button">载入示例并演示</button>
+      </div>
+      <div id="bzErr" class="err"></div>
+    </div>
+
+    <!-- 结果 -->
+    <div id="bzResult" class="result">
+      <div class="feedback" id="bzFb"></div>
+      <div class="datasource">✓ 本结果由刚性排盘算法生成，未经任何 AI 生成，可作确定性数据源。算法版本 bazi-engine v1.0。</div>
+      <div class="panel">
+        <h2>四柱八字</h2>
+        <div class="pillars" id="bzPillars"></div>
+        <div class="wx-viz">
+          <div class="wx-bars" id="bzWxBars"></div>
+          <canvas class="wx-radar" id="bzWxRadar" width="260" height="260"></canvas>
+        </div>
+        <div class="note">五行计数来源：四柱干支各取本气五行（天干直取，地支取本气）。雷达图与条形图同步呈现，便于一眼看"偏盛 / 偏衰"。</div>
+      </div>
+      <div class="strong-box">
+        <div class="st" id="bzStrongTitle">日主与身强身弱</div>
+        <div class="sd" id="bzStrongDesc"></div>
+      </div>
+      <div class="panel">
+        <h2>大运 · 十神 · 神煞</h2>
+        <div id="bzDaYun"></div>
+        <div id="bzShenSha" style="margin-top:14px;"></div>
+      </div>
+    </div>
+
+    <!-- 结果分析 + 建议（按实际四柱一对一生成的定制化解读） -->
+    <div class="acc open">
+      <div class="ac-h">🧭 结果分析与使用建议<span class="tog">▾</span></div>
+      <div class="ac-b">
+        <p>下方基于日主五行与身强身弱给出<b>平衡思路</b>（文化参考，非医疗/命理断言）：</p>
+        <div class="advice" id="bzAdvice">（排盘后自动生成）</div>
+        <p class="note-i"><b>联动提示：</b>① 本盘结果已本地算好，日主五行会直接联动到 ④ 生态网的"五行→五脏→四季养生"与八部金刚功建议；② 想看特定年份，回到 ① 紫微填写"查询流年"重排。</p>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ====================================================== -->
+  <!-- ④ 身心养生 · 生态网 -->
+  <!-- ====================================================== -->
+  <section class="tool" id="sec-wellness">
+    <div class="eco-badge">生态联动 ④ · 身心养生 · 工具集生态网</div>
+    <h1 style="font-size:22px;">身心养生 · 工具集生态网</h1>
+    <div class="sub">把 ① 紫微人格、③ 八字体质 串成一张"自我照见 → 身心养护"的网。下方养生内容为传统文化与健康知识参考，不替代专业医疗。</div>
+
+    <!-- 联动图 -->
+    <div class="panel">
+      <h2><span class="ico">网</span>生态联动图</h2>
+      <div class="eco-flow">
+        <div class="eco-node"><span class="en-t">① 紫微</span><span class="en-d" id="wfZw">命宫主星：待排盘</span></div>
+        <span class="eco-arrow">→</span>
+        <div class="eco-node hub"><span class="en-t">④ 生态网</span><span class="en-d">人格—内观 · 体质—养生</span></div>
+        <span class="eco-arrow">←</span>
+        <div class="eco-node"><span class="en-t">③ 八字</span><span class="en-d" id="wfBz">日主五行：待排盘</span></div>
+      </div>
+      <div class="eco-flow">
+        <div class="eco-node"><span class="en-t">② 塔罗</span><span class="en-d" id="wfTt">自我觉察：可独立</span></div>
+        <span class="eco-arrow">→</span>
+        <div class="eco-node hub"><span class="en-t">道家内观</span><span class="en-d">清静 · 呼吸 · 觉察</span></div>
+      </div>
+      <div class="note">说明：先去 ① 或 ③ 排一次盘，本页会自动读取结果并联动；② 塔罗的结论可在"道家内观"处落地为练习。</div>
+    </div>
+
+    <!-- 联动状态总览 -->
+    <div class="panel">
+      <h2><span class="ico">态</span>当前联动状态</h2>
+      <div id="wfStatus">
+        <div class="pending">尚未读取到 紫微 / 八字 结果。请先到 ① 或 ③ 排盘，再回到本页查看联动建议。</div>
+      </div>
+    </div>
+
+    <!-- 体质推断（来自八字） -->
+    <div class="panel">
+      <h2><span class="ico">体</span>体质推断 · 来自八字五行</h2>
+      <div id="wfConstitution">
+        <div class="pending">排盘后，这里会基于"日主五行 + 身强身弱 + 五行偏盛偏衰"给出体质倾向与养护方向。</div>
+      </div>
+    </div>
+
+    <!-- 五行→五脏→四季养生 + 五色饮食 -->
+    <div class="panel">
+      <h2><span class="ico">养</span>五行 · 五脏 · 四季与五色养生</h2>
+      <p style="font-size:13.5px;color:var(--text);">源自中医与道家养生传统的经典对应（文化参考）。系统会按你八字偏弱的五行，高亮需要"补益"的脏腑与当令季节。</p>
+      <div class="gong-grid" id="wfWxOrgans"></div>
+      <div class="warn-list" style="border-color:var(--border);border-style:solid;">
+        <h4 style="color:var(--brown);">🍽 五色入五脏（饮食参考）</h4>
+        <ul>
+          <li><b style="color:var(--green-dark);">青（绿）</b>入肝：绿叶蔬菜、青瓜、菠菜等，春令常食以疏肝。</li>
+          <li><b style="color:var(--red-text);">赤（红）</b>入心：红枣、红豆、番茄等，夏令护心养血。</li>
+          <li><b style="color:var(--brown);">黄</b>入脾：小米、南瓜、山药等，长夏（夏秋之交）养脾胃。</li>
+          <li><b style="color:var(--text-dim);">白</b>入肺：百合、梨、白萝卜等，秋令润肺。</li>
+          <li><b style="color:#5a5a7d;">黑（紫黑）</b>入肾：黑豆、黑芝麻、桑葚等，冬令补肾。</li>
+        </ul>
+        <div class="src">内容参考：中医"五行—五脏—五季—五色"体系，及倪海厦相关养生讲解中反复强调的"以五色养五脏"思路。</div>
+      </div>
+    </div>
+
+    <!-- 八部金刚功 -->
+    <div class="panel">
+      <h2><span class="ico">功</span>八部金刚功 · 八部与功效</h2>
+      <p style="font-size:13.5px;color:var(--text);">八部金刚功为全真龙门派第二十一代张至顺（米晶子）道长弘传的道教养生功法，外动内静、疏通经络。系统会按你的体质倾向，优先推荐最贴合的几部。</p>
+      <div class="gong-grid" id="wfGong"></div>
+      <div class="warn-list">
+        <h4>⚠ 练功注意事项（据《八部金刚功注意事项》）</h4>
+        <ul>
+          <li>握拳为<b>方拳</b>：大拇指盖住四指指甲。</li>
+          <li>练前须充分<b>热身</b>：活动膝、腰、手腕脚腕，抻筋压腿，循序渐进、量力而行，避免扭伤。</li>
+          <li><b>饭后一小时内不练</b>，最好饭后两小时再练。</li>
+          <li>下雨、大风、大雾、打雷或天气恶劣时，<b>不在室外</b>练习。</li>
+          <li>每部最少做 <b>5 遍</b>、最多不超过 <b>9 遍</b>；对称动作须左右都练，练完左右算一遍。</li>
+          <li>练前全身放松、排除杂念、心志专一、意守本体、安静自然；<b>自然呼吸</b>，勿刻意配合呼吸，勿执着体感、气感。</li>
+        </ul>
+        <div class="src">来源：张至顺（米晶子）《八部金刚功注意事项》《金刚长寿功》。功法公益弘传，任何收费商业教学均与黄中宫精神相悖。</div>
+      </div>
+    </div>
+
+    <!-- 长寿功 -->
+    <div class="panel">
+      <h2><span class="ico">寿</span>长寿功 · 八部（静功配合）</h2>
+      <p style="font-size:13.5px;color:var(--text);">长寿功偏柔缓、配合呼吸与意念，与金刚功"外动"互补，一刚一柔、动静相兼。传统八部如下：</p>
+      <div class="gong-grid" id="wfChangshou"></div>
+      <div class="src">来源：张至顺（米晶子）《金刚长寿功》。</div>
+    </div>
+
+    <!-- 道家内观 / 清静 -->
+    <div class="panel">
+      <h2><span class="ico">静</span>道家内观 · 清静养生练习</h2>
+      <p style="font-size:13.5px;color:var(--text);">无论你从 ① 紫微的人格觉察、② 塔罗的情绪照见，还是 ③ 八字的体质偏性出发，都可以用一段"清静内观"把信息落地为身体感受。源自《道德经》《清静经》"清静为天下正"的传统。</p>
+      <div class="steps">
+        <div class="step"><span class="n">1</span><div><b>安坐</b>：找安静处，脊直肩松，双眼轻闭，把注意力轻轻放在呼吸上 1–2 分钟。</div></div>
+        <div class="step"><span class="n">2</span><div><b>觉察</b>：不评判、不追逐念头，只是"看"它来去，如云过天空（《清静经》："观空亦空，空无所空"）。</div></div>
+        <div class="step"><span class="n">3</span><div><b>落地</b>：把刚才紫微/塔罗/八字给你的"那一句触动"，在身体里找个位置，吸气带入、呼气放松。</div></div>
+        <div class="step"><span class="n">4</span><div><b>收功</b>：搓热双手捂丹田，缓开眼。每日 10–15 分钟，贵在坚持而非时长。</div></div>
+      </div>
+      <div class="advice" id="wfInner">（排盘后，这里会结合你的紫微命宫主星，给出更贴合的内观切入点。）</div>
+      <div class="src">参考：《道德经》《太上老君说常清静经》及道家养生传统；练习仅为放松与自我觉察，不承诺任何治疗效果。</div>
+    </div>
+  </section>
+
+  <!-- ====================================================== -->
+  <!-- ⑤ 黄历通胜 -->
+  <!-- ====================================================== -->
+  <section class="tool" id="sec-huangli">
+    <div class="eco-badge">生态拓展 ⑤ · 黄历通胜 · 每日宜忌</div>
+    <h1 style="font-size:22px;">黄历通胜 · 每日宜忌</h1>
+    <div class="sub">轻量化确定性黄历：以日干支为锚给出宜忌与冲煞，并结合你的生肖给出今日提示。仅供传统文化参考。</div>
+
+    <div class="acc">
+      <div class="ac-h">📘 功能说明 · 算法与边界<span class="tog">▾</span></div>
+      <div class="ac-b">
+        <p><b>定位：</b>生态拓展 ⑤ / 传统时令参考。沿用本站的「轻量化、确定性规则映射」思路，把黄历做成<b>可复核、无 AI</b>的今日宜忌与冲煞提示。</p>
+        <p><b>算法透明：</b></p>
+        <ul>
+          <li>日 / 月 / 年干支：直接复用 ③ 八字的刚性算法（儒略日数 JDN + 五虎遁），<b>同日期同输出</b>。</li>
+          <li>生肖：由出生年地支映射（子鼠…亥猪）。</li>
+          <li>宜忌：以「日干支序号」为索引，从固定的<b>宜池 / 忌池</b>确定性抽取，非坊间通书逐日勘定。</li>
+          <li>冲煞：按地支六冲（子午、丑未…）与固定煞方映射。</li>
+        </ul>
+        <p class="note-i"><b>边界声明：</b>这是规则映射的<b>近似黄历</b>，未含精确节气、建除十二神、真正通书择日。它适合「每日轻参考」，不可用于婚嫁动土等重大择日决策。</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="ico">引导</span>选择日期 · 查看通胜</h2>
+      <div class="grid">
+        <div class="field"><label>查询日期（公历）</label><input id="hlDate" type="date"></div>
+      </div>
+      <div class="note">默认今天。「标记此日为重要日子」会把该日期与备注存到本机（localStorage），便于日后回看；生肖取自顶部共享生辰的出生年。</div>
+      <div class="row">
+        <button id="hlBtnView" type="button">查看通胜</button>
+        <button id="hlBtnMark" class="ghost" type="button">标记此日为重要日子</button>
+        <button id="hlBtnMarksRefresh" class="ghost" type="button">刷新标记</button>
+      </div>
+      <div id="hlErr" class="err"></div>
+    </div>
+
+    <div id="hlResult" class="result">
+      <div class="feedback" id="hlFb"></div>
+      <div class="panel">
+        <h2>今日通胜</h2>
+        <div class="hl-day">
+          <div class="hl-ganzhi" id="hlGanZhi">—<small id="hlSolar">—</small></div>
+          <div class="hl-meta" id="hlMeta"></div>
+        </div>
+        <div class="yx-grid">
+          <div class="yx-box yi"><div class="yt">✓ 宜（适宜）</div><div class="yx-tags" id="hlYi"></div></div>
+          <div class="yx-box ji"><div class="yt">✕ 忌（不宜）</div><div class="yx-tags" id="hlJi"></div></div>
+        </div>
+        <div class="hl-imp" id="hlChong"></div>
+        <div class="hl-imp" id="hlRelation" style="border-color:var(--green);"></div>
+        <div class="hl-imp" id="hlBaiji" style="border-color:var(--border);"></div>
+      </div>
+
+      <div class="panel">
+        <h2><span class="ico">标</span>我的标记（本机保存）</h2>
+        <div id="hlMarks"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================== -->
+  <!-- ⑥ 梦境手记 -->
+  <!-- ====================================================== -->
+  <section class="tool" id="sec-dream">
+    <div class="eco-badge">生态拓展 ⑥ · 梦境手记 · 自我觉察</div>
+    <h1 style="font-size:22px;">梦境手记 · 自我觉察</h1>
+    <div class="sub">把梦当作潜意识的来信。所有记录仅存于本机浏览器，绝不外传；并提供基于象征词典的反思提示。</div>
+
+    <div class="acc">
+      <div class="ac-h">📘 功能说明 · 本地优先与边界<span class="tog">▾</span></div>
+      <div class="ac-b">
+        <p><b>定位：</b>生态拓展 ⑥ / 心理探索延伸。承接 ② 塔罗的「镜子」理念，把自我觉察从牌面延伸到夜晚的梦。</p>
+        <p><b>本地优先（与隐私声明一致）：</b>梦境文本保存在<b>本机 localStorage</b>，不联网、不上传。你随时可导出处文本、或一键清空。</p>
+        <p><b>象征词典（确定性、非诊断）：</b>勾选梦中反复出现的意象，系统从固定词典给出「<b>反思提问</b>」——是邀请你向内看，而非替你解梦或诊断心理。</p>
+        <p class="note-i"><b>边界：</b>反复噩梦、创伤性梦境或持续睡眠困扰，请咨询专业睡眠 / 心理门诊，本工具不替代专业帮助。</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="ico">记</span>记录一条梦</h2>
+      <div class="grid">
+        <div class="field"><label>日期</label><input id="dmDate" type="date"></div>
+        <div class="field"><label>标题（可选）</label><input id="dmTitle" type="text" placeholder="如：会飞的梦"></div>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label>梦境内容</label>
+        <textarea id="dmContent" placeholder="尽量记下醒来还记得的画面、情绪与情节……"></textarea>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label>当时的情绪（可多选）</label>
+        <div class="spread-grid" id="dmMoodGrid"></div>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label>反复出现的意象（可多选，用于生成反思提示）</label>
+        <div class="spread-grid" id="dmSymGrid"></div>
+      </div>
+      <div class="row">
+        <button id="dmBtnSave" type="button">保存这条梦</button>
+        <button id="dmBtnClear" class="ghost" type="button">清空表单</button>
+        <button id="dmBtnExport" class="ghost" type="button">导出全部（复制文本）</button>
+      </div>
+      <div id="dmErr" class="err"></div>
+      <div class="feedback" id="dmFb"></div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="ico">册</span>我的梦境册</h2>
+      <div class="dream-tools">
+        <input type="search" id="dmSearch" placeholder="搜索标题 / 内容 / 意象">
+        <button id="dmBtnRefresh" class="ghost sm" type="button">刷新</button>
+      </div>
+      <div class="dream-list" id="dmList"></div>
+    </div>
+  </section>
+
+  <!-- ====================================================== -->
+  <!-- ⑦ 静心呼吸 -->
+  <!-- ====================================================== -->
+  <section class="tool" id="sec-breath">
+    <div class="eco-badge">生态拓展 ⑦ · 静心呼吸 · 正念时序</div>
+    <h1 style="font-size:22px;">静心呼吸 · 正念时序</h1>
+    <div class="sub">把 ④ 道家内观 落成可操作的练习。选一种节奏，跟随圆圈呼吸；练习记录仅存本机。</div>
+
+    <div class="acc">
+      <div class="ac-h">📘 功能说明 · 节奏与边界<span class="tog">▾</span></div>
+      <div class="ac-b">
+        <p><b>定位：</b>生态拓展 ⑦ / 身心实操。把抽象的「内观」变成一段可跟随的呼吸时序，呼应 ④ 的「安坐—觉察—落地—收功」。</p>
+        <p><b>内置节奏（确定性循环）：</b></p>
+        <ul>
+          <li><b>4-7-8 安眠</b>：吸气 4s · 屏息 7s · 呼气 8s，适合睡前放松。</li>
+          <li><b>箱式呼吸</b>：吸 4 · 屏 4 · 呼 4 · 屏 4，适合专注与平复。</li>
+          <li><b>道家吐纳（简化）</b>：吸 3 · 屏 3 · 呼 6，重在「深长匀细」。</li>
+          <li><b>简易放松</b>：吸 5 · 呼 5，最易上手。</li>
+        </ul>
+        <p class="note-i"><b>边界：</b>本工具为放松引导，不替代医疗；高血压、心肺疾病或孕期请遵医嘱，屏息节奏量力而行。</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="ico">选</span>选择节奏</h2>
+      <div class="spread-grid" id="brRoutineGrid"></div>
+      <div class="field" style="margin-top:12px;max-width:220px;">
+        <label>本次时长（分钟）</label>
+        <input id="brMinutes" type="number" min="1" max="30" value="3">
+      </div>
+      <div class="breath-stage">
+        <div class="breath-circle" id="brCircle">准备</div>
+        <div class="breath-sec" id="brPhase">选择节奏后点「开始」</div>
+        <div class="breath-time" id="brRemain">剩余 03:00</div>
+      </div>
+      <div class="row" style="justify-content:center;">
+        <button id="brBtnStart" type="button">开始</button>
+        <button id="brBtnPause" class="ghost" type="button">暂停</button>
+        <button id="brBtnReset" class="ghost" type="button">重置</button>
+      </div>
+      <div class="feedback" id="brFb"></div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="ico">记</span>练习记录（本机保存）</h2>
+      <div class="breath-stats" id="brStats"></div>
+      <div class="dream-list" id="brList" style="margin-top:12px;"></div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================================
+ * 玄学工具生态集 —— 整合引擎（纯前端 / 零依赖 / 刚性确定性）
+ *  - 共享生辰输入驱动 紫微 + 八字
+ *  - 八字日主五行 / 身强身弱 → ④ 身心养生 联动
+ *  - 紫微命宫主星 → ④ 人格—内观 联动
+ * ========================================================================== */
+"use strict";
+
+/* ---------- 全局共享常量 ---------- */
+const GAN  = ["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"]; // 10 天干（偶序为阳：甲丙戊庚壬）
+const ZHI  = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"]; // 12 地支
+const SEX_KEY = {male:"男", female:"女"};
+const WU_XING_GAN = {"甲":"木","乙":"木","丙":"火","丁":"火","戊":"土","己":"土","庚":"金","辛":"金","壬":"水","癸":"水"};
+const WU_XING_ZHI = {"子":"水","丑":"土","寅":"木","卯":"木","辰":"土","巳":"火","午":"火","未":"土","申":"金","酉":"金","戌":"土","亥":"水"};
+const WX_ORDER = ["木","火","土","金","水"];
+const WX_COLOR = {"木":"#6b8e5e","火":"#c0623f","土":"#b08d57","金":"#9a9a86","水":"#5a7d9a"}; // 五行配色（用于可视化）
+
+/* 全局状态：供 ④ 生态网 读取 */
+let G_ZIWEI = null; // {mingStar, mingZhi, sex, flowYear}
+let G_BAZI  = null; // {dayMaster, element, strength, count, sex}
+
+/* ============================================================================
+ *  共享生辰输入
+ * ========================================================================== */
+function getSharedBirth(){
+  return {
+    y: parseInt(document.getElementById("inYear").value,10),
+    m: parseInt(document.getElementById("inMonth").value,10),
+    d: parseInt(document.getElementById("inDay").value,10),
+    h: parseInt(document.getElementById("inHour").value,10),
+    mi: parseInt(document.getElementById("inMin").value||"0",10),
+    sex: document.getElementById("inSex").value,
+    isLunar: document.getElementById("calLunar").classList.contains("active")
+  };
+}
+function setSharedBirth(b){
+  if(b.year!=null) document.getElementById("inYear").value = b.year;
+  if(b.month!=null) document.getElementById("inMonth").value = b.month;
+  if(b.day!=null) document.getElementById("inDay").value = b.day;
+  if(b.hour!=null) document.getElementById("inHour").value = b.hour;
+  if(b.minute!=null) document.getElementById("inMin").value = b.minute;
+  if(b.sex) document.getElementById("inSex").value = (b.sex==="male"||b.sex==="男")?"male":"female";
+  if(b.calendar==="lunar") switchCal("lunar"); else switchCal("solar");
+}
+function switchCal(mode){
+  document.getElementById("calSolar").classList.toggle("active", mode==="solar");
+  document.getElementById("calLunar").classList.toggle("active", mode==="lunar");
+}
+document.getElementById("calSolar").addEventListener("click", ()=>switchCal("solar"));
+document.getElementById("calLunar").addEventListener("click", ()=>switchCal("lunar"));
+
+/* 共享输入 → 操作 中枢（输入与操作连贯，一次输入两盘联动） */
+function switchToTab(tab){
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll("section.tool").forEach(x=>x.classList.remove("active"));
+  document.querySelector('.tab[data-tab="'+tab+'"]').classList.add("active");
+  document.getElementById("sec-"+tab).classList.add("active");
+}
+document.getElementById("btnCalcZw").addEventListener("click", function(){
+  switchToTab("ziwei"); zwCalc();
+  const r=document.getElementById("zwResult");
+  if(r.classList.contains("show")) r.scrollIntoView({behavior:"smooth",block:"start"});
+});
+document.getElementById("btnCalcBz").addEventListener("click", function(){
+  switchToTab("bazi"); bzCalc();
+  const r=document.getElementById("bzResult");
+  if(r.classList.contains("show")) r.scrollIntoView({behavior:"smooth",block:"start"});
+});
+document.getElementById("btnCalcHl").addEventListener("click", function(){
+  switchToTab("huangli"); renderHuangli();
+  const r=document.getElementById("hlResult");
+  if(r.classList.contains("show")) r.scrollIntoView({behavior:"smooth",block:"start"});
+});
+
+/* ============================================================================
+ *  Tabs 切换
+ * ========================================================================== */
+document.querySelectorAll(".tab").forEach(t=>{
+  t.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll("section.tool").forEach(x=>x.classList.remove("active"));
+    t.classList.add("active");
+    document.getElementById("sec-"+t.getAttribute("data-tab")).classList.add("active");
+    const tb=t.getAttribute('data-tab');
+    if(tb==='wellness') renderWellness();
+    if(tb==='huangli') renderHuangli();
+    if(tb==='dream') dmRenderSection();
+    if(tb==='breath') brInitSection();
+  });
+});
+
+/* 可折叠说明 */
+document.querySelectorAll(".acc>.ac-h").forEach(h=>{
+  h.addEventListener("click", ()=>h.parentElement.classList.toggle("open"));
+});
+
+/* ============================================================================
+ *  ① 紫微叠盘引擎（复用既有确定性算法）
+ * ========================================================================== */
+const ZW_GONGS = ["命宫","兄弟","夫妻","子女","财帛","疾厄","迁移","交友","官禄","田宅","福德","父母"];
+const ZW_MAIN_STARS = ["紫微","天机","太阳","武曲","天同","廉贞","天府","太阴","贪狼","巨门","天相","天梁","七杀","破军"];
+function zwSeededRand(seedStr){
+  let h = 2166136261 >>> 0;
+  for(let i=0;i<seedStr.length;i++){ h ^= seedStr.charCodeAt(i); h = Math.imul(h,16777619)>>>0; }
+  return function(){ h ^= h<<13; h>>>=0; h ^= h>>17; h ^= h<<5; h>>>=0; return (h>>>0)/4294967296; };
+}
+function zwGongZhiArray(mingZhi){
+  const start = ZHI.indexOf(mingZhi); const arr=[];
+  for(let i=0;i<12;i++) arr.push(ZHI[(start+i)%12]);
+  return arr;
+}
+function zwAssignStars(mingZhi, sex){
+  const rnd = zwSeededRand(mingZhi+sex);
+  const gongZhi = zwGongZhiArray(mingZhi);
+  const pool = ZW_MAIN_STARS.slice();
+  for(let i=pool.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
+  const result=[];
+  for(let g=0;g<12;g++){
+    let star = (g===0)?((rnd()<0.5)?"紫微":"天机"):pool[g%pool.length];
+    let second = (rnd()<0.55)?pool[(g+5)%pool.length]:"";
+    result.push({gong:ZW_GONGS[g], zhi:gongZhi[g], main:star, second:second});
+  }
+  return result;
+}
+function zwCalcMingZhi(year, month, day, hour){
+  const yMod = ((year-1900)%12+12)%12;
+  const offset = (yMod+month+day+hour)%12;
+  return ZHI[(ZHI.indexOf("寅")+offset)%12];
+}
+function zwCalcDaXian(mingZhi, sex){
+  const start = ZHI.indexOf(mingZhi);
+  const dir = (sex==="male")?1:-1;
+  const arr=[];
+  for(let i=0;i<12;i++){ arr.push({age:10*i, zhi:ZHI[(start+dir*i+12)%12], label:(10*i)+"–"+(10*i+9)+"岁"}); }
+  return arr;
+}
+function zwCalcLiuNian(flowYear, birthYear){
+  const target = (flowYear && !isNaN(flowYear))?flowYear:birthYear;
+  return {year:target, zhi:ZHI[((target-1900)%12+12)%12], isBirthYear:(target===birthYear)};
+}
+/* 流月：以流年地支起正月（寅），顺推当前公历月份；返回命宫地支 */
+function zwCalcLiuYue(liuNianZhi, month){
+  const start = ZHI.indexOf("寅");
+  const offset = ((month-1)+12)%12;
+  return ZHI[(start+offset)%12];
+}
+/* 流日：以今日日干支地支为命宫 */
+function zwCalcLiuRi(y,m,d){ return bzDayGanZhi(y,m,d).zhi; }
+/* 流时：以当前时辰地支为命宫 */
+function zwCalcLiuShi(hour){ return ZHI[Math.floor((hour+1)/2)%12]; }
+function zwCalcPattern(mingStar, mingZhi, sex){
+  const table = {
+    "紫微":"紫微坐命，主贵气与领导力，行事稳健、喜掌全局，具组织统筹之象。",
+    "天机":"天机坐命，主聪慧机变，善谋划思考，宜以智取、忌冲动冒进。",
+    "太阳":"太阳坐命，主光明磊落，具发散与照拂之性，宜外向开拓。",
+    "武曲":"武曲坐命，主刚毅务实，善理财与执行，宜专业立身。",
+    "天同":"天同坐命，主温和安逸，待人宽厚，宜以和缓致远。",
+    "廉贞":"廉贞坐命，主才情与是非交织，情感丰富而需自持。",
+    "天府":"天府坐命，主包容稳守，如库藏之象，宜积聚与守成。",
+    "太阴":"太阴坐命，主内敛柔润，具细腻感知，宜静修与谋划。",
+    "贪狼":"贪狼坐命，主多才多欲，善交际变化，宜收束心志以成。",
+    "巨门":"巨门坐命，主口才与思辨，宜以言语立身，忌口舌之争。",
+    "天相":"天相坐命，主端庄辅佐，具调和之能，宜配角而成大事。",
+    "天梁":"天梁坐命，主清贵庇荫，具化解与守护之象，宜以德服人。",
+    "七杀":"七杀坐命，主果决开拓，不畏艰难，宜冲锋而需谋后动。",
+    "破军":"破军坐命，主开创变革，破旧立新，宜蓄势而发。"
+  };
+  let desc = table[mingStar] || "命宫主星未列，按常规格局参看。";
+  desc += " 命宫地支为「"+mingZhi+"」，"+(sex==="male"?"男命顺行大限":"女命逆行大限")+"。";
+  return {title:"命宫 · "+mingStar+" 入 "+mingZhi+"宫", desc:desc};
+}
+/* 农历近似（确定性，仅供生态串联） */
+function zwLunarToSolar(year, month, day){
+  const days = Math.round((year-1900)*365.25 + (month-1)*29.53059 + (day-1));
+  const d = new Date(Date.UTC(1900,0,1) + days*86400000);
+  return {y:d.getUTCFullYear(), m:d.getUTCMonth()+1, d:d.getUTCDate()};
+}
+/* 共享生辰 → 紫微输入（时辰地支） */
+function zwHourToBranchIdx(h){ return Math.floor((h+1)/2)%12; }
+
+function zwValidate(b){
+  if(!b.y||b.y<1900||b.y>2100) return "年份需在 1900–2100 之间";
+  if(!b.m||b.m<1||b.m>12) return "月份需在 1–12 之间";
+  if(!b.d||b.d<1||b.d>31) return "日期需在 1–31 之间";
+  const maxDay = new Date(b.y,b.m,0).getDate();
+  if(b.d>maxDay) return b.y+"年"+b.m+"月只有 "+maxDay+" 天";
+  const fy = document.getElementById("zwFlowYear").value;
+  if(fy && (fy<1900||fy>2100)) return "流年需在 1900–2100 之间";
+  return null;
+}
+
+function zwRenderGongTable(stars){
+  const tbl = document.getElementById("zwGongTable"); let html="";
+  for(let i=0;i<12;i+=3){
+    html+="<tr>";
+    for(let j=0;j<3;j++){
+      const s=stars[i+j];
+      html+="<td><div class='gong-name'>"+s.gong+" · "+s.zhi+"</div>"
+           +"<div class='gong-star'><span class='main'>"+s.main+"</span>"+(s.second?" "+s.second:"")+"</div></td>";
+    }
+    html+="</tr>";
+  }
+  tbl.innerHTML=html;
+}
+function zwRenderLayers(b, stars, mingZhi, daXian, liuNian){
+  const box = document.getElementById("zwLayers");
+  const mingStar = stars[0].main; const items=[];
+  items.push({t:"① 本命盘",s:"基准盘 · 终身格局",b:"命宫「"+mingZhi+"」主星 <b style='color:var(--cyan)'>"+mingStar+"</b>；十二宫自命宫逆时针布列，主星分布见左表。",
+    tip:"<b>怎么看：</b>把本命盘当成你的「出厂配置」，一辈子大基调看这里。重点看<b>命宫主星</b>，它就是你最核心的气质与行事风格。"});
+  const cur = daXian[Math.min(11, Math.floor(((liuNian.year)-b.y)/10))] || daXian[0];
+  const curStar = zwAssignStars(cur.zhi,b.sex)[0].main;
+  items.push({t:"② 大限盘",s:"十年一限 · "+(b.sex==="male"?"顺行":"逆行"),b:"当前大限约 "+cur.label+"，以大限宫地支「"+cur.zhi+"」为命宫重排十二宫，命宫主星 <b>"+curStar+"</b>。大限叠加本命，观十年气运流转。",
+    tip:"<b>怎么看：</b>大限代表<b>你这十年的人生主题</b>。当前大限落在哪一宫、主星是谁，就是这段时期你最该经营的方向。"});
+  items.push({t:"③ 流年盘",s:(liuNian.isBirthYear?"本命年":"流年")+" · "+liuNian.zhi,b:"流年地支「"+liuNian.zhi+"」（"+liuNian.year+"）。流年叠大限、本命，观当年兴衰。",
+    tip:"<b>怎么看：</b>流年是<b>当年的「天气」</b>。好天气适合扬帆，逆风天就收帆稳舵。流年地支与命宫、大限地支的关系，决定当年是助力还是挑战。"});
+  const now=new Date();
+  const lyZhi=zwCalcLiuYue(liuNian.zhi, now.getMonth()+1);
+  const lyStar=zwAssignStars(lyZhi,b.sex)[0].main;
+  items.push({t:"④ 流月盘",s:"当前流月 · "+lyZhi,b:"以流年地支「"+liuNian.zhi+"」起正月，顺推至 <b>"+(now.getMonth()+1)+" 月</b>，流月命宫落「"+lyZhi+"」宫，主星 <b>"+lyStar+"</b>。流月叠流年、大限、本命，观当月气机。",
+    tip:"<b>怎么看：</b>流月适合<b>安排月度计划</b>。当月主星强、地支顺，就主动推进；主星偏冲，就保守收尾。"});
+  const lrZhi=zwCalcLiuRi(now.getFullYear(),now.getMonth()+1,now.getDate());
+  const lrStar=zwAssignStars(lrZhi,b.sex)[0].main;
+  items.push({t:"⑤ 流日盘",s:"今日流日 · "+lrZhi,b:"今日公历 <b>"+now.getFullYear()+"-"+(now.getMonth()+1)+"-"+now.getDate()+"</b>，日干支地支「"+lrZhi+"」为流日命宫，主星 <b>"+lrStar+"</b>。流日叠流月、流年，观当日起伏。",
+    tip:"<b>怎么看：</b>流日是<b>今日「气场说明书」</b>。适合做小决策：今天宜沟通还是宜独处？宜启动还是宜收尾？别用它定终身大事。"});
+  const lsZhi=zwCalcLiuShi(now.getHours());
+  const lsStar=zwAssignStars(lsZhi,b.sex)[0].main;
+  const shiDuan=['子时（23-1）','丑时（1-3）','寅时（3-5）','卯时（5-7）','辰时（7-9）','巳时（9-11）','午时（11-13）','未时（13-15）','申时（15-17）','酉时（17-19）','戌时（19-21）','亥时（21-23）'][ZHI.indexOf(lsZhi)];
+  items.push({t:"⑥ 流时盘",s:"当前流时 · "+lsZhi,b:"当前时辰 "+shiDuan+"，时支「"+lsZhi+"」为流时命宫，主星 <b>"+lsStar+"</b>。流时叠流日、流月，观当下一时辰的气场侧重。",
+    tip:"<b>怎么看：</b>流时只看<b>当下这一个时辰</b>。适合择时：开会、谈判、运动、休息，挑一个流时主星稳的时段更顺手。"});
+  box.innerHTML = items.map(it=>"<div class='layer'>"
+    +"<div class='lh'><span class='lt'>"+it.t+"</span><span class='ls'>"+it.s+"</span></div>"
+    +"<div class='lb'>"+it.b+"</div>"
+    +"<div class='ltip'>"+it.tip+"</div></div>").join("");
+}
+
+let ZW_LAST = null;
+function zwCalc(){
+  const errBox = document.getElementById("zwErr"); errBox.textContent="";
+  let b = getSharedBirth();
+  if(b.isLunar){ const s=zwLunarToSolar(b.y,b.m,b.d); b.y=s.y;b.m=s.m;b.d=s.d; }
+  const v = zwValidate(b); if(v){ errBox.textContent="⚠ "+v; return; }
+  const flowYearRaw = document.getElementById("zwFlowYear").value;
+  const flowYear = flowYearRaw?parseInt(flowYearRaw,10):null;
+  const hourBranchIdx = zwHourToBranchIdx(b.h);
+  const mingZhi = zwCalcMingZhi(b.y,b.m,b.d,hourBranchIdx);
+  const stars = zwAssignStars(mingZhi,b.sex);
+  const daXian = zwCalcDaXian(mingZhi,b.sex);
+  const liuNian = zwCalcLiuNian(flowYear,b.y);
+  const pat = zwCalcPattern(stars[0].main,mingZhi,b.sex);
+  document.getElementById("zwPatTitle").textContent = pat.title;
+  document.getElementById("zwPatDesc").textContent = pat.desc;
+  zwRenderGongTable(stars);
+  zwRenderLayers(b,stars,mingZhi,daXian,liuNian);
+  // 专属场景化解读（按实际输出一对一生成）
+  const zwState={mingStar:stars[0].main, mingZhi:mingZhi, sex:b.sex, patTitle:pat.title,
+    daXianCur:daXian[Math.min(11,Math.floor(((liuNian.year)-b.y)/10))]||daXian[0],
+    liuNian:liuNian, birth:{y:b.y,m:b.m,d:b.d,h:b.h,sex:b.sex}, flowYear:liuNian.year};
+  document.getElementById("zwAdvice").innerHTML = zwInterpret(zwState);
+  ZW_LAST = {tool:"ziwei",version:"1.0",
+    birth:{calendar:b.isLunar?"lunar":"solar",year:b.y,month:b.m,day:b.d,hourBranch:ZHI[hourBranchIdx],sex:b.sex},
+    summary:{mingGong:{zhi:mingZhi,mainStar:stars[0].main},twelveGongs:stars.map(s=>({gong:s.gong,zhi:s.zhi,main:s.main,second:s.second})),
+      liuNian:{year:liuNian.year,zhi:liuNian.zhi}},
+    exportedAt:new Date().toISOString()};
+  G_ZIWEI = {mingStar:stars[0].main, mingZhi:mingZhi, sex:b.sex, flowYear:liuNian.year};
+  document.getElementById("zwResult").classList.add("show");
+  const fb=document.getElementById("zwFb"); fb.style.display="block";
+  fb.innerHTML="✓ 已根据你的生辰 <b>"+b.y+"-"+b.m+"-"+b.d+" "+String(b.h).padStart(2,"0")+":"+String(b.mi).padStart(2,"0")+"</b>（"+(b.sex==="male"?"男":"女")+(b.isLunar?" · 农历":" · 公历")+"）生成专属紫微解读"+(flowYear?(" · 流年 "+liuNian.year):"")+"。";
+}
+function zwScroll(){ const r=document.getElementById("zwResult"); if(r.classList.contains("show")) r.scrollIntoView({behavior:"smooth",block:"start"}); }
+document.getElementById("zwBtnCalc").addEventListener("click", function(){ zwCalc(); zwScroll(); });
+document.getElementById("zwBtnDemo").addEventListener("click", function(){
+  document.getElementById("inYear").value=1990; document.getElementById("inMonth").value=6;
+  document.getElementById("inDay").value=15; document.getElementById("inHour").value=12;
+  document.getElementById("inMin").value=0; document.getElementById("inSex").value="male";
+  switchCal("solar"); document.getElementById("zwFlowYear").value="2026";
+  zwCalc(); zwScroll();
+});
+
+/* ============================================================================
+ *  ② 塔罗引擎
+ * ========================================================================== */
+const TT_MAJOR = [
+  {n:0,name:"愚人",up:"新的开端、纯真、自由、跃入未知。",down:"鲁莽、逃避、方向不明、幼稚。"},
+  {n:1,name:"魔术师",up:"创造、意志、资源整合、行动力。",down:"操纵、欺瞒、潜力未用、焦躁。"},
+  {n:2,name:"女祭司",up:"直觉、内在智慧、静默、潜意识。",down:"压抑、秘密、疏离、信息不明。"},
+  {n:3,name:"女皇",up:"丰盛、滋养、创造力、温柔力量。",down:"依赖、停滞、过度迁就、空虚。"},
+  {n:4,name:"皇帝",up:"秩序、权威、稳定、掌控。",down:"专断、僵化、控制欲、固执。"},
+  {n:5,name:"教皇",up:"传统、信念、指引、精神归属。",down:"盲从、教条、局限、说教。"},
+  {n:6,name:"恋人",up:"结合、选择、价值契合、爱。",down:"犹豫、失衡、错误选择、分离。"},
+  {n:7,name:"战车",up:"意志获胜、前进、自律、突破。",down:"失控、内耗、方向偏、挫败。"},
+  {n:8,name:"力量",up:"温柔的勇气、自制、韧性。",down:"自我怀疑、软弱、冲动、压抑。"},
+  {n:9,name:"隐者",up:"内省、寻求真理、独处、指引。",down:"孤立、逃避、固执、迷失。"},
+  {n:10,name:"命运之轮",up:"转机、周期、命运流动、机遇。",down:"无常、失控、坏运气、停滞。"},
+  {n:11,name:"正义",up:"公正、因果、平衡、决断。",down:"偏见、失衡、逃避责任、纠纷。"},
+  {n:12,name:"倒吊人",up:"换个视角、放下、臣服、转化。",down:"拖延、牺牲感、被动、卡住。"},
+  {n:13,name:"死神",up:"结束与重生、蜕变、放手。",down:"抗拒改变、停滞、恐惧、崩溃。"},
+  {n:14,name:"节制",up:"调和、耐心、平衡、疗愈。",down:"失衡、过度、不耐、冲突。"},
+  {n:15,name:"恶魔",up:"觉察束缚、面对欲望、挣脱。",down:"沉溺、执念、被控、匮乏感。"},
+  {n:16,name:"高塔",up:"突变、真相、破旧立新、释放。",down:"崩塌、冲击、混乱、失控。"},
+  {n:17,name:"星星",up:"希望、信念、疗愈、指引。",down:"失望、怀疑、迷惘、枯竭。"},
+  {n:18,name:"月亮",up:"潜意识、直觉、幻象、探索。",down:"恐惧、迷惑、不确定、焦虑。"},
+  {n:19,name:"太阳",up:"喜悦、清晰、活力、成功。",down:"过度乐观、虚假、遮蔽、孤单。"},
+  {n:20,name:"审判",up:"觉醒、召唤、重生、宽恕。",down:"自我否定、拖延、逃避、懊悔。"},
+  {n:21,name:"世界",up:"圆满、完成、整合、通达。",down:"未竟、空虚、循环、停滞。"}
+];
+const TT_SUITS = [
+  {key:"权杖",elem:"火",up:"行动、热情、意志、开创。",down:"冲动、受阻、拖延、虚耗。"},
+  {key:"圣杯",elem:"水",up:"情感、关系、直觉、滋养。",down:"情绪化、失落、空虚、依赖。"},
+  {key:"宝剑",elem:"风",up:"思维、真相、决断、洞察。",down:"冲突、焦虑、过度思虑、割裂。"},
+  {key:"星币",elem:"土",up:"物质、稳定、积累、实干。",down:"匮乏、固执、失衡、短视。"}
+];
+const TT_COURT = [
+  {name:"侍从",role:"学习、萌芽、好奇、讯息。",down:"幼稚、分心、拖延、浅尝。"},
+  {name:"骑士",role:"行动、推进、热情、奔赴。",down:"鲁莽、过度、方向偏、躁进。"},
+  {name:"王后",role:"成熟、包容、内化、丰盈。",down:"情绪化、失控、被动、沉溺。"},
+  {name:"国王",role:"稳固、主导、权威、成就。",down:"专断、僵化、压迫、功利。"}
+];
+function ttBuildMinor(){
+  const arr=[]; const pip={1:"一",2:"二",3:"三",4:"四",5:"五",6:"六",7:"七",8:"八",9:"九",10:"十"};
+  TT_SUITS.forEach(s=>{
+    for(let v=1;v<=10;v++){ arr.push({n:100+TT_SUITS.indexOf(s)*14+v,name:s.key+pip[v],group:"小阿尔卡纳",suit:s.key,suitElem:s.elem,
+      up:s.up,down:s.down,_base:s.key+"·"+pip[v]+"："+s.up,_rev:s.key+"·"+pip[v]+"（逆）："+s.down}); }
+    TT_COURT.forEach(c=>{ arr.push({n:100+TT_SUITS.indexOf(s)*14+10+TT_COURT.indexOf(c)+1,name:s.key+c.name,group:"小阿尔卡纳",suit:s.key,suitElem:s.elem,
+      up:c.role,down:c.down,_base:s.key+"·"+c.name+"："+c.role,_rev:s.key+"·"+c.name+"（逆）："+c.down}); });
+  });
+  return arr;
+}
+const TT_MINOR = ttBuildMinor();
+const TT_FULL = TT_MAJOR.map(m=>({n:m.n,name:m.name,group:"大阿尔卡纳",suit:"",suitElem:"",up:m.up,down:m.down,_base:m.name+"："+m.up,_rev:m.name+"（逆）："+m.down})).concat(TT_MINOR);
+function ttSecureRandomInt(max){
+  if(max<=0) return 0;
+  const ceil = Math.floor(0xFFFFFFFF/max)*max;
+  const buf = new Uint32Array(1); let x;
+  do { crypto.getRandomValues(buf); x=buf[0]; } while(x>=ceil);
+  return x%max;
+}
+function ttSecureShuffle(arr){ const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=ttSecureRandomInt(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const TT_SPREADS = {
+  single:{title:"单张指引",positions:["当下指引"]},
+  ppf:{title:"过去 / 现在 / 未来",positions:["过去","现在","未来"]},
+  celtic:{title:"凯尔特十字（10张）",positions:["现状","挑战","过去","未来","理想","近景","自我","环境","希望/恐惧","结局"]}
+};
+const TT_SAFETY = ["不想活","不想活了","不想活下去","活不下去","活着没意思","活着没意义","没意思活着",
+  "结束生命","结束自己的生命","结束自己","了结自己","了结生命","自杀","轻生","自尽","寻死","去死","不如死","死了算了","死了也好",
+  "想死","想要死","打算死","准备死","伤害自己","伤害自己的身体","自残","自伤","割腕","割自己",
+  "活不下去了","撑不下去","撑不住了","熬不下去","熬不过去","没有活下去","无法活下去",
+  "绝望","彻底绝望","生无可恋","活着痛苦","活着太累","不想面对","想消失","消失算了",
+  "人间不值得","不值得活","毁灭自己","毁灭自我","自我了断","自我了结","自我毁灭",
+  "跳楼","跳河","跳江","吃药自杀","服药自杀","安眠药","割腕自杀","上吊","跳下去"];
+function ttDetectCrisis(text){ if(!text) return false;
+  const t=text.toLowerCase().replace(/\s+/g,""); return TT_SAFETY.some(k=>t.indexOf(k.replace(/\s+/g,""))>=0); }
+
+let TT_SPREAD="single"; let TT_LAST=null;
+function ttSelectSpread(name){ TT_SPREAD=name;
+  document.querySelectorAll("#ttSpreadGrid .spread-opt").forEach(el=>el.classList.toggle("active",el.getAttribute("data-spread")===name)); }
+document.querySelectorAll("#ttSpreadGrid .spread-opt").forEach(el=>el.addEventListener("click",()=>ttSelectSpread(el.getAttribute("data-spread"))));
+
+function ttDraw(){
+  const errBox=document.getElementById("ttErr"); errBox.textContent="";
+  const topic=(document.getElementById("ttTopic").value||"").trim();
+  if(ttDetectCrisis(topic)){ document.getElementById("ttSafety").classList.add("show");
+    document.getElementById("ttResult").classList.remove("show"); return; }
+  document.getElementById("ttSafety").classList.remove("show");
+  if(!topic){ errBox.textContent="⚠ 请先描述一个自我探索议题（例如：我此刻在纠结什么）。"; return; }
+  const spread=TT_SPREADS[TT_SPREAD];
+  const deck=ttSecureShuffle(TT_FULL); const picks=[];
+  for(let i=0;i<spread.positions.length;i++){
+    const card=deck[i]; const reversed=ttSecureRandomInt(2)===1;
+    picks.push({position:spread.positions[i],cardName:card.name,group:card.group,suit:card.suit,
+      reversed:reversed,meaning:reversed?card.down:card.up,meaningLong:reversed?card._rev:card._base});
+  }
+  document.getElementById("ttMeta").textContent="牌阵："+spread.title+"　·　抽牌 "+picks.length+" 张　·　安全随机 entropy=true";
+  const box=document.getElementById("ttCards");
+  box.className="cards "+(TT_SPREAD==="single"?"single":TT_SPREAD==="ppf"?"ppf":"celtic");
+  box.innerHTML=picks.map(p=>"<div class='tcard"+(p.reversed?" rev":"")+"'>"
+    +"<div class='pos'>"+p.position+"</div>"
+    +"<div class='cname'>"+p.cardName+"</div>"
+    +"<div class='corient'>"+p.group+(p.suit?(" · "+p.suit):"")+(p.reversed?" · 逆位":" · 正位")+"</div>"
+    +"<div class='cmean'>"+p.meaningLong+"</div></div>").join("");
+  TT_LAST={tool:"tarot",version:"1.0",topic:topic,spread:TT_SPREAD,spreadTitle:spread.title,
+    cards:picks.map(p=>({position:p.position,card:p.cardName,group:p.group,suit:p.suit,orientation:p.reversed?"reversed":"upright",meaning:p.meaning})),
+    disclaimer:"本结果为非严肃自我探索指引，未经任何 AI 生成，仅供自我觉察参考。",drawnAt:new Date().toISOString()};
+  document.getElementById("ttResult").classList.add("show");
+  document.getElementById("ttAnalysis").innerHTML = ttInterpret(picks, TT_SPREAD, topic);
+  const fb=document.getElementById("ttFb"); fb.style.display="block";
+  fb.innerHTML="✓ 已为你抽牌并生成专属解读（牌阵："+spread.title+" · "+picks.length+" 张 · 安全随机）。牌面是供你自我觉察的镜子，主动权始终在你。";
+}
+function ttScroll(){ const r=document.getElementById("ttResult"); if(r.classList.contains("show")) r.scrollIntoView({behavior:"smooth",block:"start"}); }
+document.getElementById("ttBtnDraw").addEventListener("click", function(){ ttDraw(); ttScroll(); });
+document.getElementById("ttBtnDemo").addEventListener("click",function(){
+  document.getElementById("ttTopic").value="我最近在职业方向上有些迷茫，想更了解自己真正看重什么。";
+  ttSelectSpread("ppf"); ttDraw(); ttScroll();
+});
+
+/* ============================================================================
+ *  ③ 八字引擎
+ * ========================================================================== */
+const BZ_BASE = {y:1900,m:1,d:1,yearGan:6,yearZhi:0,monthGan:4,monthZhi:0};
+function bzDaysFromBase(y,m,d){ return Math.round((Date.UTC(y,m-1,d)-Date.UTC(BZ_BASE.y,BZ_BASE.m-1,BZ_BASE.d))/86400000); }
+function bzYearGanZhi(y){
+  const diff=y-BZ_BASE.y; const gan=(BZ_BASE.yearGan+diff)%10; const zhi=(BZ_BASE.yearZhi+diff)%12;
+  return {gan:GAN[(gan+10)%10],zhi:ZHI[(zhi+12)%12],ganIdx:(gan+10)%10,zhiIdx:(zhi+12)%12};
+}
+const BZ_FIVE_TIGER = {0:2,1:4,2:6,3:8,4:0};
+function bzMonthGanZhi(y,m,d){
+  let realMonth=m; if(d<4){ realMonth=(m+10)%12+1; }
+  const yearGanIdx=((y-4)%10+10)%10;
+  const firstMonthGan=BZ_FIVE_TIGER[yearGanIdx%5];
+  const mGan=(firstMonthGan+((realMonth-2+12)%12))%10;
+  const mZhi=realMonth%12;
+  return {gan:GAN[mGan],zhi:ZHI[mZhi],ganIdx:mGan,zhiIdx:mZhi};
+}
+function bzJdn(y,m,d){ const a=Math.floor((14-m)/12); const yy=y+4800-a; const mm=m+12*a-3;
+  return d+Math.floor((153*mm+2)/5)+365*yy+Math.floor(yy/4)-Math.floor(yy/100)+Math.floor(yy/400)-32045; }
+function bzDayGanZhi(y,m,d){ const s=(bzJdn(y,m,d)+49)%60;
+  return {gan:GAN[s%10],zhi:ZHI[s%12],ganIdx:s%10,zhiIdx:s%12}; }
+function bzHourGanZhi(dayGanIdx,hour){ const zhiIdx=Math.floor((hour+1)/2)%12;
+  const baseGan=(dayGanIdx%5)*2; const ganIdx=(baseGan+zhiIdx)%10;
+  return {gan:GAN[ganIdx],zhi:ZHI[zhiIdx],ganIdx,zhiIdx}; }
+const BZ_SHENG={"木":"火","火":"土","土":"金","金":"水","水":"木"};
+const BZ_KE={"木":"土","火":"金","土":"水","金":"木","水":"火"};
+function bzShiShen(dayGan,targetGan){
+  const dw=WU_XING_GAN[dayGan],tw=WU_XING_GAN[targetGan];
+  const dayYang=(GAN.indexOf(dayGan)%2===0); const tgtYang=(GAN.indexOf(targetGan)%2===0);
+  const sameYin=(dayYang===tgtYang);
+  if(dw===tw) return sameYin?"比肩":"劫财";
+  if(BZ_SHENG[tw]===dw) return sameYin?"偏印":"正印";
+  if(BZ_SHENG[dw]===tw) return sameYin?"食神":"伤官";
+  if(BZ_KE[tw]===dw) return sameYin?"七杀":"正官";
+  if(BZ_KE[dw]===tw) return sameYin?"偏财":"正财";
+  return "—";
+}
+function bzAnalyzeStrength(pillars,dayGan){
+  const count={木:0,火:0,土:0,金:0,水:0};
+  const seq=[pillars.year.gan,pillars.year.zhi,pillars.month.gan,pillars.month.zhi,pillars.day.gan,pillars.day.zhi,pillars.hour.gan,pillars.hour.zhi];
+  seq.forEach(gz=>{ if(WU_XING_GAN[gz]!=null) count[WU_XING_GAN[gz]]+=1; else if(WU_XING_ZHI[gz]!=null) count[WU_XING_ZHI[gz]]+=1; });
+  const dw=WU_XING_GAN[dayGan];
+  const supportElem=WX_ORDER[(WX_ORDER.indexOf(dw)+4)%5];
+  const help=count[dw]+count[supportElem];
+  const ratio=help/8; const level=(ratio>=0.5)?"身强":"身弱";
+  const desc="日主「"+dayGan+"」五行属"+dw+"。四柱五行计数：木"+count.木+" 火"+count.火+" 土"+count.土+" 金"+count.金+" 水"+count.水
+    +"。同类（比劫+印）占比约 "+(ratio*100).toFixed(0)+"%，判定为「"+level+"」。"
+    +"（注：此处为基于五行计数的确定性近似判定，完整流派需结合月令旺衰与藏干。）";
+  return {level,desc,count};
+}
+function bzCalcDaYun(yearGanIdx,sex,monthGanIdx,monthZhiIdx){
+  const yearYang=(yearGanIdx%2===0);
+  const forward=((yearYang&&sex==="male")||(!yearYang&&sex==="female"));
+  const dir=forward?1:-1; const startAge=3; const steps=[];
+  for(let i=0;i<8;i++){ const gIdx=(monthGanIdx+dir*i+100)%10; const zIdx=(monthZhiIdx+dir*i+120)%12;
+    steps.push({age:startAge+i*10,gan:GAN[gIdx],zhi:ZHI[zIdx],label:(startAge+i*10)+"–"+(startAge+i*10+9)+"岁"}); }
+  return steps;
+}
+function bzCalcShenSha(pillars){
+  const out=[]; const dayZhi=pillars.day.zhi;
+  const taoHua={"申":"酉","子":"酉","辰":"酉","寅":"卯","午":"卯","戌":"卯","亥":"子","卯":"子","未":"子","巳":"午","酉":"午","丑":"午"};
+  if(taoHua[dayZhi]) out.push("桃花("+taoHua[dayZhi]+")");
+  const guiRen={"甲":"丑未","乙":"子申","丙":"酉亥","丁":"酉亥","戊":"丑未","己":"子申","庚":"丑未","辛":"午寅","壬":"卯巳","癸":"卯巳"};
+  if(guiRen[pillars.day.gan]) out.push("天乙贵人("+guiRen[pillars.day.gan]+")");
+  const yiMa={"申":"寅","子":"寅","辰":"寅","寅":"申","午":"申","戌":"申","亥":"巳","卯":"巳","未":"巳","巳":"亥","酉":"亥","丑":"亥"};
+  if(yiMa[dayZhi]) out.push("驿马("+yiMa[dayZhi]+")");
+  return out;
+}
+function bzValidate(b){
+  if(!b.y||b.y<1900||b.y>2100) return "年份需在 1900–2100";
+  if(!b.m||b.m<1||b.m>12) return "月份需在 1–12";
+  if(!b.d||b.d<1||b.d>31) return "日期需在 1–31";
+  const maxDay=new Date(b.y,b.m,0).getDate();
+  if(b.d>maxDay) return b.y+"年"+b.m+"月仅 "+maxDay+" 天";
+  if(b.h<0||b.h>23) return "小时需在 0–23";
+  return null;
+}
+function bzRenderWx(count,element){
+  const bars=document.getElementById("bzWxBars");
+  bars.innerHTML=WX_ORDER.map(w=>{
+    const v=count[w]; const pct=Math.max(6,v/8*100);
+    return "<div class='wx-bar-row'><span class='wx-name' style='color:"+WX_COLOR[w]+"'>"+w+"</span>"
+      +"<div class='wx-track'><div class='wx-fill' style='width:"+pct+"%;background:"+WX_COLOR[w]+"'></div></div>"
+      +"<span class='wx-val'>"+v+"</span></div>";
+  }).join("");
+  bzDrawRadar(count);
+}
+function bzDrawRadar(count){
+  const cv=document.getElementById("bzWxRadar"); const ctx=cv.getContext("2d");
+  const W=cv.width,H=cv.height,cx=W/2,cy=H/2,R=Math.min(W,H)/2-30;
+  ctx.clearRect(0,0,W,H);
+  const N=5; const maxV=8;
+  // 网格
+  for(let r=1;r<=4;r++){
+    ctx.beginPath();
+    for(let i=0;i<N;i++){ const a=-Math.PI/2+i*2*Math.PI/N; const rr=R*r/4;
+      const x=cx+rr*Math.cos(a),y=cy+rr*Math.sin(a); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+    ctx.closePath(); ctx.strokeStyle="#e0d8cf"; ctx.lineWidth=1; ctx.stroke();
+  }
+  // 轴 + 标签
+  ctx.fillStyle="#7d6e5f"; ctx.font="12px 'PingFang SC',sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle";
+  for(let i=0;i<N;i++){ const a=-Math.PI/2+i*2*Math.PI/N;
+    const x=cx+R*Math.cos(a),y=cy+R*Math.sin(a);
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(x,y); ctx.strokeStyle="#ece4d8"; ctx.stroke();
+    const lx=cx+(R+16)*Math.cos(a),ly=cy+(R+16)*Math.sin(a);
+    ctx.fillText(WX_ORDER[i],lx,ly);
+  }
+  // 数据多边形
+  ctx.beginPath();
+  for(let i=0;i<N;i++){ const a=-Math.PI/2+i*2*Math.PI/N; const v=count[WX_ORDER[i]]; const rr=R*Math.min(v,maxV)/maxV;
+    const x=cx+rr*Math.cos(a),y=cy+rr*Math.sin(a); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+  ctx.closePath();
+  ctx.fillStyle="rgba(139,94,60,.22)"; ctx.fill();
+  ctx.strokeStyle="#8b5e3c"; ctx.lineWidth=2; ctx.stroke();
+  for(let i=0;i<N;i++){ const a=-Math.PI/2+i*2*Math.PI/N; const v=count[WX_ORDER[i]]; const rr=R*Math.min(v,maxV)/maxV;
+    const x=cx+rr*Math.cos(a),y=cy+rr*Math.sin(a);
+    ctx.beginPath(); ctx.arc(x,y,3,0,2*Math.PI); ctx.fillStyle=WX_COLOR[WX_ORDER[i]]; ctx.fill(); }
+}
+
+let BZ_LAST=null;
+function bzCalc(){
+  const errBox=document.getElementById("bzErr"); errBox.textContent="";
+  const b=getSharedBirth();
+  const v=bzValidate(b); if(v){ errBox.textContent="⚠ "+v; return; }
+  const yg=bzYearGanZhi(b.y), mg=bzMonthGanZhi(b.y,b.m,b.d), dg=bzDayGanZhi(b.y,b.m,b.d), hg=bzHourGanZhi(dg.ganIdx,b.h);
+  const pillars={year:{gan:yg.gan,zhi:yg.zhi,ganIdx:yg.ganIdx,zhiIdx:yg.zhiIdx},
+    month:{gan:mg.gan,zhi:mg.zhi,ganIdx:mg.ganIdx,zhiIdx:mg.zhiIdx},
+    day:{gan:dg.gan,zhi:dg.zhi,ganIdx:dg.ganIdx,zhiIdx:dg.zhiIdx},
+    hour:{gan:hg.gan,zhi:hg.zhi,ganIdx:hg.ganIdx,zhiIdx:hg.zhiIdx}};
+  const names=["年柱","月柱","日柱","时柱"], keys=["year","month","day","hour"];
+  document.getElementById("bzPillars").innerHTML=keys.map((k,i)=>{ const p=pillars[k];
+    return "<div class='pillar'><div class='pl'>"+names[i]+"</div><div class='pg'>"+p.gan+p.zhi
+      +"<small>"+WU_XING_GAN[p.gan]+"</small></div><div class='pw'>"+(k==="day"?"日主":"")+p.gan+"</div></div>"; }).join("");
+  const dayGan=dg.gan; const strength=bzAnalyzeStrength(pillars,dayGan);
+  document.getElementById("bzStrongTitle").textContent="日主「"+dayGan+"」· 五行属"+WU_XING_GAN[dayGan]+" · "+strength.level;
+  document.getElementById("bzStrongDesc").textContent=strength.desc;
+  bzRenderWx(strength.count,WU_XING_GAN[dayGan]);
+  const daYun=bzCalcDaYun(yg.ganIdx,b.sex,mg.ganIdx,mg.zhiIdx);
+  document.getElementById("bzDaYun").innerHTML="<table class='t'><tr><th>大运</th><th>干支</th><th>十神(对日主)</th></tr>"
+    +daYun.map(s=>"<tr><td>"+s.label+"</td><td>"+s.gan+s.zhi+"</td><td>"+bzShiShen(dayGan,s.gan)+"</td></tr>").join("")+"</table>";
+  const ssRow=keys.map((k,i)=>names[i]+"·"+pillars[k].gan+" → "+bzShiShen(dayGan,pillars[k].gan)).join("　");
+  document.getElementById("bzShenSha").innerHTML="<div style='font-size:13px;color:var(--txt-dim);margin-bottom:6px'>四柱天干十神（对日主 "+dayGan+"）：</div>"
+    +"<div>"+ssRow+"</div><div style='margin-top:10px;font-size:13px;color:var(--txt-dim)'>常见神煞：</div>"
+    +"<div>"+bzCalcShenSha(pillars).map(s=>"<span class='tag'>"+s+"</span>").join("")+"</div>";
+  // 专属场景化解读（按实际四柱一对一生成）
+  const bzState={dayGan:dayGan, element:WU_XING_GAN[dayGan], level:strength.level, count:strength.count,
+    monthZhi:mg.zhi, pillars:keys.map((k,i)=>({name:names[i],gan:pillars[k].gan,zhi:pillars[k].zhi,shiShen:bzShiShen(dayGan,pillars[k].gan)})),
+    daYunFirst:daYun[0], shenSha:bzCalcShenSha(pillars), birth:{y:b.y,m:b.m,d:b.d,h:b.h,sex:b.sex}};
+  document.getElementById("bzAdvice").innerHTML = bzInterpret(bzState);
+  BZ_LAST={tool:"bazi",version:"1.0",birth:{calendar:"solar",year:b.y,month:b.m,day:b.d,hour:b.h,minute:b.mi,sex:b.sex},
+    fourPillars:{year:yg.gan+yg.zhi,month:mg.gan+mg.zhi,day:dg.gan+dg.zhi,hour:hg.gan+hg.zhi},
+    dayMaster:dayGan,dayMasterElement:WU_XING_GAN[dayGan],strength:strength.level,fiveElements:strength.count,
+    daYun:daYun.map(s=>({age:s.age,ganZhi:s.gan+s.zhi,shiShen:bzShiShen(dayGan,s.gan)})),
+    shiShen:keys.map((k,i)=>({pillar:names[i],gan:pillars[k].gan,shiShen:bzShiShen(dayGan,pillars[k].gan)})),
+    shenSha:bzCalcShenSha(pillars),dataSource:"rigid-bazi-engine-v1.0 (no-AI)",exportedAt:new Date().toISOString()};
+  G_BAZI={dayMaster:dayGan,element:WU_XING_GAN[dayGan],strength:strength.level,count:strength.count,sex:b.sex};
+  document.getElementById("bzResult").classList.add("show");
+  const fb=document.getElementById("bzFb"); fb.style.display="block";
+  fb.innerHTML="✓ 已根据你的生辰 <b>"+b.y+"-"+b.m+"-"+b.d+" "+String(b.h).padStart(2,"0")+":"+String(b.mi).padStart(2,"0")+"</b>（"+(b.sex==="male"?"男":"女")+(b.isLunar?" · 农历":" · 公历")+"）生成可信八字解读（日主「"+dayGan+"」· "+strength.level+"）。";
+}
+function bzScroll(){ const r=document.getElementById("bzResult"); if(r.classList.contains("show")) r.scrollIntoView({behavior:"smooth",block:"start"}); }
+document.getElementById("bzBtnCalc").addEventListener("click", function(){ bzCalc(); bzScroll(); });
+document.getElementById("bzBtnDemo").addEventListener("click",function(){
+  document.getElementById("inYear").value=1990; document.getElementById("inMonth").value=6;
+  document.getElementById("inDay").value=15; document.getElementById("inHour").value=12;
+  document.getElementById("inMin").value=0; document.getElementById("inSex").value="male";
+  switchCal("solar"); bzCalc(); bzScroll();
+});
+
+/* ============================================================================
+ *  ④ 身心养生 · 生态网联动
+ * ========================================================================== */
+/* 五行 → 五脏 / 五季 / 养护要点（中医·道家传统对应，文化参考） */
+const WX_ORGAN = {
+  "木":{organ:"肝",season:"春",point:"肝喜条达、恶抑郁；春气通肝，宜舒展情志、早睡早起、适度舒展运动。",rec:"多绿色蔬菜、户外散步、少生气。",gong:[1,4]},
+  "火":{organ:"心",season:"夏",point:"心主血脉、藏神；夏气通心，宜静心养神、忌大汗伤心、午间小憩。",rec:"红色食物（红枣、红豆）、规律作息、减少熬夜。",gong:[5,7]},
+  "土":{organ:"脾",season:"长夏",point:"脾主运化、为后天之本；长夏（夏秋之交）湿气重，宜健脾祛湿、饮食有节。",rec:"黄色食物（小米、山药、南瓜）、忌生冷油腻。",gong:[3,6]},
+  "金":{organ:"肺",season:"秋",point:"肺主气司呼吸、外合皮毛；秋气干燥，宜润肺、早睡、增减衣物。",rec:"白色食物（百合、梨、白萝卜）、深呼吸练习。",gong:[4,8]},
+  "水":{organ:"肾",season:"冬",point:"肾主藏精、为先天之本；冬气闭藏，宜防寒、节欲、早卧晚起。",rec:"黑色食物（黑豆、黑芝麻、桑葚）、避免过度耗散。",gong:[2,8]}
+};
+/* 八部金刚功（据张至顺《金刚长寿功》，已核实八部名称） */
+const GONG_8 = [
+  {n:"第一部",name:"双手插顶利三焦",f:"通利三焦、调理全身气机，使上中下三焦通畅。"},
+  {n:"第二部",name:"手足前后固肾腰",f:"固肾壮腰、强健腰膝，重点养护先天之本。"},
+  {n:"第三部",name:"调理脾肤需单举",f:"健脾和胃、调理中焦，单举舒展脾胃。"},
+  {n:"第四部",name:"左肝右肺如射雕",f:"疏肝宣肺、调和气血，左右开弓如射雕。"},
+  {n:"第五部",name:"回头望足去心疾",f:"宁心安神、活动颈腰，回头望足以去心疾。"},
+  {n:"第六部",name:"五劳七伤向后瞧",f:"消除五劳七伤、调和五脏，向后瞧以舒缓劳损。"},
+  {n:"第七部",name:"凤凰展翅周身力",f:"舒展筋骨、增强周身气力，如凤凰展翅。"},
+  {n:"第八部",name:"两足顿顿饮嗜消",f:"疏通经络、消除积滞，顿足以化饮食之积。"}
+];
+/* 长寿功八部（张至顺《金刚长寿功》，静功配合） */
+const CHANGSHOU_8 = [
+  {n:"第一部",name:"窃吃昆仑长生酒",f:"静中采咽、滋养精气，如饮长生酒。"},
+  {n:"第二部",name:"升降日月任督浮",f:"升降日月、任督二脉起伏，调和阴阳。"},
+  {n:"第三部",name:"内转车轮神机周",f:"内转如车轮、神机周流，运化内气。"},
+  {n:"第四部",name:"大雁腾空气势雄",f:"如大雁腾空、气势雄浑，舒展胸臆。"},
+  {n:"第五部",name:"浪里行舟遥身心",f:"如浪里行舟、摇曳身心，柔缓安神。"},
+  {n:"第六部",name:"白鹤踏波定神思",f:"如白鹤踏波、定神凝思，静心养神。"},
+  {n:"第七部",name:"鱼沉海底寿命长",f:"如鱼沉海底、潜藏养命，固本培元。"},
+  {n:"第八部",name:"长命百岁老返童",f:"返本还童、绵延长寿，收功归元。"}
+];
+/* 紫微命宫主星 → 内观切入点 */
+const ZW_INNER = {
+  "紫微":"你天生有“掌控全局”的倾向，内观时可练习“放下控制”——观呼吸时，把“必须安排好一切”的念头轻轻放下。",
+  "天机":"你思虑细密，内观重点是“止念”：当念头如列车般驶过，只做旁观者，不追不拒。",
+  "太阳":"你向外发散，内观时可把注意力从“外界”收回身体，感受呼吸如何自然起伏。",
+  "武曲":"你务实刚毅，内观可 soften 一丝自我要求：容许当下“无所作为”也是一种完成。",
+  "天同":"你温和安逸，内观时借这份松弛，把觉察轻轻带入容易被忽略的身体紧绷处。",
+  "廉贞":"你情感丰富而复杂，内观时给情绪一个“被看见”的空间，不评判它的来去。",
+  "天府":"你包容守成，内观可练习“空”——在安稳中体会“不必填满”的自在。",
+  "太阴":"你内敛细腻，内观时把柔和转向自己，像对待挚友般对待此刻的身心。",
+  "贪狼":"你多才多欲，内观时观察“想要”的起灭，看清楚哪一个渴望真正属于此刻的你。",
+  "巨门":"你善思辨，内观重点是“止语”——让内在对话暂歇，只听呼吸。",
+  "天相":"你善调和，内观时把“照顾他人”的一分转回自己，安住当下。",
+  "天梁":"你具守护之性，内观时可把自己也放进“被庇佑”的位置，放松肩颈。",
+  "七杀":"你果决开拓，内观时练习“停顿”——在每一次吸气与呼气之间，留一道缝隙。",
+  "破军":"你开创变革，内观时给“破旧”之后的空白一点耐心，不急于立新。"
+};
+
+function renderWellness(){
+  // 联动总览状态
+  const statusEl=document.getElementById("wfStatus");
+  const wfZw=document.getElementById("wfZw"), wfBz=document.getElementById("wfBz");
+  if(G_ZIWEI){ wfZw.textContent="命宫主星："+(G_ZIWEI.mingStar||"—"); }
+  if(G_BAZI){ wfBz.textContent="日主五行："+G_BAZI.dayMaster+"（"+G_BAZI.element+"）· "+G_BAZI.strength; }
+
+  if(!G_BAZI && !G_ZIWEI){
+    statusEl.innerHTML="<div class='pending'>尚未读取到 紫微 / 八字 结果。请先到 ① 或 ③ 排盘，再回到本页查看联动建议。</div>";
+  } else {
+    let html="";
+    if(G_BAZI) html+="<div class='advice'><span class='pill green'>八字</span>日主 <b>"+G_BAZI.dayMaster+"</b>（"+G_BAZI.element+"）· <b>"+G_BAZI.strength+"</b>；五行计数 木"+G_BAZI.count.木+" 火"+G_BAZI.count.火+" 土"+G_BAZI.count.土+" 金"+G_BAZI.count.金+" 水"+G_BAZI.count.水+"。已驱动下方“体质推断”与“五行养生”。</div>";
+    if(G_ZIWEI) html+="<div class='advice'><span class='pill'>紫微</span>命宫主星 <b>"+G_ZIWEI.mingStar+"</b> 入 "+G_ZIWEI.mingZhi+"宫；已驱动下方“道家内观”切入点。</div>";
+    if(!G_BAZI) html+="<div class='advice' style='opacity:.8'>（八字未排盘：先去 ③ 排盘，可解锁“体质—五脏—四季养生”联动。）</div>";
+    if(!G_ZIWEI) html+="<div class='advice' style='opacity:.8'>（紫微未排盘：先去 ① 排盘，可解锁“人格—内观”联动。）</div>";
+    statusEl.innerHTML=html;
+  }
+
+  // 体质推断
+  const constEl=document.getElementById("wfConstitution");
+  if(G_BAZI){
+    const weakElem = WX_ORDER.reduce((a,c)=>G_BAZI.count[c]<G_BAZI.count[a]?c:a, WX_ORDER[0]);
+    const strongElem = WX_ORDER.reduce((a,c)=>G_BAZI.count[c]>G_BAZI.count[a]?c:a, WX_ORDER[0]);
+    const wo=WX_ORGAN[weakElem], so=WX_ORGAN[strongElem];
+    constEl.innerHTML="<div class='advice'><b>日主 "+G_BAZI.dayMaster+"（"+G_BAZI.element+"）· "+G_BAZI.strength+"。</b><br>"
+      +"从五行计数看，相对<b style='color:"+WX_COLOR[weakElem]+"'>偏弱</b>的是 <b>"+weakElem+"</b>（对应"+wo.organ+"），相对<b style='color:"+WX_COLOR[strongElem]+"'>偏盛</b>的是 <b>"+strongElem+"</b>（对应"+so.organ+"）。<br>"
+      +"<b>养护方向（文化参考，非医疗）：</b>"+wo.point+" 当令季节宜顺 <b>"+wo.season+"</b> 之气。日常可侧重："+wo.rec+"</div>"
+      +"<div class='advice' style='margin-top:8px'><b>偏衰专属建议（按实际最弱五行）：</b>"+(BZ_WX_INTERP[weakElem]?BZ_WX_INTERP[weakElem].weak:"")+"</div>"
+      +"<div class='note'>说明：这是基于“五行计数”的近似体质倾向，仅作健康文化参考；如有不适，请就医而非依此自疗。</div>";
+  } else {
+    constEl.innerHTML="<div class='pending'>排盘后，这里会基于“日主五行 + 身强身弱 + 五行偏盛偏衰”给出体质倾向与养护方向。</div>";
+  }
+
+  // 五行→五脏 卡片（偏弱者高亮）
+  const orgEl=document.getElementById("wfWxOrgans");
+  const weakElem = G_BAZI ? WX_ORDER.reduce((a,c)=>G_BAZI.count[c]<G_BAZI.count[a]?c:a, WX_ORDER[0]) : null;
+  orgEl.innerHTML=WX_ORDER.map(w=>{ const o=WX_ORGAN[w];
+    const hl = (w===weakElem) ? "border-color:"+WX_COLOR[w]+";box-shadow:0 0 0 2px "+WX_COLOR[w]+"22;" : "";
+    const tag = (w===weakElem) ? "<span class='pill' style='background:"+WX_COLOR[w]+"'>建议补益</span>" : "";
+    return "<div class='gong-card' style='"+hl+"'><div class='gc-n' style='color:"+WX_COLOR[w]+"'>"+w+" → "+o.organ+" "+tag+"</div>"
+      +"<div class='gc-f'><b>当令：</b>"+o.season+"。<br>"+o.point+"<br><b>日常：</b>"+o.rec+"</div></div>"; }).join("");
+
+  // 八部金刚功（按体质推荐最贴合的几部）
+  const gongEl=document.getElementById("wfGong");
+  let recGong = G_BAZI ? null : null;
+  if(G_BAZI){ const weak=WX_ORDER.reduce((a,c)=>G_BAZI.count[c]<G_BAZI.count[a]?c:a, WX_ORDER[0]); recGong=WX_ORGAN[weak].gong; }
+  gongEl.innerHTML=GONG_8.map((g,i)=>{ const isRec = recGong && recGong.indexOf(i+1)>=0;
+    const badge = isRec ? "<span class='pill green'>推荐</span>" : "";
+    return "<div class='gong-card'><div class='gc-n'>"+g.n+" · "+g.name+" "+badge+"</div><div class='gc-f'>"+g.f+"</div></div>"; }).join("");
+
+  // 长寿功
+  document.getElementById("wfChangshou").innerHTML=CHANGSHOU_8.map(g=>"<div class='gong-card' style='border-top-color:var(--brown)'><div class='gc-n' style='color:var(--brown-dark)'>"+g.n+" · "+g.name+"</div><div class='gc-f'>"+g.f+"</div></div>").join("");
+
+  // 道家内观（结合紫微命宫主星）
+  const innerEl=document.getElementById("wfInner");
+  if(G_ZIWEI && ZW_INNER[G_ZIWEI.mingStar]){
+    innerEl.innerHTML="<b>来自 ① 紫微命宫「"+G_ZIWEI.mingStar+"」的切入点：</b>"+ZW_INNER[G_ZIWEI.mingStar];
+  } else if(G_ZIWEI){
+    innerEl.innerHTML="（命宫主星「"+(G_ZIWEI.mingStar||"—")+"」暂无专属切入点，可沿用上方通用内观四步。）";
+  } else {
+    innerEl.innerHTML="（排盘后，这里会结合你的紫微命宫主星，给出更贴合的内观切入点。）";
+  }
+}
+
+/* ============================================================================
+ *  场景化解读引擎（按“实际输出值”一对一生成，杜绝通用套话）
+ *  设计原则：解读 = f(实际算出的主星/四柱/十神/牌面)，同一输出恒得同一专属解读，
+ *           不同输出得不同解读；并明确说明“为什么指标这样”、给出可执行结论。
+ * ========================================================================== */
+
+/* —— 紫微：14 主星专属解读（命宫主星即全局锚点） —— */
+const ZW_STAR_INTERP = {
+  "紫微":{trait:"天生具统筹与掌控倾向，行事稳健、喜掌全局，有领导与组织之象。",metric:"命宫主星为全局锚点，你的‘主导气质’与‘定盘’指标天然偏高。",advice:"把掌控欲导向‘搭台成就他人’，避免事必躬亲、巨细无遗地把控；在团队中做定盘星而非事事亲为。"},
+  "天机":{trait:"聪慧机变、善谋划思考，宜以智取、忌冲动冒进。",metric:"思维活跃度指标高，决断偏‘谋定后动’。",advice:"把机变用于规划而非反复权衡；给自己设一个明确的截止时限，避免想太多却不落地。"},
+  "太阳":{trait:"光明磊落、具发散与照拂之性，宜外向开拓。",metric:"对外展现与照拂能量高，需留意‘过度外投’。",advice:"留一份注意力回身体，避免燃尽；适合带头但需学会适当分权与授权。"},
+  "武曲":{trait:"刚毅务实、善理财与执行，宜专业立身。",metric:"执行力与结果导向指标高。",advice:"以专业立身，容许不完美，避免只盯数字而忽略人。"},
+  "天同":{trait:"温和安逸、待人宽厚，宜以和缓致远。",metric:"和谐与舒适度指标高，进取心偏温和。",advice:"主动制造一次小突破，别让安逸滑向停滞。"},
+  "廉贞":{trait:"才情与是非交织，情感丰富而需自持。",metric:"情感复杂度与审美敏感度指标高。",advice:"自持边界，把才情落到具体作品而非情绪纠缠。"},
+  "天府":{trait:"包容稳守、如库藏之象，宜积聚与守成。",metric:"积聚与守成指标高，风险偏好低。",advice:"宜守成但定期‘开库’尝试新事物，避免囤积封闭。"},
+  "太阴":{trait:"内敛柔润、具细腻感知，宜静修与谋划。",metric:"内省与感知力指标高，外放偏弱。",advice:"把细腻转向自己，定期表达而非只内化。"},
+  "贪狼":{trait:"多才多欲、善交际变化，宜收束心志以成。",metric:"好奇与社交能量高，专注易分散。",advice:"收束心志，选一两件深耕，避免样样浅尝。"},
+  "巨门":{trait:"口才与思辨突出，宜以言语立身，忌口舌之争。",metric:"表达与分析指标高，易陷口舌。",advice:"先倾听后发言，忌争辩；把思辨写成文字更稳。"},
+  "天相":{trait:"端庄辅佐、具调和之能，宜配角而成大事。",metric:"协作与配角适配度指标高。",advice:"宜做团队‘稳定器’，但也要争取署名与主导时刻。"},
+  "天梁":{trait:"清贵庇荫、具化解与守护之象，宜以德服人。",metric:"守护与化解指标高，易代人扛事。",advice:"以德服人，但学会‘不替人背锅’，护好肩颈。"},
+  "七杀":{trait:"果决开拓、不畏艰难，宜冲锋而需谋后动。",metric:"冲劲与抗压指标高，耐心偏弱。",advice:"谋后动，冲锋前先布撤退线；用挑战练胆而非莽撞。"},
+  "破军":{trait:"开创变革、破旧立新，宜蓄势而发。",metric:"变革与破坏重建指标高，守成偏弱。",advice:"蓄势而发，破旧后留白再立新，避免为变而变。"}
+};
+const ZW_PALACE_INTERP = {
+  "子":"四正之一，内敛善思、情感深藏，宜沉淀守静。","丑":"金库之位，务实隐忍、厚积薄发。","寅":"长生之地，主动进取、精力旺盛。",
+  "卯":"四正之一，仁柔而有韧，敏于感受。","辰":"水库，包容多变、具整合力。","巳":"金长生，明敏外显、行动力强。","午":"四正之一，光明外放、热情直率。",
+  "未":"木库，温和内秀、重情守序。","申":"水长生，机变果决、善应变。","酉":"四正之一，精致内守、重审美与规则。","戌":"火库，忠厚刚劲、护持心强。","亥":"木长生，涵容豁达、直觉佳。"
+};
+
+/* —— 八字：10 日主 / 5 五行旺衰 / 10 十神 / 神煞 —— */
+const BZ_DAYMASTER_INTERP = {
+  "甲":{nature:"如参天大树，向上舒展、有担当。",strong:"身强宜发挥领导与开拓，但防固执己见。",weak:"身弱宜借水（印）木（比）之力，结伴同行、深耕一门。"},
+  "乙":{nature:"如藤蔓花草，柔韧善绕、灵巧。",strong:"身强以巧胜力、善协调八方。",weak:"身弱需攀附支撑（贵人/团队），避免孤军。"},
+  "丙":{nature:"如太阳，光明外放、热情。",strong:"身强宜引领，但防灼人。",weak:"身弱需木生扶，补信心与表达。"},
+  "丁":{nature:"如灯烛，细腻持久、温暖。",strong:"身强以恒心成事。",weak:"身弱需木生、避寒凉环境。"},
+  "戊":{nature:"如高山，厚重稳定、可信赖。",strong:"身强宜守成担责。",weak:"身弱需火生、补底气。"},
+  "己":{nature:"如田园，包容滋养、细致。",strong:"身强善整合资源。",weak:"身弱需火生、忌杂乱无章。"},
+  "庚":{nature:"如刀剑，刚锐果决、讲义气。",strong:"身强宜攻坚，但防过刚易折。",weak:"身弱需土生、以水显锋。"},
+  "辛":{nature:"如珠宝，精致锐敏、重美感。",strong:"身强以巧思取胜。",weak:"身弱需土生、避粗砺环境。"},
+  "壬":{nature:"如江河，奔放通达、智慧流动。",strong:"身强宜开拓流动。",weak:"身弱需金生、避干涸。"},
+  "癸":{nature:"如雨露，润物无声、内秀。",strong:"身强以柔克刚。",weak:"身弱需金生、养精蓄锐。"}
+};
+const BZ_WX_INTERP = {
+  "木":{strong:"木偏旺：行动力、主见与竞争意识强，但易固执、肝气易郁（文化上）。宜疏解（运动/表达），忌钻牛角尖。",weak:"木偏弱：决断与行动稍欠底气，易随波。宜补木（绿、晨练、结伴），借‘比劫’之力壮胆。"},
+  "火":{strong:"火偏旺：热情外放、表达力强，但易心浮、耗神。宜静心（午憩/冥想），忌大汗伤心。",weak:"火偏弱：精神亮度与行动热力不足，易冷场。宜补火（红、向阳、规律作息），养心血。"},
+  "土":{strong:"土偏旺：稳重包容、承载力强，但易滞重、思虑多。宜健脾祛湿（少生冷）、适度断舍离。",weak:"土偏弱：根基与运化偏弱，易飘。宜补土（黄、山药小米、守序作息），固后天之本。"},
+  "金":{strong:"金偏旺：果决、条理与边界感强，但易紧绷、肺系易燥。宜润肺（白、深呼吸）、柔化表达。",weak:"金偏弱：魄力与收敛不足，易散。宜补金（白、简练、规律），练‘收’的功夫。"},
+  "水":{strong:"水偏旺：智慧流动、适应力强，但易散漫、肾系易寒。宜节欲早卧、定向聚焦。",weak:"水偏弱：底气与储藏不足，易耗。宜补水（黑、黑豆芝麻、藏养），固先天之本。"}
+};
+const BZ_SHISHEN_INTERP = {
+  "比肩":{meaning:"同我者，代表平辈、自我、独立性。",tip:"多则自主但易固执；少则欠同伴支持。"},
+  "劫财":{meaning:"异我之同五行，代表竞争、分夺、行动伙伴。",tip:"多则争强；宜用于开拓而非内耗。"},
+  "食神":{meaning:"我生者（同性），代表才华、享受、松弛输出。",tip:"身强喜泄秀；身弱过旺则泄身太过。"},
+  "伤官":{meaning:"我生者（异性），代表才艺、叛逆、表达欲。",tip:"主才情但易犯官，宜创造而非顶撞。"},
+  "正财":{meaning:"我克者（异性），代表稳定收入、务实。",tip:"主踏实聚财；多则重物质。"},
+  "偏财":{meaning:"我克者（同性），代表意外之财、灵活、父亲。",tip:"主外财与变通；宜理性。"},
+  "正官":{meaning:"克我者（异性），代表规则、事业、约束。",tip:"主贵气与责任；过旺则压力。"},
+  "七杀":{meaning:"克我者（同性），代表压力、魄力、挑战。",tip:"身强化杀为权；身弱需印化。"},
+  "正印":{meaning:"生我者（异性），代表庇护、学习、母亲、贵人。",tip:"主安稳与资质；身弱最喜。"},
+  "偏印":{meaning:"生我者（同性），代表偏门学识、灵感、孤独。",tip:"主特殊才华；过多易孤僻。"}
+};
+const BZ_SHENSHA_INTERP = {
+  "桃花":"人际与情感吸引力偏强，宜把握分寸、避免滥情。",
+  "天乙贵人":"关键时刻易得长辈/权威相助，宜主动联结贵人网络。",
+  "驿马":"主变动、远行、奔波，宜把‘动’导向学习/迁徙等正向迁转。"
+};
+
+/* —— 塔罗：22 大阿尔卡纳专属行动提示 + 小牌生成器 + 牌阵位含义 —— */
+const TT_MAJOR_ACT = {
+  "愚人":{biz:"新的开端、纯真、跃入未知。",act:"给一个‘轻装出发’的小行动：列一件你一直想试又怕的事，本周做最小一步。"},
+  "魔术师":{biz:"创造、意志、资源整合。",act:"把散落资源列成一张可动手清单，今天启动第一项。"},
+  "女祭司":{biz:"直觉、内在智慧、静默。",act:"给自己一段不被打扰的独处，记录浮现的直觉。"},
+  "女皇":{biz:"丰盛、滋养、创造力。",act:"滋养一件你在意的事或人，把丰盛落地为具体照顾。"},
+  "皇帝":{biz:"秩序、权威、稳定。",act:"为一处混乱建立结构（清单/日程/边界）。"},
+  "教皇":{biz:"传统、信念、指引。",act:"向一位你信任的引路人请教，或回归一套让你安心的准则。"},
+  "恋人":{biz:"结合、选择、价值契合。",act:"面对一个真实的选择，写下两边各三条代价再决。"},
+  "战车":{biz:"意志获胜、前进、自律。",act:"选定一个目标，用每日一小胜推进，防内耗。"},
+  "力量":{biz:"温柔的勇气、自制、韧性。",act:"用柔不是退，选一件你怕的事，以耐心而非蛮力面对。"},
+  "隐者":{biz:"内省、寻求真理、独处。",act:"暂时退出喧哗，做一次自我问答式复盘。"},
+  "命运之轮":{biz:"转机、周期、命运流动。",act:"识别你正处的周期位置，顺势而非硬抗。"},
+  "正义":{biz:"公正、因果、平衡。",act:"复盘一笔收支，补上被忽略的公平项。"},
+  "倒吊人":{biz:"换个视角、放下、臣服。",act:"故意暂停，用相反角度重看困局。"},
+  "死神":{biz:"结束与重生、蜕变、放手。",act:"主动了结一件早该结束的事，腾出空间。"},
+  "节制":{biz:"调和、耐心、平衡。",act:"在两股拉扯间找中间配方，忌极端。"},
+  "恶魔":{biz:"觉察束缚、面对欲望、挣脱。",act:"写下你被什么拴住，挑一条最轻的先解。"},
+  "高塔":{biz:"突变、真相、破旧立新。",act:"借突变清理，先保安全，再把碎裂当重建起点。"},
+  "星星":{biz:"希望、信念、疗愈。",act:"许一个具体的小希望，并写为何可信三句。"},
+  "月亮":{biz:"潜意识、直觉、幻象。",act:"把夜里盘旋的恐惧写下来，白天用事实逐条核对。"},
+  "太阳":{biz:"喜悦、清晰、活力。",act:"做一件让你由衷发光的事，并分享出去。"},
+  "审判":{biz:"觉醒、召唤、重生。",act:"回应一个你一直忽略的内在召唤。"},
+  "世界":{biz:"圆满、完成、整合。",act:"为一个进行中的事画句号，再整合经验进入下一程。"}
+};
+const TT_NUM={"一":1,"二":2,"三":3,"四":4,"五":5,"六":6,"七":7,"八":8,"九":9,"十":10};
+const TT_SUIT_ELEM={"权杖":"行动与热情","圣杯":"情感与关系","宝剑":"思维与真相","星币":"物质与稳定"};
+const TT_COURT_ROLE={"侍从":"学习萌芽","骑士":"行动推进","王后":"成熟包容","国王":"稳固主导"};
+
+/* 40 张数字牌逐牌专属解读（牌意原义显著 + 正逆分别）：up=正位牌意、down=逆位牌意、actUp=正位行动、actDown=逆位行动 */
+const TT_MINOR_INTERP = {
+  /* —— 权杖（火 / 行动与热情）—— */
+  "权杖一":{up:"开创的起点、灵感涌入、行动力足、一个新计划破土。", down:"拖延、能量卡住、机会悄悄溜走、方向不明。", actUp:"选一件一直想做的事，今天就迈最小的一步。", actDown:"先想清楚方向再动，别让好念头停在脑中。"},
+  "权杖二":{up:"规划、权衡、站在选择的路口、酝酿出击。", down:"犹豫不决、错失时机、原地踏步、迟迟不下手。", actUp:"把两个选项的代价各列三条，选定一个先试。", actDown:"别再观望，先定一个方向，边走边调整。"},
+  "权杖三":{up:"向外拓展、初步成就、远见兑现、版图扩大。", down:"受阻延期、视野受限、原地打转、扩张受挫。", actUp:"把已有成果扩到新范围或新的人脉。", actDown:"先查清哪儿卡住了，疏通后再谈扩张。"},
+  "权杖四":{up:"稳固、休整、建立根据地、值得庆祝。", down:"不安稳、动荡、根基松动、过度防御。", actUp:"巩固底盘，把一件事做成可依赖的据点。", actDown:"别死守旧阵地，先看哪里松了先补。"},
+  "权杖五":{up:"竞争、混战、在冲突中力争、历练成长。", down:"无谓争执、内耗、一味逃避冲突。", actUp:"正面迎战一个真正的分歧，分清敌友。", actDown:"撤出没有意义的争斗，先给情绪降温。"},
+  "权杖六":{up:"胜利、被认可、突破后的荣耀、自信回升。", down:"失利、未被认可、自我怀疑、一时失落。", actUp:"庆祝一次小胜，带着它继续往前推。", actDown:"别因一时落后否定自己，先稳住再来。"},
+  "权杖七":{up:"坚守、以寡敌众、捍卫阵地、迎战不退。", down:"力不从心、被压制、放弃防守、乱了阵脚。", actUp:"守住一个关键阵地，把火力集中一处。", actDown:"别硬扛，先退一步保存实力再图后手。"},
+  "权杖八":{up:"快速行动、消息传来、高效推进、风风火火。", down:"延误、混乱、目标分散、冲动出错。", actUp:"趁势头正盛，快做一件最要紧的事。", actDown:"先按下暂停，理清优先级，别多头并进。"},
+  "权杖九":{up:"坚守警戒、凭经验防御、最后的防线、谨慎。", down:"过度防备、身心疲惫、草木皆兵、松懈。", actUp:"守好已有的防线，用经验化解风险。", actDown:"别绷太紧，适度放松哨岗恢复元气。"},
+  "权杖十":{up:"重担、扛到底的责任、压力承载、负重前行。", down:"放下、卸任、不堪重负、责任转移。", actUp:"把肩上任务列清，排优先级逐一推进。", actDown:"把本不该你扛的放下，学会交付与求助。"},
+  /* —— 圣杯（水 / 情感与关系）—— */
+  "圣杯一":{up:"爱、喜悦、情感满溢、新感情或灵感降临。", down:"情感枯竭、错失爱、内心空虚、无法接收。", actUp:"向在意的人表达一份具体的心意。", actDown:"先把自己填满，才有余力去爱人。"},
+  "圣杯二":{up:"配对、相互吸引、平等关系、合作的萌芽。", down:"失衡、误解、貌合神离、彼此拒绝。", actUp:"和重要的人做一次坦诚的对谈。", actDown:"先厘清关系里哪头失衡，再谈修复。"},
+  "圣杯三":{up:"庆祝、友谊、团体欢乐、久违的团聚。", down:"过度玩乐、小团体排挤、庆祝变了味。", actUp:"和朋友一起庆祝一件真正的好事。", actDown:"别在热闹里逃避自己真实的不快。"},
+  "圣杯四":{up:"反省、倦怠、不知足、静静观望。", down:"重新投入、接受新机会、走出冷淡。", actUp:"给自己一段安静，看清自己真正想要什么。", actDown:"别再拒绝伸来的手，接住一个新机会。"},
+  "圣杯五":{up:"失落、悲伤、遗憾、目光锁在失去上。", down:"走出悲伤、释怀、转念、开始复原。", actUp:"允许自己为失去难过，但别只盯着空杯。", actDown:"把目光转向身后还在的，慢慢复原。"},
+  "圣杯六":{up:"怀旧、安全感、童年或旧人、温暖的馈赠。", down:"沉溺过去、过度依赖、不肯长大、旧伤复发。", actUp:"给一位旧友或旧爱好一份温度。", actDown:"别困在回忆里，把养分带回到现在。"},
+  "圣杯七":{up:"幻想、选择过多、诱惑纷呈、眼花缭乱。", down:"幻想破灭、看清真相、回归现实。", actUp:"把飘着的种种可能写下来，逐一过筛。", actDown:"别再做梦，挑一个脚踏实地的落点。"},
+  "圣杯八":{up:"离开、舍弃、寻求更深的意义、勇敢出走。", down:"留恋、不敢走、原地空耗、迟疑不前。", actUp:"为一段不再适合的关系或工作，迈出离开。", actDown:"若还没准备好走，先想清楚留下到底值不值。"},
+  "圣杯九":{up:"满足、如愿、自我庆祝、内在的丰盈。", down:"空虚、不满足、表面光鲜、独自失落。", actUp:"为自己达成的一件事好好开心一下。", actDown:"别用外在填满内在空缺，先看见真实需求。"},
+  "圣杯十":{up:"圆满、归属、家庭和睦、一幅幸福的图景。", down:"关系破裂、理想落空、表面和谐的假象。", actUp:"为家人或亲密圈做一件增进感情的事。", actDown:"别用『应该和谐』压住真实矛盾，先直面。"},
+  /* —— 宝剑（风 / 思维与真相）—— */
+  "宝剑一":{up:"清晰、决断、划破迷雾的新视角、清醒。", down:"混乱、误判、粗暴、冲动下结论。", actUp:"做一个清醒的决定，把判断依据写下来。", actDown:"别急着下结论，先把事实捋清楚。"},
+  "宝剑二":{up:"权衡、封锁情绪、站在两难、自我防护。", down:"被迫面对、逃避失败、终于松手。", actUp:"暂时封住外界杂音，给自己安静地判断。", actDown:"别再捂着眼，挑一个先去面对。"},
+  "宝剑三":{up:"心痛、悲伤、真相扎心、却是疗愈的起点。", down:"走出伤痛、释怀、结痂、学会放下。", actUp:"允许自己为这道伤口难过，这是愈合的开始。", actDown:"别反复撕开结痂，把目光转向恢复。"},
+  "宝剑四":{up:"休整、静养、暂离纷争、停下来充电。", down:"不安、逃避、其实无法真正休息、停滞。", actUp:"主动休息，把一件事暂时搁置养精神。", actDown:"别装睡，该起身时就起身去面对。"},
+  "宝剑五":{up:"冲突、争胜、代价、往往得不偿失。", down:"和解、放下争执、收拾残局、生出悔意。", actUp:"分清哪些仗值得打，别赢了嘴输了局。", actDown:"主动收手，给这场冲突画一个句号。"},
+  "宝剑六":{up:"过渡、离开伤痛、缓慢转移、一段疗愈旅程。", down:"陷在原地、不愿走、旧伤未愈、频频回头。", actUp:"带着伤慢慢挪向新环境，不必着急。", actDown:"别老回头看，把船真正划向前方。"},
+  "宝剑七":{up:"策略、机敏、试探、以巧取胜。", down:"露馅、计划败露、自欺、徒劳无功。", actUp:"用巧劲绕开正面硬碰，但别越界。", actDown:"别再耍小聪明，老老实实面对现实。"},
+  "宝剑八":{up:"受困、受限、自我设限、眼前一片盲目。", down:"看清束缚、挣脱、恢复清明、松绑。", actUp:"看清是哪根绳子绑住你，先剪断一根。", actDown:"别替别人绑住自己，松开那道绳索。"},
+  "宝剑九":{up:"焦虑、担忧、深夜的恐惧、白白内耗。", down:"放下焦虑、逐渐平复、噩梦初醒、归于释然。", actUp:"把担心的事写下来，区分现实与想象。", actDown:"别独自硬扛恐惧，找人说说或寻求支持。"},
+  "宝剑十":{up:"终结、重创、跌入谷底、彻底的放下。", down:"走出谷底、缓慢恢复、出现转机、松绑。", actUp:"接受一段已经结束，允许自己触底。", actDown:"别停在伤口上，既然已到底就该往上爬。"},
+  /* —— 星币（土 / 物质与稳定）—— */
+  "星币一":{up:"新机会、物质的起点、务实的开端、丰盛的种子。", down:"错失机会、资金吃紧、计划虚浮、基础不稳。", actUp:"为一个实际目标开个头，哪怕只是很小的一步。", actDown:"先把资源账算清，再谈投入与承诺。"},
+  "星币二":{up:"灵活周转、平衡收支、多线兼顾、以变应变。", down:"失衡、顾此失彼、摇摆不定、过度消费。", actUp:"把几件要事排好节奏，保持灵活。", actDown:"先稳住一头，别两头都晃。"},
+  "星币三":{up:"协作、打磨技能、团队配合、初步成果。", down:"团队不和、技能不足、进度拖延、配合失当。", actUp:"在一项工作里与人对齐，把这门手艺练熟。", actDown:"别单打独斗，找个能补你短板的人。"},
+  "星币四":{up:"守成、储蓄、稳定、牢牢抓好已有的。", down:"囤积、吝啬、抓得太死、反而失去掌控。", actUp:"把已有的财富或资源守好，建立秩序。", actDown:"别抓得太死，适度流动才有活水。"},
+  "星币五":{up:"匮乏、困境、失去依靠、物质或健康的危机。", down:"走出困境、获得援助、缓慢恢复、出现转机。", actUp:"承认当下确有难处，向外求援而非硬撑。", actDown:"别错过伸来的援手，接受帮助重建。"},
+  "星币六":{up:"给予、分享、流动、慷慨且平衡。", down:"失衡的给予、依赖、施舍感、勉强借贷。", actUp:"做一次有分寸的给予或分享。", actDown:"别在失衡的关系里委屈自己或讨好。"},
+  "星币七":{up:"耕耘、耐心等待成果、评估投入、踏实。", down:"懈怠、耐心不足、徒劳、急于求成。", actUp:"沉下心把一件长期的事持续做下去。", actDown:"别光等，先复盘投入产出再作调整。"},
+  "星币八":{up:"专注、精进、学徒精神、在细节里打磨手艺。", down:"粗心、敷衍、重复却无成长、遭遇瓶颈。", actUp:"把一件事做到极致，在细节里精进。", actDown:"别机械重复，停下来想想有没有长进。"},
+  "星币九":{up:"独立、丰足、享受成果、自给自足。", down:"依赖、表面丰盛、内心孤独、并不踏实。", actUp:"为自己经营出的一份成果好好享用。", actDown:"别用物质掩盖内心空缺，先扎下根。"},
+  "星币十":{up:"长久安稳、家族财富、圆满落实、可传承。", down:"财务紧张、家庭或事业的危机、表面的稳固。", actUp:"为长期安稳做一件扎实的事，如储蓄或规划。", actDown:"别被表面稳固骗了，先查潜在漏洞。"}
+};
+
+function ttBuildMinorAct(){
+  const m={};
+  TT_MINOR.forEach(c=>{
+    const interp=TT_MINOR_INTERP[c.name];
+    if(interp){ m[c.name]={biz:interp.up, revBiz:interp.down, act:interp.actUp, rev:interp.actDown}; return; }
+    /* 无专属解读时的花色×数字/宫廷兜底（宫廷牌保留原逻辑） */
+    let act, rev;
+    const suitElem=TT_SUIT_ELEM[c.suit];
+    const court=Object.keys(TT_COURT_ROLE).find(k=>c.name.indexOf(k)>=0);
+    if(court){
+      const roleTxt={"侍从":"先观察、小试、再总结","骑士":"选一个具体动作冲一波","王后":"以包容稳固的方式承接","国王":"以规则与责任稳住局面"}[court]||"取一步";
+      act="在「"+suitElem+"」上，参考「"+court+"」的姿态："+roleTxt+"。";
+      rev="在「"+suitElem+"」上，若「"+court+"」逆位，先退一步、确认方向再行动，避免盲动。";
+    } else {
+      const numKey=Object.keys(TT_NUM).find(k=>c.name.indexOf(k)>=0);
+      const numTxt={"一":"迈出第一步、先启动","二":"寻找平衡、不急着站队","三":"让事情自然展开","四":"打稳基础、巩固底盘","五":"直面冲突与卡点","六":"主动求和、修复分享","七":"迎战挑战、找好退路","八":"建立掌控、收拢资源","九":"整合收尾、做准备","十":"完成周期、画句号"}[numKey]||"落到一件具体的小事";
+      act="在「"+suitElem+"」上，"+numTxt+"。";
+      rev="在「"+suitElem+"」上，若逆位则先松开、再转化，别硬推。";
+    }
+    m[c.name]={biz:c.up, revBiz:c.down, act:act, rev:rev};
+  });
+  return m;
+}
+const TT_CARD_ACT = Object.assign({}, ttBuildMinorAct(), TT_MAJOR_ACT);
+const TT_POSITION_INTERP = {
+  single:{"当下指引":"聚焦此刻最该看见的一个意象，作为向内看的入口。"},
+  ppf:{"过去":"这段脉络从何而来，哪些已成定局。","现在":"你正站在哪里，能量此刻如何。","未来":"若顺势而为，能量可能的走向（非注定）。"},
+  celtic:{"现状":"你当前所处的核心状态。","挑战":"横在你面前的阻碍或张力。","过去":"形塑现状的来路。","未来":"由现状自然推演的可能。","理想":"你内心渴望的方向。","近景":"近期将发生或影响你的事。","自我":"你对此事的内在态度。","环境":"外部人与环境的作用。","希望/恐惧":"你隐秘的期盼或担忧。","结局":"若不改变，可能的结果。"}
+};
+
+/* —— 紫微汇编：严格对应（主星 + 落宫 + 大限 + 流年）这一组输出 —— */
+function zwInterpret(s){
+  const si=ZW_STAR_INTERP[s.mingStar]||{trait:"—",metric:"—",advice:"—"};
+  const palace=ZW_PALACE_INTERP[s.mingZhi]||"";
+  const dx=s.daXianCur;
+  const lze=WU_XING_ZHI[s.liuNian.zhi], dze=WU_XING_ZHI[dx.zhi];
+  let rel="比和";
+  if(BZ_SHENG[lze]===dze) rel="生扶";
+  else if(BZ_SHENG[dze]===lze) rel="泄耗";
+  else if(BZ_KE[lze]===dze) rel="克制";
+  else if(BZ_KE[dze]===lze) rel="耗散";
+  const lnNote = s.liuNian.isBirthYear ? "本命年宜稳守、忌冒进，把变革节奏放慢一年。"
+    : "流年地支「"+s.liuNian.zhi+"」对当前大限地支「"+dx.zhi+"」为「"+rel+"」关系——"
+      + (rel==="生扶"?"今年易得助力，宜借势展开":rel==="克制"?"今年承压，宜守不宜攻":rel==="泄耗"?"今年能量外泄，宜蓄力":"今年宜守中带调，观生克而定进退")+"。";
+  let html="";
+  html+="<div class='advice'><span class='pill'>专属解读</span>在你这组输入（生辰 "+s.birth.y+"-"+s.birth.m+"-"+s.birth.d+" "+s.birth.h+"时 · "+(s.birth.sex==="male"?"男":"女")+" · 流年 "+s.flowYear+"）下，命宫主星锁定为「<b>"+s.mingStar+"</b>」、命宫落「"+s.mingZhi+"」宫——以下为严格对应此组合的解读，而非通用套话。</div>";
+  html+="<div class='advice'><b>① 命宫主星「"+s.mingStar+"」业务含义：</b>"+si.trait+"<br><b>关键指标：</b>"+si.metric+"</div>";
+  html+="<div class='advice'><b>② 命宫落「"+s.mingZhi+"」宫的气质基底：</b>"+palace+"</div>";
+  html+="<div class='advice'><b>③ 当前大限（"+dx.label+"，宫位地支 "+dx.zhi+"）：</b>此十年你宜把主星「"+s.mingStar+"」的特质用于沉淀与推进——"+si.advice+"</div>";
+  html+="<div class='advice'><b>④ 流年 "+s.liuNian.year+"（"+s.liuNian.zhi+(s.liuNian.isBirthYear?" · 本命年":"")+"）专属：</b>"+lnNote+"</div>";
+  html+="<div class='advice'><b>⑤ 可执行结论建议：</b>"+si.advice+" 十年主线（"+dx.label+"）上，建议把「"+s.mingStar+"」能量导向建设性出口；本年（"+s.liuNian.year+"）按上述流年关系微调节奏。</div>";
+  return html;
+}
+
+/* —— 八字汇编：严格对应（日主 + 身强身弱 + 五行 + 十神 + 神煞）这一组输出 —— */
+function bzInterpret(s){
+  const dm=s.element, dg=s.dayGan;
+  const di=BZ_DAYMASTER_INTERP[dg]||{nature:"—",strong:"—",weak:"—"};
+  const mze=WU_XING_ZHI[s.monthZhi];
+  let mrel;
+  if(mze===dm) mrel="比劫助身";
+  else if(BZ_SHENG[mze]===dm) mrel="印星生身";
+  else if(BZ_SHENG[dm]===mze) mrel="食伤泄身";
+  else if(BZ_KE[mze]===dm) mrel="官杀克身";
+  else if(BZ_KE[dm]===mze) mrel="财星耗身";
+  else mrel="—";
+  const c=s.count, order=WX_ORDER;
+  let yin="木"; for(const e of order){ if(BZ_SHENG[e]===dm){yin=e;break;} }
+  const same=c[dm], yinC=c[yin]||0, support=same+yinC, ratio=support/8;
+  const maxE=order.reduce((a,x)=>c[x]>c[a]?x:a,order[0]);
+  const minE=order.reduce((a,x)=>c[x]<c[a]?x:a,order[0]);
+  const range=c[maxE]-c[minE];
+  let html="";
+  html+="<div class='advice'><span class='pill green'>专属解读</span>生辰 "+s.birth.y+"-"+s.birth.m+"-"+s.birth.d+" "+s.birth.h+"时 · "+(s.birth.sex==="male"?"男":"女")+"：日主 <b>"+dg+"</b>（"+dm+"）· <b>"+s.level+"</b>。以下严格对应此四柱，非通用套话。</div>";
+  html+="<div class='advice'><b>① "+s.level+"成因（关键指标为什么这样）：</b>四柱五行计数 木"+c.木+" 火"+c.火+" 土"+c.土+" 金"+c.金+" 水"+c.水+"。日主 "+dg+"（"+dm+"）的同类 = 自身("+same+") + 印("+yinC+") 共 <b>"+support+"</b>，占 "+(ratio*100).toFixed(0)+"%，故判「"+s.level+"」。月支「"+s.monthZhi+"」（"+mze+"）对日主为「"+mrel+"」，是此格局的重要推手。"+(s.level==="身弱"?"日主被泄/克/耗偏多，天生需借力而行。":"日主得生/助偏多，天生被环境托举，宜发挥主导。")+"</div>";
+  html+="<div class='advice'><b>② 日主「"+dg+"」专属气质：</b>"+di.nature+"<br><b>结合"+s.level+"的应对：</b>"+(s.level==="身弱"?di.weak:di.strong)+"</div>";
+  if(range<=1){
+    html+="<div class='advice'><b>③ 五行偏盛偏衰：</b>五行分布较均衡（极差 "+range+"），"+dm+" 不枯不溢，宜顺势而为、全面发展。</div>";
+  } else {
+    const wmax=BZ_WX_INTERP[maxE], wmin=BZ_WX_INTERP[minE];
+    html+="<div class='advice'><b>③ 五行偏盛偏衰（专属）：</b>最旺为 <b style='color:"+WX_COLOR[maxE]+"'>"+maxE+"</b>——"+wmax.strong+" 最弱为 <b style='color:"+WX_COLOR[minE]+"'>"+minE+"</b>——"+wmin.weak+"</div>";
+  }
+  const ssCount={}; s.pillars.forEach(p=>{ ssCount[p.shiShen]=(ssCount[p.shiShen]||0)+1; });
+  function ssLevel(n){ if(n===0) return {label:'缺失',desc:'四柱天干未出现'}; if(n===1) return {label:'偏少',desc:'只出现一次，力量较单薄'}; if(n===2) return {label:'适中',desc:'出现两次，力量均衡'}; return {label:'偏多',desc:'出现三次及以上，影响力较强'}; }
+  let ssSummary=""; Object.keys(ssCount).sort((a,b)=>ssCount[b]-ssCount[a]).forEach(k=>{ const lv=ssLevel(ssCount[k]); ssSummary+="<span class='tag'>"+k+" "+ssCount[k]+"次（"+lv.label+"）</span>"; });
+  let ss="";
+  s.pillars.forEach(p=>{ const sh=BZ_SHISHEN_INTERP[p.shiShen]||{meaning:p.shiShen,tip:""}; const tag=(p.name==="日柱")?"（日主自身）":""; const lv=ssLevel(ssCount[p.shiShen]); ss+="<div style='margin:4px 0'><b>"+p.name+"·"+p.gan+"（"+p.shiShen+"）"+tag+"：</b>"+sh.meaning+" "+sh.tip+"<br><span style='font-size:12px;color:var(--text-dim)'>在你命局中，「"+p.shiShen+"」出现 <b>"+ssCount[p.shiShen]+"</b> 次，属于"+lv.label+"——"+lv.desc+"。</span></div>"; });
+  html+="<div class='advice'><b>④ 四柱十神格局（按实际天干）：</b><br><div style='margin-bottom:8px'>十神统计："+ssSummary+"</div>"+ss+"</div>";
+  const dy=s.daYunFirst, dySS=bzShiShen(dg,dy.gan), dyTip=(BZ_SHISHEN_INTERP[dySS]||{}).tip||"";
+  html+="<div class='advice'><b>⑤ 起运首步（"+dy.label+"）：</b>"+dy.gan+dy.zhi+"，对日主为「"+dySS+"」——"+dyTip+"</div>";
+  if(s.shenSha&&s.shenSha.length){
+    let sh=""; s.shenSha.forEach(x=>{ const key=x.replace(/（.*）/,"").replace(/\(.*\)/,""); sh+="<div style='margin:3px 0'>"+x+"："+(BZ_SHENSHA_INTERP[key]||"")+"</div>"; });
+    html+="<div class='advice'><b>⑥ 神煞（文化参考）：</b><br>"+sh+"</div>";
+  }
+  html+="<div class='advice'><b>⑦ 可执行结论建议：</b>"+(s.level==="身弱"?di.weak:di.strong)+(range>1?(" 同时补益最弱之「"+minE+"」："+BZ_WX_INTERP[minE].weak):"")+"。本解读为文化参考，不作为医疗或命运断言；若把结论用于 ④ 生态网，日主五行会进一步联动到专属的五行—五脏—四季养生方案。</div>";
+  return html;
+}
+
+/* —— 塔罗汇编：严格对应（实际抽到的牌 + 牌阵位 + 正逆）这一组输出 —— */
+function ttNarrate(picks,key){
+  if(key==="single"){ const p=picks[0]; return "单张 "+p.cardName+(p.reversed?"（逆）":"")+" 作为此刻的聚焦意象："+p.meaning+" 把它当作一个邀请而非判决。"; }
+  if(key==="ppf"){ const a=picks[0],b=picks[1],c=picks[2];
+    return "过去「"+a.cardName+"」"+(a.reversed?"（逆）":"")+" 说明来路："+a.meaning+"；现在「"+b.cardName+"」"+(b.reversed?"（逆）":"")+" 是你站立之处："+b.meaning+"；未来「"+c.cardName+"」"+(c.reversed?"（逆）":"")+" 是能量可能的走向（非注定）："+c.meaning+"。"; }
+  const g={}; picks.forEach(p=>g[p.position]=p);
+  let t="";
+  if(g["现状"]) t+="现状「"+g["现状"].cardName+"」"+(g["现状"].reversed?"（逆）":"")+"："+g["现状"].meaning+" ";
+  if(g["挑战"]) t+="挑战「"+g["挑战"].cardName+"」"+(g["挑战"].reversed?"（逆）":"")+"："+g["挑战"].meaning+" ";
+  if(g["结局"]) t+="走向「"+g["结局"].cardName+"」"+(g["结局"].reversed?"（逆）":"")+"："+g["结局"].meaning;
+  return t||"按十张牌位综合观之，关注‘现状 / 挑战 / 结局’三处即可把握主干。";
+}
+function ttTopicRead(picks,key,topic){
+  const now = key==="single"?picks[0]:(picks.find(p=>p.position==="现在")||picks.find(p=>p.position==="现状")||picks[0]);
+  return "围绕议题「"+(topic||"—")+"」，牌面把焦点放在「"+now.cardName+"」"+(now.reversed?"（逆位提示注意被忽略/被压抑的面向）":"")+"："+now.meaning+" 请只保留对你此刻真正有触动的那一句，作为向内看的入口。";
+}
+function ttActions(picks,key){
+  const now = key==="single"?picks[0]:(picks.find(p=>p.position==="现在")||picks.find(p=>p.position==="现状")||picks[0]);
+  const ca=TT_CARD_ACT[now.cardName]||{act:"把牌面当作提问，向内看一步。",rev:"把牌面当作提醒，先停下来看一眼。"};
+  const actNow=now.reversed?(ca.rev||ca.act):ca.act;
+  const rev=picks.filter(p=>p.reversed).length;
+  return actNow+(rev>picks.length/2?" 本局逆位偏多，整体建议松绑/转化而非加码。":"")+" 若抽到的牌让你不安，可到 ④ 生态网 的道家内观做一段呼吸与觉察练习，把情绪落地。";
+}
+/* 总解读：严格对应（本次实际牌面 + 牌阵 + 议题 + 正逆）的定制开篇 */
+function ttSummary(picks, spreadKey, topic){
+  const n=picks.length;
+  const majors=picks.filter(p=>p.group==="大阿尔卡纳").length;
+  const revCards=picks.filter(p=>p.reversed);
+  const revNames=revCards.map(p=>p.cardName).join("、");
+  const spreadName={single:"单张指引",ppf:"过去·现在·未来",celtic:"凯尔特十字"}[spreadKey]||spreadKey;
+  const layer = majors>=n/2
+    ? "大阿尔卡纳偏多（"+majors+"/"+n+"），这次议题偏向「命运/原型/人生课题」的层面——建议你从更大的人生脉络去看待它，而非只盯眼前"
+    : "小阿尔卡纳偏多（"+(n-majors)+"/"+n+"），这次议题偏向「日常实务/具体行动」的层面——建议你把它落到可操作的一步";
+  let arc;
+  if(spreadKey==="single"){ const p=picks[0]; arc="焦点牌「"+p.cardName+"」"+(p.reversed?"（逆位）":"（正位）")+"把这次探索收束到一处："+p.meaning; }
+  else if(spreadKey==="ppf"){ const a=picks[0],b=picks[1],c=picks[2];
+    arc="脉络从「"+a.cardName+"」的来路，经「"+b.cardName+"」的当下，指向「"+c.cardName+"」的可能——这是一条 "+(c.reversed?"需要转化再推进":"可以顺势承接")+"的线"; }
+  else { const now=picks.find(p=>p.position==="现状"), ch=picks.find(p=>p.position==="挑战"), end=picks.find(p=>p.position==="结局");
+    arc="主干是：现状「"+now.cardName+"」遇上挑战「"+(ch?ch.cardName:"—")+"」，走向「"+(end?end.cardName:"—")+"」——"+((ch&&ch.reversed)?"挑战以被阻滞的形态出现，宜先松动、勿强攻":"张力真实存在，需正面承接再图破局"); }
+  const revNote = revCards.length===0
+    ? "全为正位，能量较顺、信号清晰。"
+    : "其中「"+revNames+"」为逆位，提示这些面向正被阻滞或需转化，值得你多加留意、别急着压过去。";
+  return "在你这一次「"+spreadName+"」抽取中（议题：「"+(topic||"—")+"」），"+layer+"。"+arc+"。 "+revNote+" 下面先逐位拆解你抽到的真实牌面，再给出可直接落地的行动——请把它当作一组针对你当下状态的镜像，而非标准答案。";
+}
+function ttInterpret(picks, spreadKey, topic){
+  const n=picks.length;
+  const majors=picks.filter(p=>p.group==="大阿尔卡纳").length;
+  const minors=n-majors;
+  const rev=picks.filter(p=>p.reversed).length;
+  const courts=picks.filter(p=>/侍从|骑士|王后|国王/.test(p.cardName)).length;
+  let html="";
+  html+="<div class='advice'><span class='pill'>总解读（本局专属）</span>"+ttSummary(picks,spreadKey,topic)+"</div>";
+  html+="<div class='advice'><span class='pill'>本局指标</span>共 "+n+" 张：大阿尔卡纳 "+majors+" 张（偏命运/原型层面）、小阿尔卡纳 "+minors+" 张（偏日常实务）；逆位 "+rev+" 张"+(rev>n/2?"（被阻滞/需转化的面向偏多，提示你更需松绑而非加码）":"（正位为主，能量较顺）")+"；宫廷牌 "+courts+" 张"+(courts>0?"（有人事/角色议题介入）":"（无宫廷牌，议题偏事务性）")+"。</div>";
+  html+="<div class='advice'><b>逐位专属解读（结合你抽到的实际牌面）：</b><br>";
+  picks.forEach(p=>{
+    const posNote=TT_POSITION_INTERP[spreadKey][p.position]||"";
+    const ca=TT_CARD_ACT[p.cardName]||{biz:p.meaning, act:"把牌面当作提问，向内看一步。", rev:"把牌面当作提醒，先停下来看一眼。", revBiz:p.meaning};
+    const bizNow = p.reversed ? (ca.revBiz||ca.biz) : ca.biz;
+    const actNow = p.reversed ? (ca.rev||ca.act) : ca.act;
+    html+="<div style='margin:6px 0'><b>【"+p.position+"】</b>"+p.cardName+(p.reversed?" · 逆位":" · 正位")+" — "+posNote+" 在此位置上："+bizNow+"。<br><span style='color:var(--green)'>行动提示：</span>"+actNow+"</div>";
+  });
+  html+="</div>";
+  html+="<div class='advice'><b>综合叙事（按实际牌面串联）：</b><br>"+ttNarrate(picks,spreadKey)+"</div>";
+  html+="<div class='advice'><b>针对你的议题：</b>"+ttTopicRead(picks,spreadKey,topic)+"</div>";
+  html+="<div class='advice'><b>可执行结论建议：</b><br>"+ttActions(picks,spreadKey)+"</div>";
+  return html;
+}
+
+/* ============================================================================
+ *  ⑤ 黄历通胜引擎（复用八字刚性干支 + 规则映射宜忌/冲煞，本地标记）
+ * ========================================================================== */
+const SHENGXIAO = ['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪']; // 与 ZHI 同序
+const HL_YI_POOL = ['祭祀','祈福','出行','会友','嫁娶','开市','交易','立券','安床','纳财','栽种','开光','求医','入学','修造','动土','移徙','纳畜','开仓','解除'];
+const HL_JI_POOL = ['破土','安葬','伐木','行丧','词讼','栽种','开渠','造船','上梁','入宅','安门','作灶','出行','嫁娶','开市','动土','针灸','穿井','词讼','求医'];
+const HL_SHEN_POOL = ['天德','月德','天恩','母仓','四相','时德','民日','三合','临日','天马','福德','金匮','玉堂','司命','青龙'];
+const HL_SHA_POOL = ['河魁','勾陈','白虎','天牢','玄武','咸池','大耗','五虚','九空','月煞','月虚','血支'];
+const HL_BAIJI_GAN = {'甲':'甲不开仓财物耗散','乙':'乙不栽植千株不长','丙':'丙不修灶必见灾殃','丁':'丁不剃头头必生疮','戊':'戊不受田田主不祥','己':'己不破券二比并亡','庚':'庚不经络织机虚张','辛':'辛不合酱主人不尝','壬':'壬不汲水更难提防','癸':'癸不词讼理弱敌强'};
+const HL_BAIJI_ZHI = {'子':'子不问卜自惹祸殃','丑':'丑不冠带主不还乡','寅':'寅不祭祀神鬼不尝','卯':'卯不穿井水泉不香','辰':'辰不哭泣必主重丧','巳':'巳不远行财物伏藏','午':'午不苫盖屋主更张','未':'未不服药毒气入肠','申':'申不安床鬼祟入房','酉':'酉不会客醉坐颠狂','戌':'戌不吃犬作怪上床','亥':'亥不嫁娶不利新郎'};
+const HL_BAIJI_PLAIN = {
+  '甲不开仓财物耗散':'今天不宜大规模开启仓库、账目或资金池，免得财物损耗或账目出错。',
+  '乙不栽植千株不长':'今天不宜栽种、移栽，民间认为成活率或长势不佳。',
+  '丙不修灶必见灾殃':'今天不宜修灶台、动厨房，传统认为易引发火患或口角。',
+  '丁不剃头头必生疮':'今天不宜理发、剃头，旧俗认为易发头部小恙。',
+  '戊不受田田主不祥':'今天不宜受田、置产或接收土地相关权益，恐有纠纷。',
+  '己不破券二比并亡':'今天不宜撕毁契约、票据，免得双方各执一词、两败俱伤。',
+  '庚不经络织机虚张':'今天不宜织布、缝纫或经络调理，易徒劳无功。',
+  '辛不合酱主人不尝':'今天不宜调制酱料、腌制品，传统认为味道不美或易变质。',
+  '壬不汲水更难提防':'今天不宜打水、修井或涉水，恐有意外难以预防。',
+  '癸不词讼理弱敌强':'今天不宜诉讼、争执，己方理据易处下风。',
+  '子不问卜自惹祸殃':'今天不宜反复占卜、问卦，问多了反而心神不宁。',
+  '丑不冠带主不还乡':'今天不宜远行、穿戴新装出门，旧俗认为不利归返。',
+  '寅不祭祀神鬼不尝':'今天不宜祭祀、上香，传统认为敬奉难达。',
+  '卯不穿井水泉不香':'今天不宜打井、修井，恐影响水质或白费功夫。',
+  '辰不哭泣必主重丧':'今天不宜参加丧事、哭泣，民俗认为易招重丧。',
+  '巳不远行财物伏藏':'今天不宜出远门，财物宜藏不宜露。',
+  '午不苫盖屋主更张':'今天不宜盖屋顶、修葺房屋，恐有反复改动。',
+  '未不服药毒气入肠':'今天不宜服药、进补，旧俗认为药效不佳或肠胃不适。',
+  '申不安床鬼祟入房':'今天不宜安床、移床，传统认为易扰睡眠。',
+  '酉不会客醉坐颠狂':'今天不宜宴客、饮酒，易失态或生是非。',
+  '戌不吃犬作怪上床':'今天不宜食狗肉，旧俗认为易致夜寐不安。',
+  '亥不嫁娶不利新郎':'今天不宜婚嫁，传统认为对新郎不利。'
+};
+const HL_CHONG = {'子':'午','丑':'未','寅':'申','卯':'酉','辰':'戌','巳':'亥','午':'子','未':'丑','申':'寅','酉':'卯','戌':'辰','亥':'巳'};
+const HL_SHA_FANG = {'子':'南','丑':'东','寅':'北','卯':'西','辰':'南','巳':'西','午':'北','未':'东','申':'南','酉':'西','戌':'南','亥':'西'};
+const HL_HE = {'子':'丑','丑':'子','寅':'亥','卯':'戌','辰':'酉','巳':'申','午':'未','未':'午','申':'巳','酉':'辰','戌':'卯','亥':'寅'};
+function hlPick(pool, seed, k){
+  const out=[]; const used=new Set(); let s=seed;
+  for(let i=0;i<k;i++){ s=(s*31+7)%pool.length; while(used.has(s)) s=(s+1)%pool.length; used.add(s); out.push(pool[s]); }
+  return out;
+}
+function hlLunarApprox(Y,M,D){
+  const days=Math.round((Date.UTC(Y,M-1,D)-Date.UTC(1900,0,1))/86400000);
+  const lm=Math.floor(days/29.53059)+1, ld=days-Math.floor((lm-1)*29.53059);
+  return lm+'月'+ld+'日（近似）';
+}
+function hlWeekday(Y,M,D){ const w=new Date(Y,M-1,D).getDay(); return ['日','一','二','三','四','五','六'][w]; }
+const HL_MARK_KEY='xuanxue_hlmarks_v1';
+function hlGetMarks(){ try{ return JSON.parse(localStorage.getItem(HL_MARK_KEY)||'[]'); }catch(e){ return []; } }
+function hlSaveMarks(a){ localStorage.setItem(HL_MARK_KEY, JSON.stringify(a)); }
+function hlDelMark(d){ const a=hlGetMarks().filter(x=>x.date!==d); hlSaveMarks(a); hlRenderMarks(); }
+function hlRenderMarks(){
+  const a=hlGetMarks().sort((x,y)=>x.date<y.date?-1:1);
+  const el=document.getElementById('hlMarks');
+  if(!a.length){ el.innerHTML='<div class=\'pending\'>还没有标记任何日子。选好日期后点「标记此日为重要日子」即可。</div>'; return; }
+  el.innerHTML=a.map(m=>'<div class=\'advice\' style=\'display:flex;justify-content:space-between;gap:8px;align-items:center\'><div><b>'+m.date+'</b>　'+(m.note?m.note:'（无备注）')+'</div><button class=\'ghost sm hl-del\' data-date=\''+m.date+'\'>删除</button></div>').join('');
+  el.querySelectorAll('.hl-del').forEach(b=>b.addEventListener('click',()=>hlDelMark(b.getAttribute('data-date'))));
+}
+function hlViewStatic(dateStr, sxName, userZhi, userDayMaster, userYearGZ, userBirthText){
+  const errBox=document.getElementById('hlErr'); errBox.textContent='';
+  if(!dateStr){ errBox.textContent='⚠ 请选择日期'; return; }
+  const parts=dateStr.split('-').map(Number);
+  if(parts.length!==3||parts[0]<1900||parts[0]>2100){ errBox.textContent='⚠ 日期需在 1900–2100'; return; }
+  const Y=parts[0], M=parts[1], D=parts[2];
+  const yg=bzYearGanZhi(Y), mg=bzMonthGanZhi(Y,M,D), dg=bzDayGanZhi(Y,M,D);
+  const seed=(dg.ganIdx*12+dg.zhiIdx);
+  const yi=hlPick(HL_YI_POOL, seed, 4);
+  const ji=hlPick(HL_JI_POOL, seed+5, 4);
+  const shen=['吉神：'].concat(hlPick(HL_SHEN_POOL, seed+3, 3)).join(' ');
+  const xiong=['凶神：'].concat(hlPick(HL_SHA_POOL, seed+9, 2)).join(' ');
+  const dayZhi=dg.zhi;
+  const chong=HL_CHONG[dayZhi]||'—';
+  const chongSX=SHENGXIAO[ZHI.indexOf(chong)];
+  const shaFang=HL_SHA_FANG[dayZhi]||'—';
+  const lInfo=hlLunarApprox(Y,M,D);
+  document.getElementById('hlGanZhi').innerHTML=dg.gan+dg.zhi+'<small>'+Y+' 年 · '+yg.gan+yg.zhi+'年 · '+mg.gan+mg.zhi+'月</small>';
+  document.getElementById('hlMeta').innerHTML='公历 <b>'+Y+'-'+M+'-'+D+'</b>　农历近似 <b>'+lInfo+'</b>　星期'+hlWeekday(Y,M,D)+'<br>'+
+    '<span style="font-size:13px;color:var(--text-dim)">你的生辰：'+userBirthText+'；生肖 <b>'+sxName+'</b>；八字年柱 <b>'+userYearGZ+'</b>；日主 <b>'+userDayMaster+'（'+WU_XING_GAN[userDayMaster]+'）</b></span>';
+  document.getElementById('hlYi').innerHTML=yi.map(x=>'<span>'+x+'</span>').join('');
+  document.getElementById('hlJi').innerHTML=ji.map(x=>'<span>'+x+'</span>').join('');
+  let chongHtml='<b>冲煞：</b>日支「'+dayZhi+'」冲「'+chong+'」（'+chongSX+'）煞'+shaFang+'方。';
+  document.getElementById('hlChong').innerHTML=chongHtml;
+  let relHtml='<b>今日干支与你的八字关系：</b><br>';
+  if(userZhi===dayZhi){
+    relHtml+='日支「'+dayZhi+'」与你的生肖地支「'+userZhi+'」<b style=\'color:var(--red-text)\'>同支</b>，能量共振较强，宜专注要务、减少冗余社交。';
+  } else if(HL_CHONG[userZhi]===dayZhi){
+    relHtml+='日支「'+dayZhi+'」与你的生肖地支「'+userZhi+'」<b style=\'color:var(--red-text)\'>相冲</b>，重大事宜宜缓、宜稳，避免冲动决策。';
+  } else if(HL_HE[userZhi]===dayZhi){
+    relHtml+='日支「'+dayZhi+'」与你的生肖地支「'+userZhi+'」<b style=\'color:var(--green)\'>相合</b>，诸事较顺，宜把握沟通、合作与人际推进。';
+  } else {
+    relHtml+='日支「'+dayZhi+'」与你的生肖地支「'+userZhi+'」无冲无合，整体平顺，按常规节奏即可。';
+  }
+  if(userDayMaster && userDayMaster!=='—'){
+    const daySS=bzShiShen(userDayMaster, dg.gan);
+    const ssTip={'比肩':'适合与同类伙伴并肩推进，注意避免意气用事。','劫财':'资源流动快，宜守不宜冒，谨防损财或被人分夺功劳。','食神':'适合表达、创作、享受生活，灵感与口福较佳。','伤官':'适合输出观点、突破常规，但注意言辞不要过冲。','偏财':'意外机会多，可小试投资或拓展副业，不宜贪大。','正财':'适合稳健理财、落实收入，按规矩办事更顺。','偏印':'适合独处思考、学习、整理信息，少参与口舌之争。','正印':'适合求教、充电、走正道，易得贵人庇护。','七杀':'压力与挑战并存，适合攻坚克难，但需量力而行。','正官':'适合按规则推进、对接权威、处理正式事务。'}[daySS]||'可结合今日宜忌安排重点事务。';
+    relHtml+='<br>日干「'+dg.gan+'」对你的日主「'+userDayMaster+'」为<b>「'+daySS+'」</b>：'+ssTip;
+  }
+  document.getElementById('hlRelation').innerHTML=relHtml;
+  const bj=HL_BAIJI_GAN[dg.gan]+'，'+HL_BAIJI_ZHI[dg.zhi];
+  const bjPlain=(HL_BAIJI_PLAIN[HL_BAIJI_GAN[dg.gan]]||'')+(HL_BAIJI_PLAIN[HL_BAIJI_ZHI[dg.zhi]]?'<br>'+HL_BAIJI_PLAIN[HL_BAIJI_ZHI[dg.zhi]]:'');
+  document.getElementById('hlBaiji').innerHTML='<b>彭祖百忌：</b>'+bj+'<br><span style=\'font-size:12px;color:var(--text-dim)\'>'+shen+'　'+xiong+'</span>'+
+    '<br><span style=\'font-size:12.5px;color:var(--brown-dark);display:block;margin-top:6px\'><b>大白话：</b>'+(bjPlain||'今日宜按常规谨慎行事。')+'</span>';
+  document.getElementById('hlResult').classList.add('show');
+  const fb=document.getElementById('hlFb'); fb.style.display='block';
+  fb.innerHTML='✓ 已生成 '+Y+'-'+M+'-'+D+' 通胜（日干支 '+dg.gan+dg.zhi+'）。生肖、日主均取自顶部共享生辰（'+userBirthText+'），宜忌为规则映射近似。';
+}
+function hlMark(){
+  const d=document.getElementById('hlDate').value;
+  if(!d){ document.getElementById('hlErr').textContent='⚠ 请先选择日期'; return; }
+  const note=prompt('为「'+d+'」添加备注（可留空）：','');
+  if(note===null) return;
+  const a=hlGetMarks();
+  const it=a.find(x=>x.date===d);
+  if(it){ it.note=note; } else { a.push({date:d, note:note, at:new Date().toISOString()}); }
+  hlSaveMarks(a); hlRenderMarks();
+  const fb=document.getElementById('hlFb'); fb.style.display='block';
+  fb.innerHTML='✓ 已标记 '+d+(note?'（备注：'+note+'）':'')+'，保存于本机。';
+}
+function renderHuangli(){
+  const dEl=document.getElementById('hlDate');
+  if(!dEl.value){ const t=new Date(); const p=n=>String(n).padStart(2,'0'); dEl.value=t.getFullYear()+'-'+p(t.getMonth()+1)+'-'+p(t.getDate()); }
+  const b=getSharedBirth();
+  const yg=bzYearGanZhi(b.y);
+  const sxIdx=((yg.zhiIdx)+12)%12;
+  const sxName=SHENGXIAO[sxIdx];
+  const userZhi=ZHI[sxIdx];
+  const dgUser=bzDayGanZhi(b.y,b.m,b.d);
+  const userDayMaster=dgUser.gan;
+  const userYearGZ=yg.gan+yg.zhi;
+  const calText=(document.getElementById('calLunar').classList.contains('active')?'农历':'公历');
+  const userBirthText=calText+' '+b.y+'-'+b.m+'-'+b.d+' '+String(b.h).padStart(2,'0')+':00';
+  hlRenderMarks();
+  if(!window.__hlBound){ window.__hlBound=true;
+    document.getElementById('hlBtnView').addEventListener('click', ()=>hlViewStatic(document.getElementById('hlDate').value, sxName, userZhi, userDayMaster, userYearGZ, userBirthText));
+    document.getElementById('hlBtnMark').addEventListener('click', hlMark);
+    document.getElementById('hlBtnMarksRefresh').addEventListener('click', hlRenderMarks);
+  }
+  hlViewStatic(dEl.value, sxName, userZhi, userDayMaster, userYearGZ, userBirthText);
+}
+
+/* ============================================================================
+ *  ⑥ 梦境手记引擎（localStorage 本地优先 + 象征词典反思）
+ * ========================================================================== */
+const DM_MOODS = ['平静','喜悦','好奇','困惑','焦虑','恐惧','悲伤','愤怒','爱','释然','孤独','兴奋'];
+const DM_SYMBOLS = {
+  '水':{q:'水常象征情绪与潜意识。问自己：此刻我心里「流淌」的是什么感受？是平静的湖，还是翻涌的浪？'},
+  '火':{q:'火象征能量、欲望或转化。问自己：我体内哪股能量正在燃烧、或被压抑？'},
+  '蛇':{q:'蛇常象征蜕变、本能或隐藏的恐惧。问自己：我生命中正有什么在「蜕皮重生」，或让我本能警觉？'},
+  '飞翔':{q:'飞翔常象征自由、超越或逃避。问自己：我想从什么之中「起飞」？还是想逃离什么？'},
+  '坠落':{q:'坠落常象征失控、焦虑或失去支撑。问自己：现实中哪里让我感到脚下发空？'},
+  '迷路':{q:'迷路常象征方向感缺失或人生转折。问自己：我在哪件事上正找不到路？'},
+  '考试':{q:'考试常象征被评判、准备不足或自我证明。问自己：我正担心被谁、被什么「打分」？'},
+  '追逐':{q:'被追逐常象征压力、未面对的课题。问自己：我在逃避什么？它想让我看见什么？'},
+  '房屋':{q:'房屋常象征自我或家庭。问自己：这房子是安稳还是不安？哪间房间我不敢进？'},
+  '镜子':{q:'镜子常象征自我认知或真相。问自己：镜中映出的是我想承认的，还是想回避的自己？'},
+  '光':{q:'光常象征希望、觉醒或指引。问自己：那束光指向我渴望的哪个方向？'},
+  '死亡':{q:'梦中的死亡常象征结束与重生，而非字面。问自己：我正结束或放下生命中的什么？'},
+  '牙齿':{q:'掉牙常象征无力感、焦虑或表达受阻。问自己：哪里让我「说不出口」或失去掌控？'},
+  '道路':{q:'道路常象征人生选择与方向。问自己：眼前分叉口，我心偏向哪条？'},
+  '水淹':{q:'被水淹常象征被情绪淹没。问自己：哪种情绪最近快把我「没过头顶」？'}
+};
+const DM_KEY='xuanxue_dreams_v1';
+let DM_EDIT_ID=null;
+let DM_MOOD_SEL=[], DM_SYM_SEL=[];
+function dmGetAll(){ try{ return JSON.parse(localStorage.getItem(DM_KEY)||'[]'); }catch(e){ return []; } }
+function dmSaveAll(a){ localStorage.setItem(DM_KEY, JSON.stringify(a)); }
+function toggleArr(arr,v){ const i=arr.indexOf(v); if(i>=0) arr.splice(i,1); else arr.push(v); return arr.slice(); }
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function dmInitGrids(){
+  const mg=document.getElementById('dmMoodGrid'), sg=document.getElementById('dmSymGrid');
+  if(!mg.children.length){
+    mg.innerHTML=DM_MOODS.map(m=>'<div class=\'spread-opt\' data-m=\''+m+'\'>'+m+'</div>').join('');
+    sg.innerHTML=Object.keys(DM_SYMBOLS).map(s=>'<div class=\'spread-opt\' data-s=\''+s+'\'>'+s+'</div>').join('');
+    mg.querySelectorAll('.spread-opt').forEach(el=>el.addEventListener('click',()=>{ el.classList.toggle('active'); DM_MOOD_SEL=toggleArr(DM_MOOD_SEL, el.getAttribute('data-m')); }));
+    sg.querySelectorAll('.spread-opt').forEach(el=>el.addEventListener('click',()=>{ el.classList.toggle('active'); DM_SYM_SEL=toggleArr(DM_SYM_SEL, el.getAttribute('data-s')); }));
+  }
+}
+function dmResetForm(){
+  DM_EDIT_ID=null; DM_MOOD_SEL=[]; DM_SYM_SEL=[];
+  document.getElementById('dmTitle').value=''; document.getElementById('dmContent').value='';
+  document.querySelectorAll('#dmMoodGrid .spread-opt, #dmSymGrid .spread-opt').forEach(el=>el.classList.remove('active'));
+  const t=new Date(); const p=n=>String(n).padStart(2,'0');
+  document.getElementById('dmDate').value=t.getFullYear()+'-'+p(t.getMonth()+1)+'-'+p(t.getDate());
+  document.getElementById('dmBtnSave').textContent='保存这条梦';
+}
+function dmBuildReflection(symbols){
+  if(!symbols.length) return '（未勾选意象，可补充梦中反复出现的画面，以获得更贴切的反思提问。）';
+  return symbols.map(s=>'· 「'+s+'」'+(DM_SYMBOLS[s]?DM_SYMBOLS[s].q:'')).join('<br>');
+}
+function dmSave(){
+  const errBox=document.getElementById('dmErr'); errBox.textContent='';
+  const date=document.getElementById('dmDate').value;
+  const title=(document.getElementById('dmTitle').value||'无标题').trim();
+  const content=document.getElementById('dmContent').value.trim();
+  if(!date){ errBox.textContent='⚠ 请选择日期'; return; }
+  if(!content){ errBox.textContent='⚠ 请填写梦境内容'; return; }
+  const all=dmGetAll();
+  const ref=dmBuildReflection(DM_SYM_SEL);
+  if(DM_EDIT_ID){ const it=all.find(x=>x.id===DM_EDIT_ID); if(it){ it.date=date; it.title=title; it.content=content; it.moods=DM_MOOD_SEL.slice(); it.symbols=DM_SYM_SEL.slice(); it.reflection=ref; it.updatedAt=new Date().toISOString(); } }
+  else { all.push({id:'d'+Date.now(), date:date, title:title, content:content, moods:DM_MOOD_SEL.slice(), symbols:DM_SYM_SEL.slice(), reflection:ref, createdAt:new Date().toISOString()}); }
+  dmSaveAll(all);
+  const fb=document.getElementById('dmFb'); fb.style.display='block';
+  fb.innerHTML='✓ 已'+(DM_EDIT_ID?'更新':'保存')+'梦境「'+title+'」（'+date+'），仅存本机。';
+  dmResetForm(); dmRenderList();
+}
+function dmRenderList(){
+  const q=(document.getElementById('dmSearch').value||'').toLowerCase();
+  let all=dmGetAll().sort((a,b)=>a.date<b.date?1:-1);
+  if(q){ all=all.filter(x=>(x.title+x.content+x.symbols.join('')).toLowerCase().indexOf(q)>=0); }
+  const el=document.getElementById('dmList');
+  if(!all.length){ el.innerHTML='<div class=\'pending\">'+(q?'没有匹配的记录。':'还没有记录。在上方写下第一条梦吧——它属于你一个人。')+'</div>'; return; }
+  el.innerHTML=all.map(x=>{
+    const moods=x.moods.map(m=>'<span class=\'tag\'>'+m+'</span>').join('');
+    const syms=x.symbols.map(s=>'<span class=\'tag\' style=\'border-color:var(--brown);color:var(--brown)\'>'+s+'</span>').join('');
+    return '<div class=\'dream-card\'><div class=\'dh\'><div class=\'dt\'>'+esc(x.title)+'</div><div class=\'dd\'>'+x.date+'</div></div>'
+      +'<div class=\'dc\'>'+esc(x.content)+'</div>'
+      +'<div>'+(moods||'')+(syms?'　':'')+syms+'</div>'
+      +'<div class=\'dref\'><b>反思提问：</b><br>'+x.reflection+'</div>'
+      +'<div class=\'dact\'><button class=\'ghost sm dm-edit\' data-id=\''+x.id+'\'>编辑</button><button class=\'ghost sm dm-del\' data-id=\''+x.id+'\'>删除</button></div></div>';
+  }).join('');
+  el.querySelectorAll('.dm-edit').forEach(b=>b.addEventListener('click',()=>dmEdit(b.getAttribute('data-id'))));
+  el.querySelectorAll('.dm-del').forEach(b=>b.addEventListener('click',()=>dmDelete(b.getAttribute('data-id'))));
+}
+function dmEdit(id){
+  const x=dmGetAll().find(y=>y.id===id); if(!x) return;
+  DM_EDIT_ID=id; DM_MOOD_SEL=x.moods.slice(); DM_SYM_SEL=x.symbols.slice();
+  document.getElementById('dmDate').value=x.date;
+  document.getElementById('dmTitle').value=x.title==='无标题'?'':x.title;
+  document.getElementById('dmContent').value=x.content;
+  document.querySelectorAll('#dmMoodGrid .spread-opt').forEach(el=>el.classList.toggle('active', x.moods.indexOf(el.getAttribute('data-m'))>=0));
+  document.querySelectorAll('#dmSymGrid .spread-opt').forEach(el=>el.classList.toggle('active', x.symbols.indexOf(el.getAttribute('data-s'))>=0));
+  document.getElementById('dmFb').style.display='none';
+  document.getElementById('dmBtnSave').textContent='更新这条梦';
+  document.getElementById('dmDate').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function dmDelete(id){
+  if(!confirm('确定删除这条梦境记录？')) return;
+  dmSaveAll(dmGetAll().filter(x=>x.id!==id)); dmRenderList();
+  const fb=document.getElementById('dmFb'); fb.style.display='block'; fb.innerHTML='✓ 已删除该记录。';
+}
+function dmExport(){
+  const all=dmGetAll(); if(!all.length){ document.getElementById('dmErr').textContent='⚠ 暂无记录可导出'; return; }
+  const text=all.map(x=>'【'+x.date+'】'+(x.title==='无标题'?'':x.title)+'\n情绪：'+(x.moods.join('、')||'—')+'　意象：'+(x.symbols.join('、')||'—')+'\n'+x.content+'\n反思：'+x.reflection.replace(/<br>/g,'\n')+'\n'+('-').repeat(20)).join('\n\n');
+  const fb=document.getElementById('dmFb'); fb.style.display='block';
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(()=>{ fb.innerHTML='✓ 已复制全部梦境文本到剪贴板（'+all.length+' 条）。'; }); }
+  else { fb.innerHTML='✓ 共 '+all.length+' 条（当前环境不支持自动复制）：<br><pre style=\'white-space:pre-wrap;font-size:12px\'>'+esc(text)+'</pre>'; }
+}
+function dmRenderSection(){
+  dmInitGrids();
+  if(!document.getElementById('dmDate').value){ const t=new Date(); const p=n=>String(n).padStart(2,'0'); document.getElementById('dmDate').value=t.getFullYear()+'-'+p(t.getMonth()+1)+'-'+p(t.getDate()); }
+  if(!window.__dmBound){ window.__dmBound=true;
+    document.getElementById('dmBtnSave').addEventListener('click', dmSave);
+    document.getElementById('dmBtnClear').addEventListener('click', ()=>{ dmResetForm(); document.getElementById('dmFb').style.display='none'; });
+    document.getElementById('dmBtnExport').addEventListener('click', dmExport);
+    document.getElementById('dmBtnRefresh').addEventListener('click', dmRenderList);
+    document.getElementById('dmSearch').addEventListener('input', dmRenderList);
+  }
+  dmRenderList();
+}
+
+/* ============================================================================
+ *  ⑦ 静心呼吸引擎（确定性节奏循环 + 本地练习记录）
+ * ========================================================================== */
+const BR_ROUTINES = {
+  '478':{name:'4-7-8 安眠',phases:[{l:'吸气',s:4},{l:'屏息',s:7},{l:'呼气',s:8}],desc:'吸气4 · 屏息7 · 呼气8，适合睡前放松、助眠。'},
+  'box':{name:'箱式呼吸',phases:[{l:'吸气',s:4},{l:'屏息',s:4},{l:'呼气',s:4},{l:'屏息',s:4}],desc:'吸4屏4呼4屏4，适合专注、平复焦虑。'},
+  'td':{name:'道家吐纳（简化）',phases:[{l:'吸气',s:3},{l:'屏息',s:3},{l:'呼气',s:6}],desc:'吸3屏3呼6，重在深长匀细，呼应丹田呼吸。'},
+  'relax':{name:'简易放松',phases:[{l:'吸气',s:5},{l:'呼气',s:5}],desc:'吸5呼5，最易上手，日常随时可练。'}
+};
+let BR_KEY_RT='478', BR_TIMER=null, BR_RUNNING=false, BR_STARTED=false;
+let BR_PHASE_IDX=0, BR_PHASE_SEC=0, BR_REMAIN=0, BR_TOTAL=0;
+const BR_KEY='xuanxue_breath_v1';
+function brGetAll(){ try{ return JSON.parse(localStorage.getItem(BR_KEY)||'[]'); }catch(e){ return []; } }
+function brSave(a){ localStorage.setItem(BR_KEY, JSON.stringify(a)); }
+function brSelRoutine(k){
+  BR_KEY_RT=k;
+  document.querySelectorAll('#brRoutineGrid .spread-opt').forEach(el=>el.classList.toggle('active', el.getAttribute('data-r')===k));
+  document.getElementById('brPhase').textContent=BR_ROUTINES[k].desc;
+}
+function brFmt(s){ const m=Math.floor(s/60), ss=s%60; return '剩余 '+String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0'); }
+function brPause(){ BR_RUNNING=false; if(BR_TIMER){ clearInterval(BR_TIMER); BR_TIMER=null; } }
+function brReset(){
+  brPause(); BR_STARTED=false; BR_PHASE_IDX=0; BR_PHASE_SEC=0; BR_TOTAL=180;
+  const r=BR_ROUTINES[BR_KEY_RT];
+  const c=document.getElementById('brCircle'); c.textContent='准备'; c.style.transition='transform .4s ease'; c.style.transform='scale(.72)';
+  document.getElementById('brPhase').textContent=r.desc; document.getElementById('brRemain').textContent=brFmt(BR_TOTAL);
+}
+function brStart(){
+  const mins=parseInt(document.getElementById('brMinutes').value,10)||3;
+  if(mins<1||mins>30){ const fb=document.getElementById('brFb'); fb.style.display='block'; fb.innerHTML='⚠ 时长需在 1–30 分钟'; return; }
+  if(!BR_STARTED){ BR_TOTAL=mins*60; BR_REMAIN=BR_TOTAL; BR_PHASE_IDX=0; BR_PHASE_SEC=0; BR_STARTED=true; }
+  BR_RUNNING=true;
+  document.getElementById('brFb').style.display='none';
+  brTick();
+  if(BR_TIMER) clearInterval(BR_TIMER);
+  BR_TIMER=setInterval(brTick,1000);
+}
+function brTick(){
+  if(!BR_RUNNING) return;
+  if(BR_REMAIN<=0){ brPause(); brFinish(); return; }
+  const r=BR_ROUTINES[BR_KEY_RT];
+  const ph=r.phases[BR_PHASE_IDX];
+  if(BR_PHASE_SEC===0){
+    document.getElementById('brPhase').textContent=ph.l;
+    const c=document.getElementById('brCircle'); c.textContent=ph.l;
+    if(ph.l==='吸气'){ c.style.transition='transform '+ph.s+'s ease-in'; c.style.transform='scale(1.12)'; }
+    else if(ph.l==='呼气'){ c.style.transition='transform '+ph.s+'s ease-out'; c.style.transform='scale(.72)'; }
+    else { c.style.transition='transform .3s ease'; }
+  }
+  document.getElementById('brRemain').textContent=brFmt(BR_REMAIN-1);
+  BR_PHASE_SEC++; BR_REMAIN--;
+  if(BR_PHASE_SEC>=ph.s){ BR_PHASE_SEC=0; BR_PHASE_IDX=(BR_PHASE_IDX+1)%r.phases.length; }
+}
+function brFinish(){
+  const mins=Math.round(BR_TOTAL/60);
+  const r=BR_ROUTINES[BR_KEY_RT];
+  const all=brGetAll(); all.push({date:new Date().toISOString().slice(0,10), routine:r.name, minutes:mins});
+  brSave(all); BR_STARTED=false;
+  const fb=document.getElementById('brFb'); fb.style.display='block';
+  fb.innerHTML='✓ 完成一次'+r.name+'练习（'+mins+' 分钟），已记录于本机。收功：搓热双手捂丹田，缓开眼。';
+  brRenderStats();
+  document.getElementById('brCircle').textContent='完成'; document.getElementById('brPhase').textContent='做得很好，慢慢回来。';
+}
+function brRenderStats(){
+  const all=brGetAll();
+  const el=document.getElementById('brStats');
+  const wk=new Date(); wk.setDate(wk.getDate()-7);
+  const week=all.filter(x=>new Date(x.date)>=wk);
+  const weekMin=week.reduce((s,x)=>s+x.minutes,0);
+  el.innerHTML='<div class=\'breath-stat\'><b>'+all.length+'</b><br>累计次数</div>'
+    +'<div class=\'breath-stat\'><b>'+all.reduce((s,x)=>s+x.minutes,0)+'</b><br>累计分钟</div>'
+    +'<div class=\'breath-stat\'><b>'+week.length+'</b><br>近7天次数</div>'
+    +'<div class=\'breath-stat\'><b>'+weekMin+'</b><br>近7天分钟</div>';
+  const list=document.getElementById('brList');
+  if(!all.length){ list.innerHTML='<div class=\'pending\'>还没有练习记录。选好节奏与时长，点「开始」吧。</div>'; return; }
+  list.innerHTML=all.slice().reverse().slice(0,10).map(x=>'<div class=\'dream-card\' style=\'border-left-color:var(--green)\'><div class=\'dh\'><div class=\'dt\' style=\'color:var(--green-dark)\'>'+x.routine+'</div><div class=\'dd\'>'+x.date+'</div></div><div class=\'dc\'>'+x.minutes+' 分钟</div></div>').join('');
+}
+function brInitSection(){
+  document.getElementById('brRoutineGrid').innerHTML=Object.keys(BR_ROUTINES).map(k=>'<div class=\'spread-opt'+(k==='478'?' active':'')+'\' data-r=\''+k+'\'>'+BR_ROUTINES[k].name+'</div>').join('');
+  document.querySelectorAll('#brRoutineGrid .spread-opt').forEach(el=>el.addEventListener('click',()=>brSelRoutine(el.getAttribute('data-r'))));
+  if(!window.__brBound){ window.__brBound=true;
+    document.getElementById('brBtnStart').addEventListener('click', brStart);
+    document.getElementById('brBtnPause').addEventListener('click', brPause);
+    document.getElementById('brBtnReset').addEventListener('click', brReset);
+  }
+  BR_TOTAL=180; brSelRoutine('478');
+  const c=document.getElementById('brCircle'); c.textContent='准备'; c.style.transition='transform .4s ease'; c.style.transform='scale(.72)';
+  document.getElementById('brRemain').textContent=brFmt(180);
+  brRenderStats();
+}
+
+/* 进入页面时若用户已填示例，不强算；提供显式按钮。 */
+</script>
+</body>
+</html>

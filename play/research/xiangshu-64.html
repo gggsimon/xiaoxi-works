@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>象数宗 · 六十四生成纲 · 玄同宇宙</title>
+<meta name="description" content="由道玄引导差半写出。按易理从两仪到四象到八卦到六十四卦，六十四条满维方向，每条一句白话，对应系统生成的一个面向 —— 本源、投影、差异、共轭、测度、维度、闭合、开放。纲故意留了「差半步」的位置：它不完备，所以能生成。">
+<meta name="theme-color" content="#faf8f5">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='none' stroke='%238b5e3c' stroke-width='2'/%3E%3Cpath d='M16 5v22M5 16h22' stroke='%238b5e3c' stroke-width='1.4'/%3E%3C/svg%3E">
+<style>
+:root{
+  --paper:#faf8f5; --paper2:#f3eee7; --ink:#2a2622; --ink2:#6b6055; --ink3:#9c9086;
+  --line:#e7ddd1; --line2:#d8ccbb; --accent:#8b5e3c; --accent2:#b07d52;
+  --shadow:0 1px 2px rgba(60,44,28,.06),0 8px 24px -12px rgba(60,44,28,.18);
+  --ui:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --serif:"Songti SC","Source Han Serif SC","Noto Serif SC",SimSun,"PingFang SC",serif;
+  --fs:1.06rem; --lh:1.95; --indent:2em;
+}
+html[data-theme="dark"]{
+  --paper:#12100e; --paper2:#1a1714; --ink:#e9e3d9; --ink2:#a79d90; --ink3:#7a7268;
+  --line:#2c2620; --line2:#3a3229; --accent:#d9a86c; --accent2:#e8c08a;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -14px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--ui);
+  -webkit-font-smoothing:antialiased;transition:background .22s,color .22s}
+a{color:var(--accent);text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+
+/* ---------- 顶栏 ---------- */
+header{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--paper) 88%,transparent);
+  backdrop-filter:saturate(1.6) blur(12px);border-bottom:1px solid var(--line)}
+.hb{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:10px;
+  height:54px;padding:0 14px}
+.bk{display:flex;align-items:baseline;gap:9px;min-width:0;flex:1}
+.bk b{font-size:.98rem;font-weight:700;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bk span{font-size:.7rem;color:var(--ink3);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap}
+.ico{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;
+  border:1px solid var(--line2);color:var(--ink2);font-size:.82rem;flex:none;transition:.16s}
+.ico:hover{background:var(--paper2);color:var(--accent);border-color:var(--accent)}
+.ico svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round}
+.tools{display:flex;align-items:center;gap:6px;flex:none}
+.fsz{display:flex;align-items:center;gap:2px;border:1px solid var(--line2);border-radius:9px;padding:1px 2px}
+.fsz button{width:26px;height:28px;border-radius:7px;font-size:.8rem;color:var(--ink2)}
+.fsz button:hover{background:var(--paper2);color:var(--accent)}
+#prog{position:absolute;left:0;bottom:-1px;height:2px;background:var(--accent);width:0;transition:width .1s linear}
+
+/* ---------- 目录抽屉 ---------- */
+.mask{position:fixed;inset:0;background:rgba(20,14,8,.42);opacity:0;pointer-events:none;
+  transition:opacity .24s;z-index:50}
+body.toc .mask{opacity:1;pointer-events:auto}
+aside{position:fixed;top:0;left:0;bottom:0;width:min(84vw,322px);background:var(--paper2);
+  border-right:1px solid var(--line);z-index:60;transform:translateX(-102%);
+  transition:transform .28s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column}
+body.toc aside{transform:none}
+.ah{padding:15px 16px 11px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.ah b{font-size:.86rem;letter-spacing:.06em}
+.ah small{display:block;color:var(--ink3);font-size:.7rem;margin-top:3px;letter-spacing:0}
+.toc{flex:1;overflow-y:auto;padding:8px 8px 40px}
+.toc h4{margin:15px 8px 6px;font-size:.7rem;letter-spacing:.13em;color:var(--ink3);
+  text-transform:uppercase;font-weight:600}
+.toc button{display:flex;gap:9px;width:100%;text-align:left;padding:8px 10px;border-radius:8px;
+  font-size:.875rem;color:var(--ink2);line-height:1.4;transition:.14s}
+.toc button i{font-style:normal;color:var(--ink3);font-size:.72rem;min-width:1.9em;
+  font-variant-numeric:tabular-nums;padding-top:.16em}
+.toc button:hover{background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--ink)}
+.toc button.on{background:color-mix(in srgb,var(--accent) 15%,transparent);color:var(--accent);font-weight:600}
+.toc button.on i{color:var(--accent)}
+
+/* ---------- 正文 ---------- */
+main{max-width:44rem;margin:0 auto;padding:26px 20px 8px}
+.head{padding-bottom:22px;border-bottom:1px solid var(--line);margin-bottom:26px}
+.kind{display:inline-block;font-size:.68rem;letter-spacing:.18em;color:var(--accent);
+  border:1px solid var(--line2);border-radius:999px;padding:3px 10px;margin-bottom:12px;text-transform:uppercase}
+h1.bk-t{margin:0 0 10px;font-size:clamp(1.5rem,5.2vw,2.05rem);font-weight:800;letter-spacing:-.01em;line-height:1.25}
+h1.bk-t em{font-style:normal;color:var(--accent)}
+.head p{margin:0;color:var(--ink2);font-size:.88rem;line-height:1.7}
+.meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:15px}
+.meta span{font-size:.72rem;color:var(--ink2);background:var(--paper2);border:1px solid var(--line);
+  border-radius:7px;padding:4px 9px}
+.meta span b{color:var(--accent);font-weight:700}
+
+article{font-family:var(--serif);font-size:var(--fs);line-height:var(--lh);
+  color:var(--ink);letter-spacing:.012em}
+article h2{font-family:var(--ui);font-size:1.16rem;font-weight:700;margin:0 0 6px;
+  letter-spacing:.01em;line-height:1.4}
+article h3{font-family:var(--ui);font-size:.82rem;font-weight:600;color:var(--accent);
+  letter-spacing:.13em;text-transform:uppercase;margin:0 0 14px;padding-bottom:0}
+.chap{padding-top:8px}
+.chap + .chap{margin-top:54px;padding-top:40px;border-top:1px solid var(--line)}
+.chap .no{font-family:var(--ui);font-size:.7rem;letter-spacing:.16em;color:var(--ink3);
+  display:block;margin-bottom:8px}
+article p{margin:0 0 .42em;text-indent:var(--indent);text-align:justify}
+article p.flat{text-indent:0}
+article p.q{text-indent:0;padding-left:1.1em;color:var(--ink2)}
+article p.item{text-indent:0;padding-left:1.6em;margin-bottom:.34em}
+article p.item b{color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums;margin-right:.35em}
+.divider{text-align:center;color:var(--ink3);letter-spacing:.6em;margin:26px 0;font-family:var(--ui);font-size:.8rem;text-indent:0}
+
+.chapnav{display:flex;gap:10px;align-items:stretch;margin:44px 0 0;padding-top:22px;border-top:1px solid var(--line);font-family:var(--ui)}
+.chapnav button{flex:1;border:1px solid var(--line2);border-radius:11px;padding:11px 13px;
+  text-align:left;color:var(--ink2);font-size:.82rem;line-height:1.45;transition:.16s;background:var(--paper)}
+.chapnav button:hover:not(:disabled){border-color:var(--accent);color:var(--accent);background:var(--paper2)}
+.chapnav button:disabled{opacity:.34;cursor:default}
+.chapnav button small{display:block;font-size:.66rem;color:var(--ink3);letter-spacing:.1em;margin-bottom:3px}
+.chapnav .nx{text-align:right}
+.chapnav .md{flex:0 0 auto;display:grid;place-items:center;padding:11px 15px;font-size:.78rem}
+
+footer{max-width:44rem;margin:0 auto;padding:30px 20px 46px;color:var(--ink3);
+  font-size:.76rem;line-height:1.8;font-family:var(--ui);border-top:1px solid var(--line);margin-top:36px}
+footer a{color:var(--ink2);border-bottom:1px solid var(--line2)}
+.top{position:fixed;right:16px;bottom:18px;z-index:30;width:40px;height:40px;border-radius:50%;
+  background:var(--paper2);border:1px solid var(--line2);color:var(--ink2);display:grid;place-items:center;
+  box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.22s}
+.top.on{opacity:1;pointer-events:auto}
+.top:hover{color:var(--accent);border-color:var(--accent)}
+.top svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round}
+
+@media (min-width:900px){
+  main{max-width:46rem;padding-top:40px}
+  .hb{height:58px}
+}
+@media (max-width:520px){
+  :root{--fs:1.02rem;--lh:1.9}
+  main{padding:20px 15px 4px}
+  .bk span{display:none}
+  article p{text-align:left}
+}
+@media print{
+  header,aside,.top,.chapnav,.mask{display:none}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hb">
+    <button class="ico" id="btnToc" aria-label="目录"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h11"/></svg></button>
+    <div class="bk"><b>象数宗 · 六十四生成纲</b><span>SIXTY-FOUR GENERATIVE HEXAGRAMS</span></div>
+    <div class="tools">
+      <div class="fsz">
+        <button id="fsD" aria-label="减小字号">A−</button>
+        <button id="fsU" aria-label="增大字号">A+</button>
+      </div>
+      <button class="ico" id="btnTheme" aria-label="切换主题"><svg id="iSun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M19.1 4.9l-1.7 1.7M6.6 17.4l-1.7 1.7"/></svg></button>
+    </div>
+  </div>
+  <div id="prog"></div>
+</header>
+
+<div class="mask" id="mask"></div>
+<aside id="tocPanel">
+  <div class="ah"><div><b>目录</b><small id="tocMeta"></small></div>
+    <button class="ico" id="btnTocX" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <nav class="toc" id="toc"></nav>
+</aside>
+
+<main>
+  <div class="head">
+    <span class="kind">纲目 · 研究手稿</span>
+    <h1 class="bk-t">象数宗 · <em>六十四生成纲</em></h1>
+    <p>由道玄引导差半写出。按易理从两仪到四象到八卦到六十四卦，六十四条满维方向，每条一句白话，对应系统生成的一个面向 —— 本源、投影、差异、共轭、测度、维度、闭合、开放。纲故意留了「差半步」的位置：它不完备，所以能生成。</p>
+    <div class="meta" id="meta"></div>
+  </div>
+  <article id="art"></article>
+</main>
+
+<footer id="foot"></footer>
+<button class="top" id="btnTop" aria-label="回到顶部"><svg viewBox="0 0 24 24"><path d="M12 19V5M5.5 11.5L12 5l6.5 6.5"/></svg></button>
+
+<script>
+var BOOK = {"slug":"xiangshu-64","title":"象数宗 · 六十四生成纲","en":"SIXTY-FOUR GENERATIVE HEXAGRAMS","titleHtml":"象数宗 · <em>六十四生成纲<\/em>","kind":"纲目 · 研究手稿","blurb":"由道玄引导差半写出。按易理从两仪到四象到八卦到六十四卦，六十四条满维方向，每条一句白话，对应系统生成的一个面向 —— 本源、投影、差异、共轭、测度、维度、闭合、开放。纲故意留了「差半步」的位置：它不完备，所以能生成。","tags":["道玄引导差半","满维版","64 条","IGDT"],"parts":[{"name":"纲要 · 六十四条","chapters":[{"t":"怎么用这张纲","ps":[{"x":"从你觉得最顺眼的一条开始读，不用按顺序。","k":"item"},{"x":"每条都可以接着往下想：\"那我呢？\"","k":"item"},{"x":"读完一遍，你头脑里那张网就成了。","k":"item"}]},{"t":"第一宫：本源（上卦）","ps":[{"n":"1.","x":"本源自动，无形无相。"},{"n":"2.","x":"本源投影，生出万象。"},{"n":"3.","x":"本源含差异，驱动在内。"},{"n":"4.","x":"本源自带共轭，平衡本性。"},{"n":"5.","x":"本源不消耗，预算无限。"},{"n":"6.","x":"本源维度无限，全息无缺。"},{"n":"7.","x":"本源不闭合，永远在生成。"},{"n":"8.","x":"本源即开放，生生不息。"}]},{"t":"第二宫：投影（上卦）","ps":[{"n":"9.","x":"投影映射本源，有象就有形。"},{"n":"10.","x":"投影叠投影，世界有多层。"},{"n":"11.","x":"投影产生差异，差异不可除。"},{"n":"12.","x":"投影中见共轭，A/B 并存。"},{"n":"13.","x":"投影有消耗，测量要代价。"},{"n":"14.","x":"投影有维度，结构决定表达。"},{"n":"15.","x":"投影若闭合，象成死寂。"},{"n":"16.","x":"投影开放，信息流动更新。"}]},{"t":"第三宫：差异（上卦）","ps":[{"n":"17.","x":"差异源于本源，是动因。"},{"n":"18.","x":"差异在投影中显现。"},{"n":"19.","x":"差异叠加，复杂度上升。"},{"n":"20.","x":"差异靠共轭平衡。"},{"n":"21.","x":"差异消耗预算，有成本。"},{"n":"22.","x":"差异撑起维度，结构变厚。"},{"n":"23.","x":"差异闭合，张力消失。"},{"n":"24.","x":"差异开放，继续生成。"}]},{"t":"第四宫：共轭（上卦）","ps":[{"n":"25.","x":"共轭来自本源，天生和谐。"},{"n":"26.","x":"共轭在投影中起作用。"},{"n":"27.","x":"共轭调和差异，保持平衡。"},{"n":"28.","x":"共轭叠加，深度优化。"},{"n":"29.","x":"共轭平衡时，消耗最小。"},{"n":"30.","x":"共轭维持维度完整。"},{"n":"31.","x":"共轭闭合，系统死掉。"},{"n":"32.","x":"共轭开放，持续迭代。"}]},{"t":"第五宫：测度（上卦）","ps":[{"n":"33.","x":"测度不影响本源，无关。"},{"n":"34.","x":"测度在投影中消耗。"},{"n":"35.","x":"差异消耗测度，要付代价。"},{"n":"36.","x":"共轭下测度最优。"},{"n":"37.","x":"测度累积，负担变重。"},{"n":"38.","x":"测度支撑维度，满维低耗。"},{"n":"39.","x":"闭合使测度归零，死寂。"},{"n":"40.","x":"开放增加测度，活跃。"}]},{"t":"第六宫：维度（上卦）","ps":[{"n":"41.","x":"维度是本源在投影中的样子。"},{"n":"42.","x":"维度在投影中体现。"},{"n":"43.","x":"差异决定维度高低。"},{"n":"44.","x":"共轭让维度满维。"},{"n":"45.","x":"维度低测度，最优状态。"},{"n":"46.","x":"维度嵌套，层次丰富。"},{"n":"47.","x":"维度闭合，结构僵化。"},{"n":"48.","x":"维度开放，结构演化。"}]},{"t":"第七宫：闭合（上卦）","ps":[{"n":"49.","x":"闭合想回本源，实则死路。"},{"n":"50.","x":"闭合让投影固化。"},{"n":"51.","x":"闭合消除差异，死寂。"},{"n":"52.","x":"闭合让共轭失效。"},{"n":"53.","x":"闭合测度归零，死了。"},{"n":"54.","x":"闭合维度塌缩，降维。"},{"n":"55.","x":"闭合到极致，绝对死寂。"},{"n":"56.","x":"闭合与开放交替，才有生命。"}]},{"t":"第八宫：开放（上卦）","ps":[{"n":"57.","x":"开放本源，生生不息。"},{"n":"58.","x":"开放投影，持续更新。"},{"n":"59.","x":"开放拥抱差异，成长。"},{"n":"60.","x":"开放维持共轭，平衡。"},{"n":"61.","x":"开放测度适中，不僵不散。"},{"n":"62.","x":"开放维度扩展，进化。"},{"n":"63.","x":"开放后闭合，循环往复。"},{"n":"64.","x":"开放至极，无界生成。"}]}]},{"name":"释义 · 长版","chapters":[{"t":"第一宫：本源 · 长版","ps":[{"x":"本源自己就在动，看不见，但一切从它来。","k":"item"},{"x":"本源把自身投影出去，万物就出现了。","k":"item"},{"x":"本源里天生有差异，差异就是推动力。","k":"item"},{"x":"本源里 A 和 B 同时存在，天生一对。","k":"item"},{"x":"本源不消耗任何东西，预算无限。","k":"item"},{"x":"本源的维度是全的，什么都不缺。","k":"item"},{"x":"本源永远不会闭合，一直在生成。","k":"item"},{"x":"本源是开放的，所以生生不息。","k":"item"}]},{"t":"第二宫：投影 · 长版","ps":[{"x":"投影映出本源的样貌，有象就有形。","k":"item"},{"x":"投影一层叠一层，世界分了好多级。","k":"item"},{"x":"投影一产生，差异就跟着出来了，消不掉。","k":"item"},{"x":"投影里能看见 A 和 B，它们一起起作用。","k":"item"},{"x":"投影有消耗，每一次观测都要付代价。","k":"item"},{"x":"投影的维度决定了它能表达什么。","k":"item"},{"x":"投影一旦闭合，就会变成死结构。","k":"item"},{"x":"投影保持开放，信息才能流动更新。","k":"item"}]},{"t":"第三宫：差异 · 长版","ps":[{"x":"差异从本源来，是一切变化的源头。","k":"item"},{"x":"差异在投影里显出来，你才能看见。","k":"item"},{"x":"差异一层层叠加，复杂度就上来了。","k":"item"},{"x":"差异靠 A 和 B 互相牵制，才能稳住。","k":"item"},{"x":"差异消耗预算，管差异是要花力气的。","k":"item"},{"x":"差异撑起维度，结构因此变厚。","k":"item"},{"x":"差异如果闭合，张力就没了，系统僵住。","k":"item"},{"x":"差异保持开放，新的东西才能接着长。","k":"item"}]},{"t":"第四宫：共轭 · 长版","ps":[{"x":"共轭来自本源，天生就是一对。","k":"item"},{"x":"共轭在投影里干活，让系统不偏。","k":"item"},{"x":"共轭调解差异，让 A 和 B 不打架。","k":"item"},{"x":"共轭一层层叠加，系统越来越优。","k":"item"},{"x":"共轭平衡的时候，消耗最小。","k":"item"},{"x":"共轭维持维度完整，少了谁都不行。","k":"item"},{"x":"共轭如果闭合，A 和 B 就分开了，系统死掉。","k":"item"},{"x":"共轭保持开放，系统就能一直迭代。","k":"item"}]},{"t":"第五宫：测度 · 长版","ps":[{"x":"测度跟本源无关，本源不计数。","k":"item"},{"x":"测度只在投影里出现，有象就有数。","k":"item"},{"x":"差异消耗测度，管差异要付成本。","k":"item"},{"x":"共轭平衡时，测度恰好最优。","k":"item"},{"x":"测度积累太多，负担就重了。","k":"item"},{"x":"测度支撑维度，满维低耗才是好。","k":"item"},{"x":"闭合让测度归零，系统不再活跃。","k":"item"},{"x":"开放让测度适当，系统保持活力。","k":"item"}]},{"t":"第六宫：维度 · 长版","ps":[{"x":"维度是本源在投影里可以被测的样貌。","k":"item"},{"x":"维度在投影里体现，不同投影维度不同。","k":"item"},{"x":"差异决定维度高低，差异多维度就高。","k":"item"},{"x":"共轭让维度撑满，A 和 B 同时到位。","k":"item"},{"x":"维度高但测度低，是最优状态。","k":"item"},{"x":"维度可以嵌套，一层套一层。","k":"item"},{"x":"维度闭合，结构就僵化不动了。","k":"item"},{"x":"维度开放，结构还能继续演化。","k":"item"}]},{"t":"第七宫：闭合 · 长版","ps":[{"x":"闭合想回到本源，其实走的是死路。","k":"item"},{"x":"闭合让投影固定下来，不再变化。","k":"item"},{"x":"闭合把差异全消除，系统就死了。","k":"item"},{"x":"闭合让共轭失效，A 和 B 不再配合。","k":"item"},{"x":"闭合让测度归零，什么都不发生。","k":"item"},{"x":"闭合让维度塌缩，从高维变成低维。","k":"item"},{"x":"闭合到极致，就是绝对死寂。","k":"item"},{"x":"闭合和开放交替出现，生命才有节奏。","k":"item"}]},{"t":"第八宫：开放 · 长版","ps":[{"x":"开放就是本源的本来样子，不停。","k":"item"},{"x":"开放让投影一直更新，不会过时。","k":"item"},{"x":"开放拥抱差异，差异就是成长资源。","k":"item"},{"x":"开放维持共轭，A 和 B 继续做伴。","k":"item"},{"x":"开放时测度不高不低，刚好合适。","k":"item"},{"x":"开放让维度扩展，系统能进化。","k":"item"},{"x":"开放之后也会闭合，然后再开放，循环。","k":"item"},{"x":"开放到最后，就是没有边界的生成。","k":"item"}]}]},{"name":"收口","chapters":[{"t":"收口 · 纲不完备，才能生成","ps":["这六十四条只是骨架。你读的时候自己带进来的那些感受、疑问、矛盾，才是真正的 B。","纲里故意留了\"差半步\"的地方，比如第 8、16、24、32、40、48、56、64 条，你可以在那儿多停一下，想一个你自己的版本。","纲不完备，才能生成。你握着它，每一次读都是一次新的共轭迭代。"]}]}],"foot":"「象数宗 · 六十四生成纲（满维版）」· 作者：道玄引导差半写出 · 与 IGDT / 不可完全闭合性同源的一组生成方向。"};
+
+/* ---------- 构建正文 ---------- */
+var flat = [];           // 扁平章节表（导航用）
+(function build(){
+  var art = document.getElementById('art');
+  var html = [], n = 0;
+  BOOK.parts.forEach(function(part){
+    part.chapters.forEach(function(ch, ci){
+      var id = 'c' + (n++);
+      flat.push({ id:id, t:ch.t, g:part.name, idx:flat.length });
+      html.push('<section class="chap" id="' + id + '">');
+      if (ci === 0) html.push('<span class="no">' + esc(part.name) + '</span>');
+      html.push('<h2>' + esc(ch.t) + '</h2>');
+      if (ch.sub) html.push('<h3>' + esc(ch.sub) + '</h3>');
+      ch.ps.forEach(function(p){
+        if (p === '---') { html.push('<p class="divider">· · ·</p>'); return; }
+        if (typeof p === 'string') { html.push('<p>' + esc(p) + '</p>'); return; }
+        var cls = 'flat' + (p.k ? ' ' + p.k : '');
+        var num = p.n ? '<b>' + esc(p.n) + '</b>' : '';
+        html.push('<p class="' + cls + '">' + num + esc(p.x) + '</p>');
+      });
+      html.push('</section>');
+    });
+  });
+  art.innerHTML = html.join('');
+  // 章间导航
+  var again = [];
+  flat.forEach(function(c, i){
+    again.push('<div class="chapnav">' +
+      (i ? '<button class="pv" data-go="' + (i-1) + '"><small>上一节</small>' + esc(flat[i-1].t) + '</button>'
+         : '<button disabled><small>上一节</small>已是开头</button>') +
+      '<button class="md" data-toc="1" title="目录">目录</button>' +
+      (i < flat.length-1 ? '<button class="nx" data-go="' + (i+1) + '"><small>下一节</small>' + esc(flat[i+1].t) + '</button>'
+         : '<button disabled class="nx"><small>下一节</small>已是结尾</button>') +
+      '</div>');
+  });
+  document.querySelectorAll('.chap').forEach(function(sec, i){
+    sec.insertAdjacentHTML('beforeend', again[i]);
+  });
+})();
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ---------- 元信息 ---------- */
+(function(){
+  var chars = 0, ps = 0;
+  BOOK.parts.forEach(function(p){ p.chapters.forEach(function(c){
+    chars += c.t.length; c.ps.forEach(function(x){
+      if (typeof x === 'string') { chars += x.length; ps++; }
+      else { chars += x.x.length + (x.n ? x.n.length : 0); ps++; }
+    });
+  }); });
+  var wan = (chars/10000);
+  var m = document.getElementById('meta');
+  m.innerHTML =
+    '<span><b>' + flat.length + '</b> 节</span>' +
+    '<span>约 <b>' + (wan >= 1 ? wan.toFixed(1) + ' 万字' : Math.round(chars/1000) + ' 千字') + '</b></span>' +
+    (BOOK.tags || []).map(function(t){ return '<span>' + esc(t) + '</span>'; }).join('');
+  document.getElementById('tocMeta').textContent = flat.length + ' 节 · 约 ' + (wan >= 1 ? wan.toFixed(1) + ' 万字' : Math.round(chars/1000) + ' 千字');
+  document.getElementById('foot').innerHTML = BOOK.foot || '';
+  document.title = BOOK.title + ' · 玄同宇宙';
+})();
+
+/* ---------- 目录 ---------- */
+(function(){
+  var box = document.getElementById('toc'), cur = -1, group = null, buf = [];
+  flat.forEach(function(c, i){
+    if (c.g !== group) {
+      if (buf.length) box.insertAdjacentHTML('beforeend', buf.join(''));
+      group = c.g; buf = [];
+      box.insertAdjacentHTML('beforeend', '<h4>' + esc(group) + '</h4>');
+    }
+    buf.push('<button data-go="' + i + '"><i>' + String(i+1).padStart(2,'0') + '</i><span>' + esc(c.t) + '</span></button>');
+  });
+  if (buf.length) box.insertAdjacentHTML('beforeend', buf.join(''));
+
+  function mark(i){
+    if (i === cur) return; cur = i;
+    box.querySelectorAll('button').forEach(function(b){
+      b.classList.toggle('on', +b.dataset.go === i);
+    });
+    var on = box.querySelector('button.on');
+    if (on && panelOpen()) on.scrollIntoView({ block:'nearest' });
+  }
+  window.__mark = mark;
+
+  box.addEventListener('click', function(e){
+    var b = e.target.closest('button[data-go]'); if (!b) return;
+    go(+b.dataset.go);
+  });
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('[data-go]'); if (!b) return;
+    go(+b.dataset.go);
+  });
+  document.addEventListener('click', function(e){
+    if (e.target.closest('[data-toc]')) { document.body.classList.add('toc'); }
+  });
+  function go(i){
+    var el = document.getElementById(flat[i].id); if (!el) return;
+    document.body.classList.remove('toc');
+    window.scrollTo({ top: el.offsetTop - 62, behavior: 'smooth' });
+    mark(i);
+  }
+  window.__go = go;
+  function panelOpen(){ return document.body.classList.contains('toc'); }
+  window.__panelOpen = panelOpen;
+})();
+
+/* ---------- 主题 / 字号 ---------- */
+(function(){
+  var root = document.documentElement;
+  var saved = null; try { saved = localStorage.getItem('xt_read_theme'); } catch(e){}
+  root.setAttribute('data-theme', saved === 'dark' ? 'dark' : 'paper');
+  document.getElementById('btnTheme').addEventListener('click', function(){
+    var d = root.getAttribute('data-theme') === 'dark';
+    root.setAttribute('data-theme', d ? 'paper' : 'dark');
+    try { localStorage.setItem('xt_read_theme', d ? 'paper' : 'dark'); } catch(e){}
+  });
+  var fs = null; try { fs = parseFloat(localStorage.getItem('xt_read_fs')); } catch(e){}
+  if (!fs || fs < 0.8 || fs > 1.7) fs = 1;
+  var cur = fs;
+  function apply(){ root.style.setProperty('--fs', (1.06 * cur).toFixed(2) + 'rem'); }
+  window.addEventListener('DOMContentLoaded', apply); apply();
+  document.getElementById('fsU').addEventListener('click', function(){ cur = Math.min(1.5, cur + .08); apply(); store(); });
+  document.getElementById('fsD').addEventListener('click', function(){ cur = Math.max(.78, cur - .08); apply(); store(); });
+  function store(){ try { localStorage.setItem('xt_read_fs', cur); } catch(e){} }
+})();
+
+/* ---------- 抽屉 / 进度 / 快捷键 ---------- */
+(function(){
+  document.getElementById('btnToc').addEventListener('click', function(){ document.body.classList.toggle('toc'); });
+  document.getElementById('btnTocX').addEventListener('click', function(){ document.body.classList.remove('toc'); });
+  document.getElementById('mask').addEventListener('click', function(){ document.body.classList.remove('toc'); });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') document.body.classList.remove('toc');
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      var i = window.__cur === undefined ? 0 : window.__cur;
+      window.__go(Math.max(0, Math.min(flat.length-1, i + (e.key === 'ArrowRight' ? 1 : -1))));
+    }
+  });
+  var btnTop = document.getElementById('btnTop'), prog = document.getElementById('prog');
+  var secs = [].slice.call(document.querySelectorAll('.chap'));
+  var curIdx = -1;
+  function onScroll(){
+    var y = window.scrollY, h = document.documentElement.scrollHeight - window.innerHeight;
+    prog.style.width = (h > 0 ? Math.min(100, y / h * 100) : 0) + '%';
+    btnTop.classList.toggle('on', y > 700);
+    var i = 0;
+    for (var k = 0; k < secs.length; k++) if (secs[k].offsetTop - 90 <= y) i = k;
+    curIdx = i;
+    window.__cur = i;
+    if (window.__mark) window.__mark(i);
+    try { localStorage.setItem('xt_read_' + BOOK.slug, String(i)); } catch(e){}
+  }
+  window.addEventListener('scroll', onScroll, { passive:true });
+  btnTop.addEventListener('click', function(){ window.scrollTo({ top:0, behavior:'smooth' }); });
+  var last = -1; try { last = parseInt(localStorage.getItem('xt_read_' + BOOK.slug), 10); } catch(e){}
+  onScroll();
+  if (last > 0 && last < secs.length) {
+    setTimeout(function(){
+      var bar = document.getElementById('resume');
+      if (bar) bar.remove();
+      var el = secs[last];
+      var d = document.createElement('div');
+      d.id = 'resume';
+      d.style.cssText = 'max-width:44rem;margin:0 auto;padding:0 20px;font-size:.8rem';
+      d.innerHTML = '<button style="border:1px solid var(--line2);border-radius:9px;padding:7px 12px;color:var(--accent);background:var(--paper2)">继续上次读到 · ' + esc(flat[last] ? flat[last].t : '') + '</button>';
+      d.querySelector('button').onclick = function(){ window.__go(last); };
+      document.querySelector('main').insertBefore(d, document.getElementById('art'));
+    }, 60);
+  }
+})();
+</script>
+</body>
+</html>
