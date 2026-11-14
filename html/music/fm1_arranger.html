@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vibe music：FM1 Web MIDI 编曲器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#07070e;
+    --panel:rgba(255,255,255,.045);
+    --panel-border:rgba(255,255,255,.10);
+    --ink:#eaf2ff;
+    --muted:#8b93b0;
+    --cyan:#22e0ff;
+    --magenta:#ff3d9a;
+    --purple:#8a5cff;
+    --ok:#37e0a0;
+    --bad:#ff4d6d;
+    --font-display:'Orbitron','PingFang SC',sans-serif;
+    --font-body:'Rajdhani','PingFang SC','Microsoft YaHei',sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;min-height:100vh;overflow-x:hidden;color:var(--ink);font-family:var(--font-body);
+    background:radial-gradient(1200px 620px at 50% -12%, rgba(138,92,255,.20), transparent 60%), var(--bg);
+  }
+
+  /* —— 背景：合成波网格 + 霓虹光晕 —— */
+  .bg-grid{position:fixed;inset:0;z-index:-2;
+    background-image:linear-gradient(rgba(138,92,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(34,224,255,.05) 1px,transparent 1px);
+    background-size:42px 42px;animation:gridmove 18s linear infinite;}
+  @keyframes gridmove{from{background-position:0 0}to{background-position:0 42px}}
+  .bg-blob{position:fixed;border-radius:50%;filter:blur(90px);opacity:.45;z-index:-1;}
+  .bg-blob.b1{width:440px;height:440px;background:#22e0ff;top:-140px;left:-110px;}
+  .bg-blob.b2{width:500px;height:500px;background:#ff3d9a;bottom:-180px;right:-130px;}
+
+  .wrap{max-width:960px;margin:0 auto;padding:0 18px 44px;position:relative;}
+
+  /* —— 头部 —— */
+  .hero{text-align:center;padding:26px 0 8px;}
+  .logo{font-family:var(--font-display);font-weight:900;font-size:48px;letter-spacing:.04em;line-height:1;
+    background:linear-gradient(120deg,#ffffff 12%,var(--cyan) 46%,var(--magenta) 74%,var(--purple));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 26px rgba(34,224,255,.40));}
+  .logo span{background:linear-gradient(120deg,var(--magenta),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .tagline{font-family:var(--font-body);letter-spacing:.5em;font-size:13px;color:var(--muted);margin-top:10px;}
+
+  .spectrum{display:flex;align-items:flex-end;justify-content:center;gap:4px;height:48px;margin:20px auto 4px;width:min(520px,92%);}
+  .spectrum i{display:block;width:5px;height:10px;border-radius:3px;
+    background:linear-gradient(180deg,var(--cyan),var(--purple));box-shadow:0 0 10px rgba(34,224,255,.5);
+    animation:eq 1.1s ease-in-out infinite;animation-delay:calc(var(--i)*.07s);}
+  @keyframes eq{0%,100%{height:8px;opacity:.5}50%{height:44px;opacity:1}}
+
+  /* —— 玻璃卡片 —— */
+  .panel{background:var(--panel);border:1px solid var(--panel-border);border-radius:18px;padding:20px 22px;
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    box-shadow:0 8px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);}
+  .panel.warn{border-color:rgba(255,77,109,.55);box-shadow:0 0 26px rgba(255,77,109,.20), inset 0 1px 0 rgba(255,255,255,.06);}
+  .warn-title{font-weight:700;color:var(--bad);margin-bottom:6px;letter-spacing:.02em;}
+  .panel-title{font-family:var(--font-display);font-size:13px;letter-spacing:.18em;color:var(--cyan);
+    text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:9px;}
+  .panel-title::before{content:'';width:9px;height:9px;border-radius:2px;
+    background:linear-gradient(135deg,var(--cyan),var(--magenta));box-shadow:0 0 10px var(--cyan);}
+
+  .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;}
+  .field{display:flex;flex-direction:column;gap:6px;}
+  label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;}
+  select,input[type=number]{background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.16);border-radius:10px;
+    color:var(--ink);font-family:var(--font-body);font-size:15px;padding:9px 12px;outline:none;transition:all .15s ease;}
+  select:focus,input:focus{border-color:var(--cyan);box-shadow:0 0 12px rgba(34,224,255,.30);}
+
+  input[type=range]{-webkit-appearance:none;appearance:none;height:6px;border-radius:999px;
+    background:linear-gradient(90deg,var(--cyan),var(--magenta));outline:none;width:170px;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+    background:#fff;box-shadow:0 0 12px var(--cyan);cursor:pointer;}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border:none;border-radius:50%;
+    background:#fff;box-shadow:0 0 12px var(--cyan);cursor:pointer;}
+
+  .btn{font-family:var(--font-body);font-weight:600;font-size:14px;letter-spacing:.04em;color:var(--ink);
+    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);border-radius:10px;padding:10px 16px;cursor:pointer;transition:all .15s ease;}
+  .btn:hover{background:rgba(255,255,255,.10);border-color:var(--cyan);box-shadow:0 0 14px rgba(34,224,255,.35);transform:translateY(-1px);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;border-color:rgba(255,255,255,.16);}
+  .btn-connect{background:linear-gradient(135deg,var(--cyan),var(--purple));color:#04121a;border:none;font-weight:700;box-shadow:0 0 22px rgba(34,224,255,.45);}
+  .btn-connect:hover{box-shadow:0 0 36px rgba(34,224,255,.72);transform:translateY(-1px);}
+  .btn-play{background:linear-gradient(135deg,var(--ok),#2bd0ff);color:#04121a;border:none;font-weight:700;font-size:16px;padding:12px 28px;box-shadow:0 0 22px rgba(55,224,160,.40);}
+  .btn-stop{background:linear-gradient(135deg,var(--bad),#ff7aa0);color:#fff;border:none;font-weight:700;font-size:16px;padding:12px 28px;box-shadow:0 0 22px rgba(255,77,109,.40);}
+  .btn-rec{border-color:var(--magenta);color:#ffd0e6;}
+  .btn-rec:hover{box-shadow:0 0 16px rgba(255,61,154,.55);border-color:var(--magenta);}
+
+  .status{font-size:13px;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.14);display:inline-block;}
+  .status.ok{color:var(--ok);border-color:rgba(55,224,160,.6);box-shadow:0 0 14px rgba(55,224,160,.30);}
+  .status.bad{color:var(--bad);border-color:rgba(255,77,109,.6);box-shadow:0 0 14px rgba(255,77,109,.30);}
+
+  .hint{font-size:12px;color:var(--muted);line-height:1.65;margin-top:12px;}
+  code{background:rgba(34,224,255,.12);color:#bff3ff;padding:1px 6px;border-radius:5px;font-family:ui-monospace,monospace;}
+
+  .transport{display:flex;gap:14px;margin-bottom:6px;}
+  .steps{display:grid;grid-template-columns:repeat(16,1fr);gap:6px;margin-top:14px;}
+  .step{aspect-ratio:1/1;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);
+    transition:all .09s ease;position:relative;}
+  .step.beat{background:rgba(138,92,255,.18);border-color:rgba(138,92,255,.45);}
+  .step.on{background:linear-gradient(135deg,var(--cyan),var(--purple));border-color:#fff;
+    box-shadow:0 0 18px var(--cyan),0 0 34px rgba(34,224,255,.55);transform:scale(1.08);}
+
+  .vrow{display:grid;grid-template-columns:130px 150px 1fr 60px;gap:10px;align-items:center;padding:7px 4px;border-bottom:1px solid rgba(255,255,255,.06);}
+  .vrow.head{color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,.16);padding-bottom:8px;}
+  .vrow .rname{font-weight:600;color:var(--ink);font-family:var(--font-body);}
+  .vrow .vp{width:84px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.16);border-radius:8px;color:var(--ink);font-family:var(--font-body);font-size:14px;padding:6px 8px;}
+  .vrow .vg{width:100%;}
+  .vrow .von{justify-self:center;width:18px;height:18px;accent-color:var(--cyan);}
+
+  .log{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#9fb6c9;background:rgba(0,0,0,.40);
+    border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:12px;white-space:pre-wrap;max-height:180px;overflow:auto;}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .seq-panel{grid-column:1 / -1;}
+  .foot{text-align:center;color:var(--muted);font-size:12px;letter-spacing:.12em;margin-top:28px;}
+
+  @media(max-width:720px){.grid{grid-template-columns:1fr;}.seq-panel{grid-column:auto;}.logo{font-size:38px;}}
+  @media(prefers-reduced-motion:reduce){.bg-grid,.spectrum i{animation:none;}}
+
+  .vrow .pwrap{display:flex;flex-direction:column;gap:3px;}
+  .vrow .vcat{font-size:10px;color:var(--muted);letter-spacing:.03em;}
+  .barbtns{display:flex;gap:6px;flex-wrap:wrap;}
+  .barbtn{font-family:var(--font-body);font-size:13px;font-weight:600;color:var(--ink);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);border-radius:8px;padding:5px 12px;cursor:pointer;transition:all .12s ease;}
+  .barbtn:hover{border-color:var(--cyan);}
+  .barbtn.active{background:linear-gradient(135deg,var(--cyan),var(--purple));color:#04121a;border:none;box-shadow:0 0 12px rgba(34,224,255,.4);}
+  .chordstrip{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin:4px 0 14px;}
+  .cbar{border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:8px 5px;text-align:center;background:rgba(0,0,0,.25);}
+  .cbar.active{border-color:var(--cyan);box-shadow:0 0 14px rgba(34,224,255,.35);background:rgba(34,224,255,.08);}
+  .cbar .cname{font-weight:700;font-size:14px;color:var(--ink);}
+  .cbar .croot{font-size:11px;color:var(--muted);margin-top:3px;}
+  .arrgrid{display:grid;grid-template-columns:120px repeat(16,1fr);gap:4px;align-items:stretch;}
+  .arrhead{font-size:10px;color:var(--muted);text-align:center;padding:3px 0;letter-spacing:.02em;}
+  .arrname{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--ink);}
+  .arrname .sw{width:12px;height:12px;border-radius:3px;flex:none;}
+  .arrcell{border:1px solid rgba(255,255,255,.10);border-radius:6px;min-height:34px;background:rgba(255,255,255,.03);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:1px;padding:2px;font-size:10px;line-height:1.15;color:#04121a;font-weight:700;text-align:center;overflow:hidden;}
+  .arrcell.empty{background:rgba(255,255,255,.02);color:transparent;}
+  .arrcell.sustain{justify-content:flex-start;align-items:flex-start;font-size:11px;color:var(--ink);font-weight:600;padding:7px 9px;}
+  @media(max-width:720px){.arrgrid{grid-template-columns:84px repeat(16,1fr);}.arrname{font-size:10px;}.arrcell{font-size:8px;min-height:28px;}}
+
+  .preset-store{margin-top:14px;border-top:1px solid rgba(255,255,255,.12);padding-top:14px;}
+  .store-head{font-family:var(--font-display);font-size:12px;letter-spacing:.14em;color:var(--ok);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:9px;}
+  .store-head::before{content:'';width:9px;height:9px;border-radius:2px;background:linear-gradient(135deg,var(--ok),#2bd0ff);box-shadow:0 0 10px var(--ok);}
+  .store-input{flex:1;min-width:140px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.16);border-radius:10px;color:var(--ink);font-family:var(--font-body);font-size:14px;padding:9px 12px;outline:none;}
+  .store-input:focus{border-color:var(--cyan);box-shadow:0 0 12px rgba(34,224,255,.30);}
+  .store-list{display:flex;flex-direction:column;gap:7px;margin-top:10px;}
+  .store-item{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.10);border-radius:10px;padding:7px 10px;}
+  .store-item .sname{font-weight:600;font-size:13px;color:var(--ink);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .store-item .smeta{font-size:11px;color:var(--muted);font-family:ui-monospace,monospace;margin-right:4px;}
+  .store-item .btn{padding:6px 12px;font-size:12px;}
+
+/* ===== 可编辑八声部网格 ===== */
+.btn-sm{padding:5px 9px;font-size:11px;}
+.arrcell.ed{cursor:pointer;transition:transform .08s ease,filter .08s ease;}
+.arrcell.ed:hover{transform:translateY(-1px);filter:brightness(1.2);}
+.arrcell.empty.ed{color:rgba(255,255,255,.22);font-size:14px;}
+.arrcell.empty.ed:hover{background:rgba(34,224,255,.12);border-color:rgba(34,224,255,.45);color:var(--cyan);}
+.arrcell.sel{outline:2px solid var(--gold);outline-offset:-2px;box-shadow:0 0 12px rgba(255,210,61,.6);}
+.arrcell.nowA{outline:2px solid var(--cyan);outline-offset:-2px;}
+.arrcell .nn{display:block;line-height:1.15;font-size:9.5px;}
+.toolrow{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:9px 0;}
+.toolrow .btn{padding:6px 9px;font-size:11.5px;}
+.arrEd{display:flex;flex-wrap:wrap;gap:9px;align-items:center;background:rgba(255,210,61,.07);
+  border:1px solid rgba(255,210,61,.24);border-radius:10px;padding:8px 11px;margin-top:9px;font-size:12px;}
+.arrEd label{display:block;color:var(--muted);font-size:10.5px;margin-bottom:2px;}
+.arrEd select,.arrEd input[type=number]{background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.16);
+  border-radius:7px;color:var(--ink);padding:5px 7px;font-size:12px;}
+.arrEd .who{color:var(--gold);font-weight:700;margin-right:auto;}
+.arrEd input[type=range]{width:100px;}
+.cbar .cnum{font-size:10px;color:var(--cyan);margin-top:2px;}
+.arrEd .row{display:flex;flex-wrap:wrap;gap:9px;align-items:center;}
+</style>
+</head>
+<body>
+<!-- FM1-NAV:START -->
+
+<style>
+.fm1nav{position:relative;z-index:60;display:flex;align-items:center;gap:5px;flex-wrap:wrap;
+  padding:7px 18px;margin:0 0 8px;border-bottom:1px solid rgba(255,255,255,.09);
+  background:rgba(9,9,20,.9);backdrop-filter:blur(8px);
+  font-family:var(--font-body,'Rajdhani','PingFang SC','Microsoft YaHei',sans-serif);
+  font-size:12px;line-height:1.2}
+.fm1nav a{text-decoration:none;color:#9aa4c0;border:1px solid rgba(255,255,255,.10);
+  border-radius:7px;padding:5px 10px;white-space:nowrap;transition:all .14s ease}
+.fm1nav a:hover{color:#eaf2ff;border-color:rgba(34,224,255,.55);background:rgba(34,224,255,.09)}
+.fm1nav a.home{color:#ffd23d;border-color:rgba(255,210,61,.35);font-weight:700;letter-spacing:.5px}
+.fm1nav a.on{color:#07070e;background:linear-gradient(120deg,#22e0ff,#7ce8ff);
+  border-color:#22e0ff;font-weight:700;box-shadow:0 0 14px rgba(34,224,255,.3)}
+.fm1nav a small{font-size:9.5px;opacity:.75;margin-left:5px}
+.fm1nav .sep{width:1px;height:16px;background:rgba(255,255,255,.14);margin:0 5px}
+.fm1nav .tip{margin-left:auto;color:#6f7796;font-size:10.5px;letter-spacing:.4px;white-space:nowrap}
+@media(max-width:760px){.fm1nav .tip{display:none}.fm1nav{padding:6px 10px}}
+</style>
+
+<nav class="fm1nav" aria-label="FM1 工作台导航">
+<a class="home" href="index.html">回工作台</a>
+<span class="sep"></span>
+<a class="on" href="fm1_arranger.html">01 · vibe music<small>波浪</small></a>
+<a href="fm1_monitor.html">02 · USB 监听</a>
+<a href="fm1_lalaland.html">03 · 自由编曲<small>按谱前奏</small></a>
+<span class="tip">独立 Chrome / Edge 标签页 · 允许 MIDI</span>
+</nav>
+<!-- FM1-NAV:END -->
+  <div class="bg-grid"></div>
+  <div class="bg-blob b1"></div>
+  <div class="bg-blob b2"></div>
+
+  <main class="wrap">
+    <header class="hero">
+      <div class="logo">vibe<span>music</span></div>
+      <div class="tagline">FM1 · WEB MIDI 编曲器</div>
+      <div class="spectrum">
+        <i style="--i:0"></i><i style="--i:1"></i><i style="--i:2"></i><i style="--i:3"></i>
+        <i style="--i:4"></i><i style="--i:5"></i><i style="--i:6"></i><i style="--i:7"></i>
+        <i style="--i:8"></i><i style="--i:9"></i><i style="--i:10"></i><i style="--i:11"></i>
+        <i style="--i:12"></i><i style="--i:13"></i><i style="--i:14"></i><i style="--i:15"></i>
+        <i style="--i:16"></i><i style="--i:17"></i>
+      </div>
+    </header>
+
+    <div class="panel warn" id="frameWarn" style="display:none;">
+      <div class="warn-title">⛔ 检测到你在内嵌窗口（iframe）里打开本页</div>
+      <div class="hint" style="margin-top:0;color:#ffb3c4;">浏览器在这里会<b>同时禁用麦克风</b>，所以"开始哼唱 / 录制"必定失败（录制播放自然也没东西播）。请：复制地址栏 <code>http://localhost:8000/fm1_arranger.html</code> → 粘贴到一个<b>独立 Chrome / Edge 标签页</b>打开 → 点"允许"麦克风和 MIDI。这样录制 / 播放才会正常。</div>
+    </div>
+
+    <div class="grid">
+      <section class="panel">
+        <div class="panel-title">连接 · CONNECT</div>
+        <div class="row">
+          <button id="connect" class="btn btn-connect">CONNECT · 连接 FM1</button>
+          <span id="status" class="status">未连接</span>
+        </div>
+        <div class="hint">⚠️ 必须在<b>独立的 Chrome / Edge 标签页</b>打开本页（地址栏粘贴 <code>http://localhost:8000/fm1_arranger.html</code>），<b>不要</b>在 WorkBuddy 预览框 / 其他软件内嵌窗口里看——那些 iframe 会禁掉 MIDI 权限。本机先运行 <code>python3 -m http.server 8000</code>。</div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">编曲参数 · PARAMS</div>
+        <div class="row">
+          <div class="field">
+            <label>示例库（选完要按「载入」才生效）</label>
+            <select id="style">
+              <option value="eight" selected>八声部·有感觉（V16 多音色）</option>
+              <option value="lofi">Lo-Fi 慢摇</option>
+              <option value="ambient">氛围 Pad</option>
+              <option value="house">House 律动</option>
+              <option value="citypop">City Pop 都市</option>
+              <option value="newsoul">New Soul 新灵魂</option>
+              <option value="dreamcore">梦核·助眠</option>
+              <option value="blank">空白画布 · 自己从零写</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>速度 BPM</label>
+            <input type="number" id="bpm" value="76" min="50" max="160">
+          </div>
+          <div class="field">
+            <label>预设 PRESET (001–128)</label>
+            <input type="number" id="preset" value="32" min="1" max="128">
+          </div>
+          <div class="field">
+            <label>输出力度 LEVEL</label>
+            <input type="range" id="level" min="10" max="100" value="50">
+          </div>
+        </div>
+        <div class="hint"><b>现在网格是活的</b>：上面这些风格不再写死播放，只是「一键载入的起点」；载入后每个音都摊在下面网格里，随便改。改完立刻能播，也会自动存在浏览器里。<br>预设号 = FM1 里那个音色的编号（001 起）。原厂是单音色，和弦/贝斯/旋律共用这一个音色。<b>City Pop / New Soul / 梦核 电钢 = 原厂 001 / 005 / 009</b>（FM1 的 "PIANO" 预设就是 DX7 电钢 Rhodes 味，不是真钢）。填 001 最稳。梦核默认 56 BPM，无节拍、超柔、助眠漂移，想更响就把"输出力度"往上推。</div>
+        <div class="hint" id="eightHint" style="display:none;color:#bff3ff;border-left:2px solid var(--cyan);padding-left:10px;">
+          <b>八声部模式</b>：8 个声部的<b>音色 / 音量 / 开关</b>都在下面「八声部控制台」一排排调好了——每个声部一行，预设号=音色，音量滑块往左拉就柔，开关可单独静音某个声部。播放时网页按你设的预设号自动发 Program Change 给 8 个通道。<br>
+          另外务必在 FM1 本机：进 <b>GLOBE → Voices 1–4 / 5–8</b>，把 8 个 Voice 全部<b>打开</b>、MIDI 通道设 1–8（默认一般就是），否则对应声部不响。
+        </div>
+      </section>
+
+      <section class="panel" style="grid-column:1 / -1;">
+        <div class="panel-title">八声部控制台 · 8-VOICE MIXER（八声部模式用）</div>
+        <div class="vrow head"><span>声部 / 角色</span><span>预设(音色 001–128)</span><span>音量</span><span style="text-align:center;">开</span></div>
+        <div id="voiceRows"></div>
+        <div class="hint">8 个声部已按你刚调的「电影悲壮感」组合设成默认（铺底=<b>STRING 67</b> / 贝斯=<b>BASS 39</b> / 电钢=<b>SYN PAD 12</b> / 主旋律=<b>PIANO 1</b> / 琶音=<b>PIANO 13</b> / 拨弦=<b>GUITAR 45</b> / 副旋=<b>PIANO 13</b> / 微光=<b>SYN PAD 32</b>）。<b>想存住随时回来</b>：在下方「声部预设存档」给当前组合起名 → 点保存（存进浏览器本地，关页不丢）；之后点「载入」一键回到，或「删除」。换音色看每个框下方的小标签（PIANO/BASS/STRING…）就知道现在是什么类，±4 在同族里挑兄弟预设。太响/发破就左拉音量；某声部太抢就关「开」静音单听。</div>
+        <div class="preset-store">
+          <div class="store-head">声部预设存档 · SAVE / LOAD</div>
+          <div class="row" style="gap:8px;align-items:center;">
+            <input type="text" id="storeName" class="store-input" placeholder="给这套起个名，如 电影悲壮感" maxlength="24">
+            <button id="storeSave" class="btn">💾 保存当前</button>
+          </div>
+          <div id="storeList" class="store-list"></div>
+        </div>
+      </section>
+
+      <section class="panel" style="grid-column:1 / -1;">
+        <div class="panel-title">编曲网格 · 8 声部 × 16 格（点格子就写，不再是写死的）</div>
+        <div class="row" style="margin-bottom:8px;align-items:center;">
+          <label style="margin:0;">小节 BAR</label>
+          <div id="barBtns" class="barbtns"></div>
+          <span class="hint" style="margin:0;">一次改 1 小节，共 8 小节；改完自动存进浏览器，关页不丢。</span>
+        </div>
+        <div id="chordStrip" class="chordstrip"></div>
+        <div class="toolrow">
+          <button class="btn btn-gold" id="loadStyleA" title="载入一套示例到网格，会盖掉当前所有音符">♪ 载入示例（会盖掉网格）</button>
+          <button class="btn" id="undoA">↶ 撤销</button>
+          <button class="btn" id="redoA">↷ 重做</button>
+          <button class="btn" id="copyBar1" title="把第 1 小节复制到第 2–8 小节，8 个声部一起">⧉ 复制第1小节</button>
+          <button class="btn" id="clearAllA" title="清空全部 8 小节的音符">□ 清空</button>
+          <button class="btn" id="expJsonA" title="导出作品 .json（网格 + 速度 + 8 声部音色）">导出 .json</button>
+          <button class="btn" id="impBtnA" title="导入本页的 .json 作品，或标准 .mid 文件">导入文件</button>
+          <input type="file" id="impFileA" accept=".mid,.midi,.json" style="display:none">
+          <button class="btn" id="expMidsA" title="导出 8 个单轨 .mid + 1 个合并 .mid（通道 1–8）">导出 8 轨 .mid</button>
+        </div>
+        <div class="row" style="margin:4px 0 9px;align-items:center;">
+          <div class="field"><label>点空格子写什么</label>
+            <select id="brushModeA">
+              <option value="auto">跟着和弦（高八度，不会跑调）</option>
+              <option value="chord">整个和弦一起写</option>
+              <option value="fixed">固定音高</option>
+              <option value="last">接着上一个音写</option>
+            </select>
+          </div>
+          <div class="field"><label>固定音高</label><select id="brushNoteA" disabled></select></div>
+          <div class="field"><label>长几格</label><select id="brushDurA"></select></div>
+          <div class="field"><label>力度</label><input type="range" id="brushVelA" min="1" max="100" value="62" style="width:110px"></div>
+        </div>
+        <div id="arrGrid" class="arrgrid"></div>
+        <div class="arrEd" id="arrEd">
+          <span class="who" id="arrEdWho">点格子开始写</span>
+          <span id="arrEdCtl" style="display:none;" class="row">
+            <span class="field"><label>音高</label><select id="edNoteA"></select></span>
+            <span class="field"><label>长几格</label><select id="edDurA"></select></span>
+            <span class="field"><label>力度</label><input type="range" id="edVelA" min="1" max="100" style="width:100px"></span>
+            <button class="btn btn-sm" id="edOneA">只删一个音</button>
+            <button class="btn btn-sm" id="edDelA">删这一格</button>
+          </span>
+        </div>
+        <div class="hint" id="arrHint">载入示例后每个格子都能改。</div>
+        <div class="hint"><b>说明</b>：原来那 7 套风格现在只是「一键载入的起点」，音符全部摊在网格里，改完立刻能播。
+          8 个声部分别走 MIDI 通道 1–8（V16 的 8 个 Voice）；刷了 SLOOP 的机器只有 3 个合成轨 + 1 个鼓轨，
+          多出来的声部会跟着机器当前选中的轨一起响。<b>导出 8 个单轨 .mid</b> 给库乐队 / DAW，或把 .json 发给别人接着改。</div>
+      </section>
+
+
+      <section class="panel seq-panel">
+        <div class="panel-title">步进音序器 · STEP SEQUENCER</div>
+        <div class="transport">
+          <button id="play" class="btn btn-play">▶ PLAY</button>
+          <button id="stop" class="btn btn-stop" disabled>■ STOP</button>
+        </div>
+        <div class="steps" id="steps"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">🎤 哼唱模式 · HUM TO MIDI</div>
+        <div class="row">
+          <button id="humStart" class="btn">🎤 开始哼唱</button>
+          <button id="humStop" class="btn" disabled>停止哼唱</button>
+          <button id="recToggle" class="btn btn-rec">● 录制这句</button>
+          <button id="recPlay" class="btn" disabled>▶ 播放录制</button>
+        </div>
+        <div class="hint">对着 Mac 麦克风哼/唱，FM1 实时跟奏你唱的音；点"录制这句"把旋律固化成乐句，再"播放录制"循环它。单声部（一条旋律线）。安静环境、用"啦"母音清晰唱最准。</div>
+        <div class="row" style="margin-top:8px;align-items:center;">
+          <div class="field"><label>写进哪个声部</label><select id="humVoice"></select></div>
+          <button class="btn" id="humToGrid">把录的旋律写进网格</button>
+        </div>
+        <div class="status" id="humStatus">未开启麦克风</div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">日志 · CONSOLE</div>
+        <div class="log" id="log">日志会显示在这里…
+</div>
+      </section>
+    </div>
+
+    <footer class="foot">vibe music · 由 WorkBuddy 驱动的 FM1 Web MIDI 编曲器</footer>
+  </main>
+
+<script>
+const $ = id => document.getElementById(id);
+const log = (m)=>{ const el=$('log'); el.textContent += m+'\n'; el.scrollTop = el.scrollHeight; };
+
+// ---- iframe 检测：预览框会禁用麦克风/MIDI，必须提醒 ----
+if(window.self !== window.top){
+  const w = $('frameWarn'); if(w) w.style.display='block';
+  log('⚠️ 页面运行在 iframe 内：麦克风/MIDI 都会被禁用，录制与连接会失败。请在独立 Chrome/Edge 标签页打开。');
+}
+
+// ---- 乐理：和弦进行（半音偏移，相对 C）----
+const STYLES = {
+  lofi:    { bpm:76, prog:[[0,4,7,11],[9,12,16,19],[2,5,9,12],[7,11,14,17]] }, // Cmaj7 Am7 Dm7 G7
+  ambient: { bpm:60, prog:[[0,7,12,16],[5,12,17,21],[7,14,19,23],[9,16,21,24]] },
+  house:   { bpm:124, prog:[[0,4,7],[0,4,7],[5,9,12],[7,11,14]] },
+};
+const CHORD_BASE = 60; // C4
+const BASS_BASE  = 36; // C2
+
+// ---- City Pop 引擎：Dmaj7–Bm7–Gmaj7–A7 经典都市转向 + 行走贝斯 + 电钢 comping + 旋律 ----
+const CITYPOP = {
+  bpm: 108,
+  // 每小节低音根音（低八度）
+  bassRoot: [38,35,43,45,38,35,40,45], // D2 B1 G2 A2 D2 B1 E2 A2
+  // 每小节 7/9 和弦 voicing（中高音区，电钢铺底）
+  chord: [
+    [62,66,69,73], // Dmaj7
+    [59,62,66,69], // Bm7
+    [55,59,62,66], // Gmaj7
+    [57,61,64,67], // A7
+    [62,66,69,73], // Dmaj7
+    [59,62,66,69], // Bm7
+    [64,67,71,74], // Em7
+    [57,61,64,67], // A7
+  ],
+  // 旋律：每小节若干音符 {步, 音高, 时值(以16分计)}
+  melody: [
+    [{s:0,n:78,d:8},{s:8,n:81,d:6},{s:14,n:78,d:2}],
+    [{s:0,n:74,d:8},{s:8,n:78,d:8}],
+    [{s:0,n:74,d:8},{s:8,n:79,d:8}],
+    [{s:0,n:73,d:6},{s:6,n:76,d:10}],
+    [{s:0,n:81,d:10},{s:12,n:78,d:4}],
+    [{s:0,n:74,d:8},{s:8,n:81,d:8}],
+    [{s:0,n:79,d:8},{s:8,n:83,d:8}],
+    [{s:0,n:73,d:6},{s:6,n:76,d:8},{s:14,n:74,d:2}],
+  ],
+};
+
+// ---- New Soul / Neo-Soul 引擎：Ruben Wan 那种暖糊糊 Rhodes 味 ----
+// 慢、留白多、9/11 挂留和声、指弹 comping 切分、律动贝斯、人声感旋律
+const NEWSOUL = {
+  bpm: 84,
+  // 每小节低音根音（低八度）。neo-soul 贝斯带律动：根音 + 五度 + 反拍趋近
+  bassRoot: [38,35,43,45,38,35,40,45], // D2 B1 G2 A2 D2 B1 E2 A2
+  // 每小节 lush 9/11 voicing（电钢铺底 + comping）
+  chord: [
+    [62,66,69,73,76], // Dmaj9
+    [59,62,66,69,73], // Bm9
+    [55,59,62,66,69], // Gmaj9
+    [57,60,64,67,71], // A13
+    [62,66,69,73,76], // Dmaj9
+    [59,62,66,69,73], // Bm9
+    [64,67,71,74,78], // Em9
+    [57,60,64,67,71], // A13
+  ],
+  // 旋律：平滑、留白多、切分（neo-soul 人声感，多用和弦色彩音）
+  melody: [
+    [{s:2,n:81,d:4},{s:10,n:78,d:4}],                 // F#5 → E5
+    [{s:0,n:79,d:3},{s:6,n:74,d:3},{s:12,n:78,d:4}],  // G5 → D5 → E5
+    [{s:4,n:76,d:6},{s:12,n:71,d:4}],                 // E5 → B4
+    [{s:2,n:77,d:4},{s:8,n:73,d:6}],                  // F#5 → C#5
+    [{s:0,n:81,d:4},{s:8,n:78,d:6}],
+    [{s:4,n:79,d:4},{s:10,n:74,d:4}],
+    [{s:2,n:83,d:4},{s:10,n:79,d:4}],
+    [{s:0,n:77,d:3},{s:6,n:73,d:3},{s:12,n:69,d:4}],
+  ],
+};
+
+// ---- 梦核 / 助眠引擎：超级温柔、无节拍、缓慢漂移、穿越感 ----
+// 慢（56 BPM）、无鼓无律动、每 2 小节换一层极开放 maj7/sus2/sus4 和声、稀疏高音“远处钟琴”
+const DREAMCORE = {
+  bpm: 56,
+  // 每 2 小节换一次的和弦（极开放，无小三度挤压，漂）
+  chord: [
+    [60,64,67,71],   // Cmaj7
+    [57,62,64,69],   // Asus2(带九度)
+    [53,57,60,64],   // Fmaj7
+    [55,60,62,67],   // Gsus4
+    [57,60,64,67],   // Amin7
+    [60,64,67,71],   // Cmaj7
+    [62,64,69,74],   // Dsus2
+    [55,60,62,67],   // Gsus4
+  ],
+  bassRoot: [36,33,41,43,33,36,38,43], // C2 A1 F2 G2 A1 C2 D2 G2（低音 drone）
+  // 稀疏高音“远处钟琴”：每小节偶尔一两声，长、轻、大量留白（助眠，不抢戏）
+  melody: [
+    [{s:0,n:84,d:8}],
+    [{s:8,n:81,d:6}],
+    [{s:4,n:79,d:8}],
+    [{s:12,n:83,d:4}],
+    [{s:2,n:76,d:6}],
+    [{s:10,n:84,d:6}],
+    [{s:6,n:81,d:8}],
+    [{s:0,n:79,d:4},{s:14,n:76,d:2}],
+  ],
+};
+
+// ---- 八声部·有感觉 引擎（V16 原生多音色：8 通道驱动 8 个 Voice）----
+// 进行：Fmaj7 - Em7 - Dm7 - Cmaj7 - Am7 - Dm7 - G7 - Cmaj7（温柔下行/循环，有故事感）
+const EIGHTVOICE = {
+  bpm: 88,
+  // 中音区无根音 voicing（约 C4–B4），做电钢/铺底
+  chord: [
+    [57,60,64,67], // Fmaj7 (A3 C4 E4 G4)
+    [55,59,62,64], // Em7   (G3 B3 D4 E4)
+    [53,57,60,64], // Dm7   (F3 A3 C4 E4)
+    [52,55,59,62], // Cmaj7 (E3 G3 B3 D4)
+    [60,64,67,71], // Am7   (C4 E4 G4 B4)
+    [53,57,60,64], // Dm7
+    [59,62,65,69], // G7    (B3 D4 F4 A4)
+    [52,55,59,62], // Cmaj7
+  ],
+  bassRoot: [41,40,38,36,33,38,43,36], // F2 E2 D2 C2 A1 D2 G2 C2
+  // 主旋律（ch4）：C5–C6 区间，先扬后抑，第7小节 B5 小高潮，第8小节落到 G5
+  melody: [
+    [{s:0,n:81,d:6},{s:8,n:79,d:6}],
+    [{s:0,n:79,d:4},{s:6,n:76,d:6},{s:12,n:79,d:3}],
+    [{s:0,n:81,d:8},{s:10,n:84,d:4}],
+    [{s:0,n:79,d:6},{s:8,n:76,d:8}],
+    [{s:0,n:76,d:4},{s:6,n:72,d:4},{s:12,n:76,d:4}],
+    [{s:0,n:77,d:8},{s:10,n:81,d:6}],
+    [{s:0,n:83,d:6},{s:8,n:79,d:8}],
+    [{s:0,n:84,d:8},{s:10,n:79,d:6}],
+  ],
+  // 和声副旋律（ch7）：在主旋律下方，全是和弦音，柔软铺垫
+  counter: [
+    [{s:0,n:64,d:8},{s:8,n:67,d:6}],
+    [{s:0,n:59,d:8},{s:10,n:62,d:4}],
+    [{s:0,n:60,d:8},{s:8,n:65,d:6}],
+    [{s:0,n:59,d:6},{s:8,n:62,d:8}],
+    [{s:0,n:60,d:6},{s:8,n:64,d:6}],
+    [{s:0,n:65,d:8},{s:10,n:69,d:4}],
+    [{s:0,n:62,d:6},{s:8,n:67,d:8}],
+    [{s:0,n:64,d:8},{s:10,n:59,d:4}],
+  ],
+};
+
+// 8 个声部 → MIDI 通道（0=通道1 … 7=通道8）
+const CH = { pad:0, bass:1, ep:2, lead:3, arp:4, pluck:5, counter:6, shimmer:7 };
+
+let midiOut = null;
+let playing = false;
+let timer = null;
+let nextTime = 0;
+let step = 0;
+let bar = 0;
+let humCtx=null, humAnalyser=null, humStream=null, humTimer=null, humActive=false;
+let curHumNote=null, silenceCount=0;
+let recActive=false, recPhrase=[], recOpen=null, recStart=0;
+let recPlaying=false, recStep=0, recLen=0;
+
+function buildSteps(){
+  const s = $('steps'); s.innerHTML='';
+  for(let i=0;i<16;i++){
+    const d = document.createElement('div');
+    d.className = 'step' + (i%4===0 ? ' beat' : '');
+    d.id = 'st'+i; s.appendChild(d);
+  }
+}
+
+async function connect(){
+  try{
+    const access = await navigator.requestMIDIAccess();
+    const outs = [...access.outputs.values()];
+    if(!outs.length){ setStatus('没找到 MIDI 输出设备','bad'); return; }
+    // 优先匹配 FM1 / M-VAVE
+    midiOut = outs.find(o=>/FM.?1|M-?VAVE/i.test(o.name)) || outs[0];
+    setStatus('已连接：'+midiOut.name,'ok');
+    log('连接成功 → '+midiOut.name);
+  }catch(e){
+    if(/permissions policy/i.test(e.message)){
+      setStatus('被预览框禁了 MIDI：请在独立 Chrome/Edge 标签页打开本页','bad');
+      log('错误：页面被嵌在 iframe 里，MIDI 被权限策略禁用。');
+      log('解决：复制地址栏 http://localhost:8000/fm1_arranger.html 到独立 Chrome/Edge 窗口打开，点“允许”MIDI。');
+    }else{
+      setStatus('连接失败：'+e.message+'（换 Chrome/Edge 或本地服务器试试）','bad');
+      log('错误：'+e.message);
+    }
+  }
+}
+function setStatus(t,cls){ const s=$('status'); s.textContent=t; s.className='status'+(cls?' '+cls:''); }
+
+function send(arr, t){ if(midiOut) midiOut.send(arr, t); }
+function noteOn(n,t,v=100,ch=0){ const s=parseFloat($('level') ? $('level').value : 100); const lv=(isNaN(s)?100:s); v=Math.max(1,Math.min(127,Math.round(v*lv/100))); send([0x90|ch,n,v],t); }
+function noteOff(n,t,ch=0){ send([0x80|ch,n,0],t); }
+function progChange(p,ch=0){ send([0xC0|ch,p-1],0); }
+
+// ---- 八声部每声部 音量/开关/音色（页面控制台驱动）----
+let voiceGain = [65,50,72,48,25,93,85,78];   // 默认=用户调出的「电影悲壮感」组合音量（截屏核对）
+let voiceOn   = [true,true,true,true,true,true,true,true];
+// 默认=用户自己调出的「电影悲壮感」组合（截屏核对）：
+// 0铺底=STRING 67 · 1贝斯=BASS 39 · 2电钢=SYN PAD 12 · 3主旋律=PIANO 1
+// 4琶音=PIANO 13 · 5拨弦=GUITAR 45 · 6副旋=PIANO 13 · 7微光=SYN PAD 32
+let voicePreset = [67,39,12,1,13,45,13,32];
+// 首次打开（本地存档为空）时，种入这两套可一键载入的预设
+const SEED_PRESETS = [
+  {name:'电影悲壮感（你调的）', presets:[67,39,12,1,13,45,13,32], gains:[65,50,72,48,25,93,85,78], on:[true,true,true,true,true,true,true,true]},
+  {name:'原厂推荐（我配的）', presets:[16,35,1,15,5,33,67,32], gains:[55,80,60,85,50,55,60,45], on:[true,true,true,true,true,true,true,true]},
+];
+const VOICE_ROLES = [
+  {i:0,name:'铺底 Pad'},{i:1,name:'贝斯 Bass'},{i:2,name:'电钢 Comp'},
+  {i:3,name:'主旋律 Lead'},{i:4,name:'琶音 Arp'},{i:5,name:'拨弦 Pluck'},
+  {i:6,name:'副旋 Harm'},{i:7,name:'Shimmer'},
+];
+function vOn(n,t,v,ch){ if(!voiceOn[ch]) return; noteOn(n,t,Math.round(v*voiceGain[ch]/100),ch); }
+function vOff(n,t,ch){ if(!voiceOn[ch]) return; noteOff(n,t,ch); }
+function syncVoices(){
+  for(let i=0;i<8;i++){
+    const p=document.querySelector(`[data-v="p${i}"]`);
+    const g=document.querySelector(`[data-v="g${i}"]`);
+    const o=document.querySelector(`[data-v="on${i}"]`);
+    const c=document.querySelector(`[data-v="c${i}"]`);
+    if(p){ voicePreset[i]=Math.max(1,Math.min(128,parseInt(p.value)||1)); if(c) c.textContent=presetCat(voicePreset[i]); }
+    if(g) voiceGain[i]=Math.max(0,Math.min(100,parseInt(g.value)||0));
+    if(o) voiceOn[i]=o.checked;
+  }
+}
+function buildVoiceConsole(){
+  const box = $('voiceRows'); if(!box) return;
+  box.innerHTML='';
+  VOICE_ROLES.forEach(r=>{
+    const row = document.createElement('div'); row.className='vrow';
+    row.innerHTML =
+      `<span class="rname">${r.i+1}. ${r.name}</span>`+
+      `<span class="pwrap"><input class="vp" type="number" min="1" max="128" value="${voicePreset[r.i]}" data-v="p${r.i}"><span class="vcat" data-v="c${r.i}"></span></span>`+
+      `<input class="vg" type="range" min="0" max="100" value="${voiceGain[r.i]}" data-v="g${r.i}">`+
+      `<input class="von" type="checkbox" checked data-v="on${r.i}">`;
+    box.appendChild(row);
+  });
+  box.addEventListener('input', syncVoices);
+  box.addEventListener('change', syncVoices);
+  syncVoices();
+}
+
+// ---- 预设号 → 类别（核对 M-VAVE FM1 官方预设表，4 类交错布局）----
+function presetCat(n){
+  const T={
+    p:[1,5,9,13,17,21,25,29], o:[2,6,10,14,18,22,26,30], l:[3,7,11,15,19,23,27,31],
+    sp:[4,8,12,16,20,24,28,32], g:[33,37,41,45,49,53,57,61], dg:[34,38,42,46,50,54,58,62],
+    b:[35,39,43,47,51,55,59,63], sb:[36,40,44,48,52,56,60,64], br:[65,69,73,77,81,85,89,93],
+    w:[66,70,74,78,82,86,90,94], s:[67,71,75,79,83,87,91,95], v:[68,72,76,80,84,88,92,96]
+  };
+  if(T.p.includes(n)) return 'PIANO';     if(T.o.includes(n)) return 'ORGAN';
+  if(T.l.includes(n)) return 'SYN LEAD';  if(T.sp.includes(n)) return 'SYN PAD';
+  if(T.g.includes(n)) return 'GUITAR';    if(T.dg.includes(n)) return 'DS GUITAR';
+  if(T.b.includes(n)) return 'BASS';      if(T.sb.includes(n)) return 'SYN BASS';
+  if(T.br.includes(n)) return 'BRASS';    if(T.w.includes(n)) return 'WOODWIND';
+  if(T.s.includes(n)) return 'STRING';    if(T.v.includes(n)) return 'VOICE';
+  if(n>=97) return '打击/特效';
+  return '?';
+}
+function hexA(hex,a){ const h=hex.replace('#',''); const r=parseInt(h.substr(0,2),16),g=parseInt(h.substr(2,2),16),b=parseInt(h.substr(4,2),16); return `rgba(${r},${g},${b},${a})`; }
+
+const CHORD_NAMES = ['Fmaj7','Em7','Dm7','Cmaj7','Am7','Dm7','G7','Cmaj7'];
+const ARR_COLORS  = ['#8a5cff','#ff8a3d','#22e0ff','#ffd23d','#37e0a0','#ff6b6b','#f783ac','#e8e8ff'];
+
+// 计算某一小节里每个声部的（步, 音高）事件——和 scheduleEightVoice 同一套写法，只是不真正发 MIDI
+function voiceEventsForBar(b){
+  const i = b % EIGHTVOICE.chord.length;
+  const chord = EIGHTVOICE.chord[i];
+  const root = EIGHTVOICE.bassRoot[i];
+  const nr = EIGHTVOICE.bassRoot[(i+1) % EIGHTVOICE.bassRoot.length];
+  const ev = {pad:[],bass:[],ep:[],lead:[],arp:[],pluck:[],counter:[],shimmer:[]};
+  chord.forEach(n=> ev.pad.push({s:0,n}));                                   // 铺底：整小节持续和弦
+  ev.shimmer.push({s:0,n:chord[2]+12}); ev.shimmer.push({s:0,n:chord[3]+12});// 微光：和弦上方两音 +12
+  ev.bass.push({s:0,n:root}); ev.bass.push({s:8,n:root});                    // 贝斯：根音脉冲
+  ev.bass.push({s:14,n: nr + (nr>root ? -1 : 1)});                           //       半音趋近下一根音
+  [0,4,8].forEach(s=> chord.forEach(n=> ev.ep.push({s,n})));                 // 电钢 comping 刺点
+  [2,6,10,14].forEach(s=> ev.pluck.push({s,n:chord[(s/2)%chord.length]}));   // 拨弦反拍
+  for(let s=0;s<16;s+=2) ev.arp.push({s,n:chord[(s/2)%chord.length]+12});    // 琶音 8 分 +12
+  EIGHTVOICE.counter[i].forEach(m=> ev.counter.push({s:m.s,n:m.n}));          // 副旋
+  EIGHTVOICE.melody[i].forEach(m=> ev.lead.push({s:m.s,n:m.n}));              // 主旋律
+  return ev;
+}
+
+function buildArrBarBtns(){
+  const box=$('barBtns'); if(!box) return; box.innerHTML='';
+  for(let b=0;b<8;b++){
+    const btn=document.createElement('button');
+    btn.className='barbtn'+(b===0?' active':'');
+    btn.textContent=(b+1);
+    btn.onclick=()=>{ [...box.children].forEach(c=>c.classList.remove('active')); btn.classList.add('active'); renderArrBar(b); };
+    box.appendChild(btn);
+  }
+}
+
+function renderArrBar(b){
+  const strip=$('chordStrip');
+  if(strip){
+    strip.innerHTML='';
+    EIGHTVOICE.chord.forEach((ch,i)=>{
+      const d=document.createElement('div');
+      d.className='cbar'+(i===b?' active':'');
+      d.innerHTML=`<div class="cname">${CHORD_NAMES[i]}</div><div class="croot">贝斯 ${noteName(EIGHTVOICE.bassRoot[i])}</div>`;
+      strip.appendChild(d);
+    });
+  }
+  const grid=$('arrGrid'); if(!grid) return;
+  const ev=voiceEventsForBar(b);
+  const keys=['pad','bass','ep','lead','arp','pluck','counter','shimmer'];
+  let html='<div class="arrhead" style="text-align:left;padding-left:6px;">声部 / 角色</div>';
+  for(let s=0;s<16;s++) html+=`<div class="arrhead">${s+1}</div>`;
+  VOICE_ROLES.forEach(r=>{
+    const color=ARR_COLORS[r.i];
+    const key=keys[r.i];
+    html+=`<div class="arrname"><span class="sw" style="background:${color}"></span>${r.i+1}. ${r.name}</div>`;
+    if(key==='pad'){
+      const notes=ev.pad.map(o=>noteName(o.n)).join(' ');
+      html+=`<div class="arrcell sustain" style="grid-column:2 / -1;background:${hexA(color,.16)};border-color:${color};">♪ 整小节持续铺底（床）：${notes}</div>`;
+    } else {
+      for(let s=0;s<16;s++){
+        const hits=ev[key].filter(o=>o.s===s);
+        if(hits.length){
+          const txt=hits.map(o=>noteName(o.n)).join(' ');
+          html+=`<div class="arrcell" style="background:${color};border-color:rgba(255,255,255,.7);">${txt}</div>`;
+        } else {
+          html+=`<div class="arrcell empty">·</div>`;
+        }
+      }
+    }
+  });
+  grid.innerHTML=html;
+}
+
+// ---- 声部预设存档（localStorage，存你调好的 8 声部组合：预设号/音量/开关）----
+const STORE_KEY = 'fm1_eightvoice_presets';
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function loadStore(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY))||[]; }catch(e){ return []; } }
+function saveStore(arr){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(arr)); }catch(e){ log('存档失败：浏览器可能禁了本地存储'); } }
+function renderStore(){
+  const list=$('storeList'); if(!list) return;
+  let arr=loadStore();
+  if(!arr.length && typeof SEED_PRESETS!=='undefined'){ arr=SEED_PRESETS.map(p=>({...p})); saveStore(arr); }
+  list.innerHTML='';
+  if(!arr.length){ list.innerHTML='<div class="hint" style="margin-top:8px;">还没有存档。调好 8 声部后点「保存当前」即可。</div>'; return; }
+  arr.forEach((p,idx)=>{
+    const row=document.createElement('div'); row.className='store-item';
+    const info=document.createElement('span'); info.className='sname'; info.textContent=(idx+1)+'. '+p.name;
+    const meta=document.createElement('span'); meta.className='smeta'; meta.textContent=p.presets.join('/');
+    const loadBtn=document.createElement('button'); loadBtn.className='btn'; loadBtn.textContent='载入'; loadBtn.onclick=()=>loadStorePreset(idx);
+    const delBtn=document.createElement('button'); delBtn.className='btn'; delBtn.textContent='删除'; delBtn.onclick=()=>{ const a=loadStore(); a.splice(idx,1); saveStore(a); renderStore(); log('已删除：「'+p.name+'」'); };
+    row.appendChild(info); row.appendChild(meta); row.appendChild(loadBtn); row.appendChild(delBtn);
+    list.appendChild(row);
+  });
+}
+function doSaveStore(){
+  const name=(($('storeName').value||'').trim()) || ('组合 '+(loadStore().length+1));
+  const arr=loadStore();
+  arr.push({name, presets:[...voicePreset], gains:[...voiceGain], on:[...voiceOn], ts:Date.now()});
+  saveStore(arr); $('storeName').value=''; renderStore();
+  log('已保存声部组合：「'+name+'」');
+}
+function loadStorePreset(idx){
+  const arr=loadStore(); const p=arr[idx]; if(!p) return;
+  p.presets.forEach((v,i)=>voicePreset[i]=v);
+  if(p.gains) p.gains.forEach((v,i)=>voiceGain[i]=v);
+  if(p.on) p.on.forEach((v,i)=>voiceOn[i]=v);
+  for(let i=0;i<8;i++){
+    const pe=document.querySelector(`[data-v="p${i}"]`); if(pe) pe.value=voicePreset[i];
+    const ge=document.querySelector(`[data-v="g${i}"]`); if(ge) ge.value=voiceGain[i];
+    const oe=document.querySelector(`[data-v="on${i}"]`); if(oe) oe.checked=voiceOn[i];
+  }
+  syncVoices();
+  if(playing) voicePreset.forEach((pp,i)=>progChange(pp,i)); // 播放中也即时换音色
+  log('已载入声部组合：「'+p.name+'」');
+}
+
+function midiPanic(){ if(!midiOut) return; for(let n=0;n<128;n++) midiOut.send([0x80,n,0],0); }
+function freqToMidi(f){ return Math.round(69 + 12*Math.log2(f/440)); }
+function noteName(m){ const names=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']; return names[((m%12)+12)%12] + (Math.floor(m/12)-1); }
+function stepDurNow(){ const bpm=parseInt($('bpm').value)||108; return (60/bpm)/4*1000; }
+function setHum(t,cls){ const s=$('humStatus'); s.textContent=t; s.className='status'+(cls?' '+cls:''); }
+
+// ---- YIN 基频检测 ----
+function yin(buf, sr){
+  const W = buf.length>>1;
+  const threshold = 0.15;
+  const cmnd = new Float32Array(W);
+  let running=0;
+  cmnd[0]=1;
+  for(let tau=1; tau<W; tau++){
+    let sum=0;
+    for(let i=0;i<W;i++){ const d=buf[i]-buf[i+tau]; sum+=d*d; }
+    running+=sum;
+    cmnd[tau] = running===0 ? 1 : sum*tau/running;
+  }
+  let tau=2;
+  while(tau<W && cmnd[tau]>threshold) tau++;
+  if(tau>=W || cmnd[tau]>=threshold) return -1;
+  let bt=tau;
+  if(tau>1 && tau<W-1){
+    const x0=cmnd[tau-1], x1=cmnd[tau], x2=cmnd[tau+1];
+    const a=(x0+x2-2*x1)/2, b=(x2-x0)/2;
+    if(a!==0) bt = tau - b/a;
+  }
+  return sr/bt;
+}
+
+async function startHum(){
+  if(!midiOut){ setHum('先点“连接 FM1”','bad'); return; }
+  try{
+    humStream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+  }catch(e){
+    const inFrame = (window.self !== window.top);
+    setHum('麦克风打开失败：'+(inFrame?'内嵌窗口禁了麦克风，请用独立标签页 — ':'')+e.message,'bad');
+    log('麦克风错误：'+(inFrame?'页面在 iframe 内，麦克风被权限策略禁用。请将本页在独立 Chrome/Edge 标签页打开并允许权限。':'')+e.message);
+    return;
+  }
+  humCtx = new (window.AudioContext||window.webkitAudioContext)();
+  if(humCtx.state==='suspended') humCtx.resume();
+  const src = humCtx.createMediaStreamSource(humStream);
+  humAnalyser = humCtx.createAnalyser();
+  humAnalyser.fftSize = 1024;
+  src.connect(humAnalyser);
+  humActive = true;
+  $('humStart').disabled=true; $('humStop').disabled=false;
+  setHum('在听…唱吧','ok');
+  humTimer = setInterval(detectTick, 30);
+}
+
+function stopHum(){
+  humActive=false;
+  clearInterval(humTimer);
+  if(curHumNote!==null){ noteOff(curHumNote, performance.now()); curHumNote=null; }
+  if(humStream) humStream.getTracks().forEach(t=>t.stop());
+  if(humCtx) humCtx.close();
+  humStream=humCtx=humAnalyser=null;
+  $('humStart').disabled=false; $('humStop').disabled=true;
+  setHum('已停止','');
+  if(recActive) stopRec();
+}
+
+function detectTick(){
+  if(!humActive || !humAnalyser) return;
+  const buf = new Float32Array(humAnalyser.fftSize);
+  humAnalyser.getFloatTimeDomainData(buf);
+  let rms=0; for(let i=0;i<buf.length;i++) rms+=buf[i]*buf[i];
+  rms=Math.sqrt(rms/buf.length);
+  if(rms < 0.012){
+    silenceCount++;
+    if(silenceCount>=2 && curHumNote!==null){ noteOff(curHumNote, performance.now()); curHumNote=null; }
+    setHum('…（静音）','');
+    return;
+  }
+  silenceCount=0;
+  const f = yin(buf, humCtx.sampleRate);
+  if(f<0 || f<60 || f>2000){ setHum('…',''); return; }
+  const note = freqToMidi(f);
+  const vel = Math.max(60, Math.min(120, 60 + rms*400));
+  if(note !== curHumNote){
+    if(curHumNote!==null) noteOff(curHumNote, performance.now());
+    curHumNote = note;
+    noteOn(note, performance.now(), vel);
+    if(recActive) recNoteOn(note);
+  }
+  setHum('唱到了：'+noteName(note)+'  ('+Math.round(f)+' Hz)','ok');
+}
+
+function recNoteOn(note){
+  if(recOpen) recOpen.d = Math.max(1, Math.floor((performance.now()-recStart)/stepDurNow()) - recOpen.s);
+  recOpen = {s: Math.floor((performance.now()-recStart)/stepDurNow()), n:note, d:1};
+  recPhrase.push(recOpen);
+}
+function recNoteOff(){
+  if(recOpen){ recOpen.d = Math.max(1, Math.floor((performance.now()-recStart)/stepDurNow()) - recOpen.s); recOpen=null; }
+}
+function toggleRec(){
+  if(!humActive){ setHum('先点“开始哼唱”再录','bad'); return; }
+  if(!recActive){
+    recActive=true; recPhrase=[]; recOpen=null; recStart=performance.now();
+    $('recToggle').textContent='■ 结束录制'; $('recPlay').disabled=true;
+    setHum('录制中…唱你的旋律','ok');
+  } else { stopRec(); }
+}
+function stopRec(){
+  recActive=false;
+  recNoteOff();
+  recLen = Math.max(4, Math.floor((performance.now()-recStart)/stepDurNow()) + 2);
+  $('recToggle').textContent='● 录制这句'; $('recPlay').disabled=false;
+  setHum('录好啦，'+recPhrase.length+' 个音，点播放录制','ok');
+  log('录制完成：'+recPhrase.length+' 音，长度 '+recLen+' 步');
+}
+function playRec(){
+  if(!recPhrase.length){ setHum('还没录到东西 — 检查：是否在独立标签页开了麦克风、是否点过“录制这句”后唱了','bad'); return; }
+  if(!midiOut){ setHum('先点“连接 FM1”','bad'); return; }
+  if(timer){ clearInterval(timer); timer=null; }   // 清掉残留定时器，避免双调度器
+  recPlaying=true; recStep=0;
+  if(curHumNote!==null){ noteOff(curHumNote,performance.now()); curHumNote=null; }
+  playing=true; nextTime=performance.now()+60;
+  $('play').disabled=true; $('stop').disabled=false;
+  log('播放录制乐句 ▶');
+  timer=setInterval(scheduler,25);
+}
+function scheduleRecord(s, t, stepDur){
+  requestAnimationFrame(()=>{ for(let i=0;i<16;i++) $('st'+i).classList.remove('on'); $('st'+s%16).classList.add('on'); });
+  // 循环回卷时，释放跨结尾的音（否则会卡音/后续静音）
+  if(s===0){
+    recPhrase.forEach(n=>{ if(n.s + n.d >= recLen) noteOff(n.n, t); });
+  }
+  recPhrase.forEach(n=>{
+    if(n.s===s) noteOn(n.n, t, 100);
+    if(n.s+n.d===s) noteOff(n.n, t);
+  });
+}
+
+function play(){
+  if(!midiOut){ setStatus('先点“连接 FM1”','bad'); return; }
+  const styleKey = $('style').value;
+  const st = STYLES[styleKey];
+  let bpm = parseInt($('bpm').value);
+  if(styleKey === 'citypop'){ if(!bpm || bpm===76) bpm = CITYPOP.bpm; }
+  else if(styleKey === 'newsoul'){ if(!bpm || bpm===76) bpm = NEWSOUL.bpm; }
+  else if(styleKey === 'dreamcore'){ if(!bpm || bpm===76) bpm = DREAMCORE.bpm; }
+  else if(styleKey === 'eight'){ if(!bpm || bpm===76) bpm = EIGHTVOICE.bpm; }
+  else { bpm = bpm || (st ? st.bpm : 100); }
+  const preset = parseInt($('preset').value)||32;
+  $('bpm').value = bpm;
+  recPlaying = false;
+  if(styleKey === 'eight'){
+    syncVoices();
+    voicePreset.forEach((p,idx)=> progChange(p, idx));
+    log(`八声部播放 ▶ BPM=${bpm} 已按控制台预设号发 Program Change（${voicePreset.join('/')}），驱动 V16 的 8 个 Voice`);
+    log('声部→通道: 1铺底 2贝斯 3电钢 4主旋律 5琶音 6拨弦 7副旋 8Shimmer');
+  } else {
+    progChange(preset);
+    log(`播放 ▶ 风格=${styleKey} BPM=${bpm} 预设=${preset}（单音色复音）`);
+  }
+  playing = true; step=0; bar=0;
+  nextTime = performance.now()+60;
+  $('play').disabled=true; $('stop').disabled=false;
+  timer = setInterval(scheduler, 25);
+}
+
+function scheduler(){
+  if(!playing) return;
+  const bpm = parseInt($('bpm').value)||108;
+  const stepDur = (60/bpm)/4*1000; // 16分音符(ms)
+  const barDur  = stepDur*16;
+  while(nextTime < performance.now()+120){
+    if(recPlaying){
+      scheduleRecord(recStep, nextTime, stepDur);
+      recStep++; if(recStep>=recLen) recStep=0;
+    } else {
+      scheduleStep(step, bar, nextTime, stepDur, barDur);
+      step++; if(step>=16){ step=0; bar++; }
+    }
+    nextTime += stepDur;
+  }
+}
+
+function scheduleStyleStep(s, b, t, stepDur, barDur){  // 原名保留：只用于把写死风格录成网格
+  const styleKey = $('style').value;
+  // 高亮
+  requestAnimationFrame(()=>{
+    for(let i=0;i<16;i++) $('st'+i).classList.remove('on');
+    $('st'+s).classList.add('on');
+  });
+  if(styleKey === 'citypop'){ scheduleCityPop(s, b, t, stepDur, barDur); return; }
+  if(styleKey === 'newsoul'){ scheduleNewSoul(s, b, t, stepDur, barDur); return; }
+  if(styleKey === 'dreamcore'){ scheduleDreamcore(s, b, t, stepDur, barDur); return; }
+  if(styleKey === 'eight'){ scheduleEightVoice(s, b, t, stepDur, barDur); return; }
+  const prog = STYLES[styleKey].prog;
+  const chord = prog[b % prog.length];
+  // 和弦：每小节头铺满，持续到小节尾
+  if(s===0){
+    chord.forEach((iv,i)=>{
+      const n = CHORD_BASE + iv;
+      noteOn(n,t,90); noteOff(n, t+barDur-30);
+    });
+  }
+  // 贝斯：每拍根音（低八度）
+  if(s%4===0){
+    const n = BASS_BASE + chord[0];
+    noteOn(n,t,110); noteOff(n, t+stepDur*3);
+  }
+  // 旋律/琶音：反拍跳音，循环和弦音高八度
+  if(s%2===0){
+    const idx = (s/2) % chord.length;
+    const n = CHORD_BASE + 12 + chord[idx];
+    noteOn(n,t,80); noteOff(n, t+stepDur*1.2);
+  }
+}
+
+function scheduleCityPop(s, b, t, stepDur, barDur){
+  const i = b % CITYPOP.chord.length;
+  const chord = CITYPOP.chord[i];
+  const bassRoot = CITYPOP.bassRoot[i];
+  const nextRoot = CITYPOP.bassRoot[(i+1) % CITYPOP.bassRoot.length];
+  const SWING = 0.13;                                   // 轻微 shuffle，慵懒感
+  const sw = (s%2===1) ? stepDur*SWING : 0;
+  const on = (n,v)=>noteOn(n, t+sw, v);
+  const off = (n,tt)=>noteOff(n, tt+sw);
+  // 电钢 pad：整小节铺底（很轻，做床）
+  if(s===0){ chord.forEach(n=>{ on(n,24); off(n, t+barDur-40); }); }
+  // comping 刺点：第1拍重音、第3拍反拍轻（重音对比=张弛）
+  if(s===0){ chord.forEach(n=>{ on(n,66); off(n, t+stepDur*2); }); }
+  if(s===10){ chord.forEach(n=>{ on(n,42); off(n, t+stepDur*2); }); }
+  // 后半段（5–8 小节）多一个刺点，做出推进/起伏
+  if(i>=4 && s===6){ chord.forEach(n=>{ on(n,38); off(n, t+stepDur*1.5); }); }
+  // 行走贝斯：重音在 1/3 拍，2/4 拍轻，4 拍半音趋近下一根音
+  if(s===0){ on(bassRoot,108); off(bassRoot, t+stepDur*3); }
+  if(s===4){ on(bassRoot+12,66); off(bassRoot+12, t+stepDur*2); }
+  if(s===8){ on(bassRoot,96); off(bassRoot, t+stepDur*3); }
+  if(s===12){ const ap = nextRoot + (nextRoot>bassRoot ? -1 : 1); on(ap,50); off(ap, t+stepDur*2); }
+  // 旋律线（句头重音，其余轻）
+  CITYPOP.melody[i].forEach(m=>{ if(s===m.s){ const mv = (m.s===0)?90:74; on(m.n, mv); off(m.n, t+m.d*stepDur); } });
+}
+
+function scheduleNewSoul(s, b, t, stepDur, barDur){
+  const i = b % NEWSOUL.chord.length;
+  const chord = NEWSOUL.chord[i];
+  const bassRoot = NEWSOUL.bassRoot[i];
+  const nextRoot = NEWSOUL.bassRoot[(i+1) % NEWSOUL.bassRoot.length];
+  const SWING = 0.07;                                   // 极轻推进：近 straight，不 shuffle 过头的慵懒感
+  const sw = (s%2===1) ? stepDur*SWING : 0;
+  const on = (n,v)=>noteOn(n, t+sw, v);
+  const off = (n,tt)=>noteOff(n, tt+sw);
+  // 暖铺底 pad：整小节极轻铺电钢床（neo-soul 的“空气感”，做底不抢戏）
+  if(s===0){ chord.forEach(n=>{ on(n,20); off(n, t+barDur-60); }); }
+  // 指弹 comping 刺点：2 拍轻、反拍(and of 3)稍重，做出吉他拨弦律动
+  if(s===4){ chord.forEach(n=>{ on(n,38); off(n, t+stepDur*1.5); }); }
+  if(s===10){ chord.forEach(n=>{ on(n,54); off(n, t+stepDur*1.5); }); }
+  if(i>=4 && s===14){ chord.forEach(n=>{ on(n,30); off(n, t+stepDur*1); }); } // 后半段尾点，轻推进
+  // 贝斯律动：1 拍根音（重）、3 拍五度（轻）、and of 4 半音趋近下一根音（groove）
+  if(s===0){ on(bassRoot,102); off(bassRoot, t+stepDur*3); }
+  if(s===8){ on(bassRoot+7,56); off(bassRoot+7, t+stepDur*2); }
+  if(s===14){ const ap = nextRoot + (nextRoot>bassRoot ? -1 : 1); on(ap,44); off(ap, t+stepDur*1.5); }
+  // 旋律（人声感：句头轻起、句中稍重、收尾留白）
+  NEWSOUL.melody[i].forEach(m=>{ if(s===m.s){ const mv = (m.s===0)?66:80; on(m.n, mv); off(m.n, t+m.d*stepDur); } });
+}
+
+function scheduleDreamcore(s, b, t, stepDur, barDur){
+  const cell = Math.floor(b/2) % DREAMCORE.chord.length;   // 每 2 小节换一层和声
+  const chord = DREAMCORE.chord[cell];
+  const bassRoot = DREAMCORE.bassRoot[cell];
+  const on = (n,v)=>noteOn(n, t, v);
+  const off = (n,tt)=>noteOff(n, tt);
+  // 每 2 小节开头铺一层极柔 pad + 低音 drone（整段持续，做“床”与“穿越”底色），无节拍、无律动
+  if(b%2===0 && s===0){
+    chord.forEach(n=>{ on(n,20); off(n, t+barDur*2-140); });
+    on(bassRoot,30); off(bassRoot, t+barDur*2-140);
+  }
+  // 远处钟琴：极轻、长、留白（助眠，不抢戏，偶尔飘一声）
+  DREAMCORE.melody[b % DREAMCORE.melody.length].forEach(m=>{
+    if(s===m.s){ on(m.n, 40); off(m.n, t+m.d*stepDur); }
+  });
+}
+
+// ---- 八声部编排：8 个声部发到 8 个 MIDI 通道（V16 的 8 个 Voice）----
+function scheduleEightVoice(s, b, t, stepDur, barDur){
+  const i = b % EIGHTVOICE.chord.length;
+  const chord = EIGHTVOICE.chord[i];
+  const root = EIGHTVOICE.bassRoot[i];
+  const nextRoot = EIGHTVOICE.bassRoot[(i+1) % EIGHTVOICE.bassRoot.length];
+  const SW = 0.10;                                  // 轻微 swing，慵懒感
+  const sw = (s%2===1) ? stepDur*SW : 0;
+  const on  = (n,v,ch)=> vOn(n, t+sw, v, ch);
+  const off = (n,tt,ch)=> vOff(n, tt+sw, ch);
+
+  // Ch1 暖铺底 Pad：整小节极轻铺床（做底，不抢戏）
+  if(s===0){ chord.forEach(n=>{ on(n,24,CH.pad); off(n, t+barDur-50, CH.pad); }); }
+
+  // Ch8 高空 Shimmer：和弦+12 持续，做空气感（只取上两音，省复音）
+  if(s===0){ [chord[2],chord[3]].forEach(n=>{ on(n+12,16,CH.shimmer); off(n+12, t+barDur-50, CH.shimmer); }); }
+
+  // Ch2 贝斯：根音脉冲 + 半音趋近下一根音（groove）
+  if(s===0){ on(root,84,CH.bass); off(root, t+stepDur*3, CH.bass); }
+  if(s===8){ on(root,62,CH.bass); off(root, t+stepDur*2, CH.bass); }
+  if(s===14){ const ap = nextRoot + (nextRoot>root ? -1 : 1); on(ap,42,CH.bass); off(ap, t+stepDur*2, CH.bass); }
+
+  // Ch3 电钢 Comp：下拍重刺 + 第3拍轻刺（张弛）
+  if(s===0){ chord.forEach(n=>{ on(n,42,CH.ep); off(n, t+stepDur*2, CH.ep); }); }
+  if(s===4){ chord.forEach(n=>{ on(n,26,CH.ep); off(n, t+stepDur*1, CH.ep); }); }
+  if(s===8){ chord.forEach(n=>{ on(n,34,CH.ep); off(n, t+stepDur*2, CH.ep); }); }
+
+  // Ch6 拨弦 Pluck：反拍 8 分，单音和弦音，做节奏纹理
+  if(s===2||s===6||s===10||s===14){ const n = chord[(s/2)%chord.length]; on(n,36,CH.pluck); off(n, t+stepDur*1, CH.pluck); }
+
+  // Ch5 琶音 Arp：8 分音滚和弦音(+12)，闪烁
+  if(s%2===0){ const n = chord[(s/2)%chord.length] + 12; on(n,40,CH.arp); off(n, t+stepDur*1.1, CH.arp); }
+
+  // Ch7 和声副旋律（柔软，在主旋律下方）
+  EIGHTVOICE.counter[i].forEach(m=>{ if(s===m.s){ on(m.n,50,CH.counter); off(m.n, t+m.d*stepDur, CH.counter); } });
+
+  // Ch4 主旋律（明星，句头稍重）
+  EIGHTVOICE.melody[i].forEach(m=>{ if(s===m.s){ const mv=(m.s===0)?76:64; on(m.n, mv, CH.lead); off(m.n, t+m.d*stepDur, CH.lead); } });
+}
+
+function stop(){
+  playing=false; recPlaying=false; clearInterval(timer);
+  midiPanic();
+  $('play').disabled=false; $('stop').disabled=true;
+  for(let i=0;i<16;i++) $('st'+i).classList.remove('on');
+  log('停止 ■');
+}
+
+/* ===== 启动段移到覆盖层之后（见文件末尾） ===== */
+
+/* ============================================================
+   vibe music · 八声部「活的」编曲层
+   原来 7 套风格是写死在 schedule 函数里的黑盒；这里把它们
+   「录一遍」变成可编辑网格 SCORE[8小节][8声部][{s,n,d,v}]，
+   之后播放只从网格读，每一个格子都能自己改。
+   ============================================================ */
+var SCORE=null, CURBAR=0, CURVOICE=3, SELA=null, HA=[], HF=[];
+var SKEY='fm1_eightvoice_score_v1';
+var VOICE_KEYS=['pad','bass','ep','lead','arp','pluck','counter','shimmer'];
+var STYLE_BPM={eight:88,citypop:108,newsoul:84,dreamcore:56,lofi:76,ambient:60,house:124};
+function cloneA(o){ return JSON.parse(JSON.stringify(o)); }
+function clampA(v,a,b,d){ v=parseInt(v,10); return isNaN(v)?d:Math.max(a,Math.min(b,v)); }
+function blankScore(){
+  var out=[]; for(var b=0;b<8;b++){ var bar=[]; for(var v=0;v<8;v++) bar.push([]); out.push(bar); }
+  return out;
+}
+function countNotesA(){
+  var n=0; SCORE.forEach(function(bar){ bar.forEach(function(t){ n+=t.length; }); }); return n;
+}
+function saveLocal(){
+  try{ localStorage.setItem(SKEY,JSON.stringify({format:'fm1-eight-work',version:1,
+    score:SCORE,bpm:clampA($('bpm').value,40,200,88)})); }catch(e){}
+}
+function loadLocal(){
+  try{
+    var w=JSON.parse(localStorage.getItem(SKEY));
+    if(w&&Array.isArray(w.score)&&w.score.length===8&&Array.isArray(w.score[0])){
+      setWorkA(w); return true;
+    }
+  }catch(e){}
+  return false;
+}
+function setWorkA(w){
+  var out=blankScore();
+  for(var b=0;b<8;b++) for(var v=0;v<8;v++){
+    var src=((w.score[b]||[])[v]||[]);
+    out[b][v]=src.filter(function(e){ return e && e.s>=0 && e.s<16 && e.n>=0 && e.n<=127; })
+      .map(function(e){ return {s:Math.floor(e.s),n:Math.floor(e.n),
+        d:Math.max(1,Math.min(16,Math.floor(e.d||1))),
+        v:Math.max(1,Math.min(100,Math.floor(e.v||60)))}; });
+  }
+  SCORE=out;
+  if(w.bpm) $('bpm').value=clampA(w.bpm,40,200,88);
+  HA=[]; HF=[]; SELA=null;
+}
+
+/* ---- 把原来写死的风格函数「录」成网格事件（一个音不改，但从此可编辑）---- */
+function captureStyle(styleKey){
+  var onSave=noteOn, offSave=noteOff, vonSave=vOn, voffSave=vOff, styleSave=$('style').value;
+  var open={}, score=blankScore(), STEP=1000, BAR=16000, curB=0;
+  function voiceFor(n,d,ch){
+    if(styleKey==='eight') return Math.max(0,Math.min(7,ch||0));
+    if(n<48) return 1;            // 低音 → 贝斯
+    if(n>71) return 3;            // 高音 → 主旋律
+    if(d>=8) return 0;            // 中音长音 → 铺底
+    return 2;                     // 中音短刺 → 电钢
+  }
+  function push(n,t,v,ch,dur){
+    var s=Math.max(0,Math.min(15,Math.round(t/STEP)));
+    var d=Math.max(1,Math.min(16-s,Math.round((dur||STEP)/STEP)||1));
+    var vv=Math.max(1,Math.min(100,Math.round(v||60)));
+    var vi=voiceFor(n,d,ch);
+    score[curB][vi].push({s:s,n:n,d:d,v:vv});
+  }
+  function capOn(n,t,v,ch){
+    ch=(ch===undefined)?0:ch; v=(v===undefined)?60:v;
+    var k=ch+'_'+n;
+    if(!open[k]) open[k]=[];
+    open[k].push({n:n,t:t,v:v,ch:ch});
+  }
+  function capOff(n,t,ch){
+    ch=(ch===undefined)?0:ch;
+    var k=ch+'_'+n, arr=open[k];
+    if(!arr||!arr.length) return;
+    var o=arr.shift();
+    push(o.n,o.t,o.v,o.ch,Math.max(STEP,t-o.t));
+  }
+  noteOn=capOn; noteOff=capOff;
+  vOn=function(n,t,v,ch){ capOn(n,t,v,ch); };
+  vOff=function(n,t,ch){ capOff(n,t,ch); };
+  $('style').value=styleKey;
+  try{
+    for(var b=0;b<8;b++){
+      curB=b; open={};
+      for(var s=0;s<16;s++) scheduleStyleStep(s,b,s*STEP,STEP,BAR);
+      Object.keys(open).forEach(function(k){
+        open[k].forEach(function(o){ push(o.n,o.t,o.v,o.ch,STEP); });
+      });
+    }
+  } finally {
+    noteOn=onSave; noteOff=offSave; vOn=vonSave; vOff=voffSave;
+    $('style').value=styleSave;
+  }
+  return score;
+}
+
+/* ---- 网格渲染 ---- */
+function buildArrBarBtns(){
+  var box=$('barBtns'); if(!box) return; box.innerHTML='';
+  for(var b=0;b<8;b++){
+    var btn=document.createElement('button');
+    btn.className='barbtn'+(b===CURBAR?' active':''); btn.textContent=(b+1);
+    (function(bb,el){ el.onclick=function(){
+      CURBAR=bb;
+      [].slice.call(box.children).forEach(function(c){ c.classList.remove('active'); });
+      el.classList.add('active'); SELA=null; renderArrBar(CURBAR);
+    }; })(b,btn);
+    box.appendChild(btn);
+  }
+}
+function renderArrBar(b){
+  CURBAR=b;
+  var strip=$('chordStrip');
+  if(strip){
+    strip.innerHTML='';
+    for(var i=0;i<8;i++){
+      var d=document.createElement('div');
+      d.className='cbar'+(i===b?' active':'');
+      var cnt=SCORE[i]?SCORE[i].reduce(function(a,t){ return a+t.length; },0):0;
+      d.innerHTML='<div class="cname">'+(i+1)+' · '+(i<4?CHORD_NAMES[i]:CHORD_NAMES[i])+'</div>'+
+        '<div class="cnum">'+cnt+' 个音</div>';
+      d.title='第 '+(i+1)+' 小节';
+      strip.appendChild(d);
+    }
+  }
+  var grid=$('arrGrid'); if(!grid||!SCORE) return;
+  var html='<div class="arrhead" style="text-align:left;padding-left:6px;">声部 / 角色</div>';
+  for(var s=0;s<16;s++) html+='<div class="arrhead">'+(s+1)+'</div>';
+  VOICE_ROLES.forEach(function(r){
+    var v=r.i, color=ARR_COLORS[v], list=SCORE[b][v]||[];
+    html+='<div class="arrname"><span class="sw" style="background:'+color+'"></span>'+
+      (v+1)+'. '+escapeHtml(r.name)+'</div>';
+    for(var st=0;st<16;st++){
+      var hits=list.filter(function(e){ return e.s===st; });
+      var sel=(SELA&&SELA.v===v&&SELA.s===st)?' sel':'';
+      if(hits.length){
+        var bg=hexA(color,.92);
+        html+='<div class="arrcell ed has'+sel+'" id="av'+v+'_'+st+'" data-v="'+v+'" data-s="'+st+'" '+
+          'style="background:'+bg+';border-color:rgba(255,255,255,.55);" '+
+          'title="'+escapeHtml(r.name)+' / 第'+(b+1)+'小节 / 第'+(st+1)+'格 · 点一下改">'+
+          hits.map(function(e){ return '<span class="nn">'+noteName(e.n)+'</span>'; }).join('')+'</div>';
+      } else {
+        html+='<div class="arrcell empty ed'+sel+'" id="av'+v+'_'+st+'" data-v="'+v+'" data-s="'+st+'" '+
+          'title="'+escapeHtml(r.name)+' / 第'+(b+1)+'小节 / 第'+(st+1)+'格 · 点一下写音">+</div>';
+      }
+    }
+  });
+  grid.innerHTML=html;
+  [].slice.call(grid.querySelectorAll('.arrcell.ed')).forEach(function(c){
+    c.onclick=function(){ onArrCell(+c.dataset.v,+c.dataset.s); };
+  });
+  renderSelA();
+  var h=$('arrHint');
+  if(h) h.innerHTML='第 <b>'+(b+1)+'</b> / 8 小节 · 8 个声部各自一行 · 每小节 16 格。'+
+    '<b>点空格子写音，点有音的格子在上面改</b>；格子里的字是音名，'
+    '一个格子可以叠好几个音（和弦）。改完立刻能播，也会自动存在浏览器里。';
+}
+
+/* ---- 编辑 ---- */
+function selListA(){
+  if(!SELA) return [];
+  return (SCORE[CURBAR][SELA.v]||[]).filter(function(e){ return e.s===SELA.s; });
+}
+function onArrCell(v,s){
+  var list=(SCORE[CURBAR][v]||[]).filter(function(e){ return e.s===s; });
+  CURVOICE=v;
+  if(!list.length){ addBrushA(v,s); return; }
+  SELA={v:v,s:s};
+  renderArrBar(CURBAR);
+}
+function addBrushA(v,s){
+  pushHA();
+  var mode=$('brushModeA').value, dur=clampA($('brushDurA').value,1,16,2),
+      vel=clampA($('brushVelA').value,1,100,62), made=[];
+  var chord=EIGHTVOICE.chord[CURBAR%EIGHTVOICE.chord.length];
+  if(mode==='chord') chord.forEach(function(n){ made.push({s:s,n:n,d:dur,v:vel}); });
+  else if(mode==='fixed') made.push({s:s,n:clampA($('brushNoteA').value,0,127,60),d:dur,v:vel});
+  else if(mode==='last'){
+    var prev=(SCORE[CURBAR][v]||[]).slice().sort(function(a,b){return a.s-b.s;}).pop();
+    made.push({s:s,n:prev?prev.n:chord[0],d:dur,v:vel});
+  } else made.push({s:s,n:chord[(s/4|0)%chord.length]+12,d:dur,v:vel});
+  made.forEach(function(e){ SCORE[CURBAR][v].push(e); });
+  SELA={v:v,s:s};
+  renderArrBar(CURBAR); saveLocal();
+  log('写 '+made.length+' 个音 → 声部 '+(v+1)+' / 第 '+(CURBAR+1)+' 小节 / 第 '+(s+1)+' 格');
+}
+function renderSelA(){
+  var who=$('arrEdWho'), ctl=$('arrEdCtl'), list=selListA();
+  if(!SELA||!list.length){
+    who.textContent='点格子开始写（当前声部 '+(CURVOICE+1)+'）';
+    ctl.style.display='none'; return;
+  }
+  who.textContent='选中：声部 '+(SELA.v+1)+' / 第 '+(CURBAR+1)+' 小节 / 第 '+(SELA.s+1)+' 格 · '+list.length+' 个音';
+  ctl.style.display='flex';
+  $('edNoteA').value=String(list[0].n);
+  $('edDurA').value=String(Math.min(16,list[0].d));
+  $('edVelA').value=list[0].v;
+}
+function editSelA(field,val){
+  var list=selListA(); if(!list.length) return;
+  pushHA();
+  if(field==='n') list[0].n=clampA(val,0,127,60);
+  else if(field==='d') list.forEach(function(e){ e.d=clampA(val,1,16,2); });
+  else if(field==='v') list.forEach(function(e){ e.v=clampA(val,1,100,62); });
+  renderArrBar(CURBAR); saveLocal();
+}
+function delOneA(){
+  var list=selListA(); if(!list.length) return;
+  pushHA();
+  var arr=SCORE[CURBAR][SELA.v], i=arr.indexOf(list[0]);
+  if(i>=0) arr.splice(i,1);
+  if(!(SCORE[CURBAR][SELA.v]||[]).some(function(e){return e.s===SELA.s;})) SELA=null;
+  renderArrBar(CURBAR); saveLocal();
+}
+function delCellA(){
+  if(!SELA) return;
+  pushHA();
+  SCORE[CURBAR][SELA.v]=SCORE[CURBAR][SELA.v].filter(function(e){ return e.s!==SELA.s; });
+  SELA=null; renderArrBar(CURBAR); saveLocal();
+}
+function clearVoice(v){
+  pushHA();
+  for(var b=0;b<8;b++) SCORE[b][v]=[];
+  SELA=null; renderArrBar(CURBAR); saveLocal();
+  log('已清空声部 '+(v+1)+'（8 个小节一起清）。');
+}
+function clearAllA(){
+  pushHA(); SCORE=blankScore(); SELA=null;
+  renderArrBar(CURBAR); saveLocal(); log('整个网格清空了，可以从零写。');
+}
+function copyBar1(){
+  pushHA();
+  for(var b=1;b<8;b++) SCORE[b]=cloneA(SCORE[0]);
+  renderArrBar(CURBAR); saveLocal(); log('第 1 小节已复制到 2–8 小节（8 个声部一起）。');
+}
+function pushHA(){
+  HA.push(cloneA(SCORE)); if(HA.length>60) HA.shift(); HF=[];
+}
+function undoA(){
+  if(!HA.length){ log('没有可撤销的了'); return; }
+  HF.push(cloneA(SCORE)); SCORE=HA.pop(); SELA=null;
+  renderArrBar(CURBAR); saveLocal(); log('↶ 撤销');
+}
+function redoA(){
+  if(!HF.length){ log('没有可重做的了'); return; }
+  HA.push(cloneA(SCORE)); SCORE=HF.pop(); SELA=null;
+  renderArrBar(CURBAR); saveLocal(); log('↷ 重做');
+}
+function loadStyleA(){
+  var k=$('style').value;
+  pushHA();
+  if(k==='blank'){ SCORE=blankScore(); }
+  else { SCORE=captureStyle(k); }
+  $('bpm').value=STYLE_BPM[k]||88;
+  SELA=null; renderArrBar(CURBAR); saveLocal();
+  log('载入示例「'+$('style').selectedOptions[0].textContent+'」→ '+countNotesA()+' 个音，现在每个格子都能改。');
+}
+
+/* ---- 作品文件：.json 导入导出 + 8 单轨 .mid ---- */
+function workJsonA(){
+  return {format:'fm1-eight-work',version:1,name:'vibe music · 八声部作品',
+    bpm:clampA($('bpm').value,40,200,88),score:SCORE,
+    presets:[...voicePreset],gains:[...voiceGain],on:[...voiceOn]};
+}
+function downloadA(bytes,name){
+  var blob=new Blob([bytes],{type:name.indexOf('.json')>0?'application/json':'audio/midi'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500);
+}
+function exportJsonA(){
+  downloadA(JSON.stringify(workJsonA(),null,1),'vibe8_我的八声部.json');
+  log('导出 .json（网格 + 速度 + 8 声部音色组合），发给别人点「导入」就能接着改。');
+}
+function vlq8(n){ var o=[n&127]; n=Math.floor(n/128); while(n>0){ o.unshift((n&127)|128); n=Math.floor(n/128); } return o; }
+function sb8(s){ var a=[]; for(var i=0;i<s.length;i++) a.push(s.charCodeAt(i)&127); return a; }
+function be32_8(n){ return [(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255]; }
+function be16_8(n){ return [(n>>>8)&255,n&255]; }
+function trk8(name,ch,evs,bpm,pc){
+  var us=Math.round(60000000/bpm), items=evs.slice(), nm=sb8(name);
+  items.push({t:0,order:0,bytes:[0xFF,0x03].concat(vlq8(nm.length),nm)});
+  items.push({t:0,order:0,bytes:[0xFF,0x51,0x03,(us>>>16)&255,(us>>>8)&255,us&255]});
+  items.push({t:0,order:0,bytes:[0xFF,0x58,0x04,4,2,24,8]});
+  items.push({t:0,order:1,bytes:[0xB0|ch,0,0]});
+  if(pc!==undefined&&pc!==null) items.push({t:0,order:2,bytes:[0xC0|ch,Math.max(0,pc-1)&127]});
+  items.sort(function(a,b){ return (a.t-b.t)||((a.order||0)-(b.order||0)); });
+  var body=[],last=0;
+  items.forEach(function(it){
+    vlq8(it.t-last).forEach(function(x){ body.push(x); });
+    it.bytes.forEach(function(x){ body.push(x); }); last=it.t;
+  });
+  vlq8(Math.max(0,8*16*24-last)).forEach(function(x){ body.push(x); });
+  body.push(0xFF,0x2F,0x00);
+  return sb8('MTrk').concat(be32_8(body.length),body);
+}
+function smf8(tracks,format){
+  return new Uint8Array(sb8('MThd').concat(be32_8(6),be16_8(format),be16_8(tracks.length),be16_8(96))
+    .concat([].concat.apply([],tracks)));
+}
+function voiceEventsA(v,bpm){
+  var evs=[];
+  SCORE.forEach(function(bar,b){
+    (bar[v]||[]).forEach(function(e){
+      var n=Math.max(0,Math.min(127,e.n)), vv=Math.max(1,Math.min(127,e.v));
+      var t0=b*16*24+e.s*24, t1=t0+Math.max(1,e.d)*24-3;
+      evs.push({t:t0,order:4,bytes:[0x90|v,n,vv]});
+      evs.push({t:t1,order:3,bytes:[0x80|v,n,0]});
+    });
+  });
+  return evs;
+}
+function exportMidsA(){
+  var bpm=clampA($('bpm').value,40,200,88), files=[], all=[];
+  for(var v=0;v<8;v++){
+    var t=trk8('Voice'+(v+1)+' '+(VOICE_ROLES[v]?VOICE_ROLES[v].name:''),v,voiceEventsA(v,bpm),bpm,voicePreset[v]);
+    files.push({name:'vibe8_voice'+(v+1)+'.mid',bytes:smf8([t],0)});
+    all.push(t);
+  }
+  files.push({name:'vibe8_all8.mid',bytes:smf8(all,1)});
+  files.forEach(function(f,i){ setTimeout(function(){ downloadA(f.bytes,f.name); },i*300); });
+  log('导出 8 个单轨 .mid + 1 个合并 .mid（96 PPQ / '+bpm+' BPM / 通道 1–8）。');
+}
+function parseMidiA(u){
+  function u32(i){ return ((u[i]<<24)|(u[i+1]<<16)|(u[i+2]<<8)|u[i+3])>>>0; }
+  function u16(i){ return (u[i]<<8)|u[i+1]; }
+  function vlq(i){ var v=0,c=0; do{ c=u[i++]; v=(v<<7)|(c&127); }while((c&128)&&i<u.length); return [v,i]; }
+  if(String.fromCharCode(u[0],u[1],u[2],u[3])!=='MThd') throw new Error('不是标准 .mid 文件');
+  var hlen=u32(4),ntr=u16(10),div=u16(12),p=8+hlen,bpm=null,notes=[];
+  var q=div/4;
+  for(var ti=0;ti<ntr;ti++){
+    if(p+8>u.length) break;
+    if(String.fromCharCode(u[p],u[p+1],u[p+2],u[p+3])!=='MTrk') break;
+    var len=u32(p+4),s=p+8,end=Math.min(s+len,u.length),t=0,rs=0,on={};
+    while(s<end){
+      var r=vlq(s); t+=r[0]; s=r[1]; if(s>=end) break;
+      var st=u[s];
+      if(st<0x80){ st=rs; } else { s++; rs=st; }
+      if(st===0xFF){
+        var mt=u[s++], lr=vlq(s), dl=lr[0]; s=lr[1];
+        if(mt===0x51&&dl>=3){ var us=(u[s]<<16)|(u[s+1]<<8)|u[s+2]; bpm=Math.round(60000000/us); }
+        s+=dl;
+      } else if(st===0xF0||st===0xF7){ var lr2=vlq(s); s=lr2[1]+lr2[0]; }
+      else {
+        var hi=st&0xF0,ch=st&0x0F,d1=u[s++]||0,d2=(hi===0xC0||hi===0xD0)?0:(u[s++]||0);
+        if(hi===0x90&&d2>0) on[ch+'_'+d1]={t:t,n:d1,v:d2,ch:ch};
+        else if(hi===0x80||(hi===0x90&&d2===0)){
+          var k=ch+'_'+d1,o=on[k];
+          if(o){ notes.push({t:o.t,n:o.n,v:o.v,ch:o.ch,dur:Math.max(1,Math.round((t-o.t)/q))}); delete on[k]; }
+        }
+      }
+    }
+    Object.keys(on).forEach(function(k){ var o=on[k]; notes.push({t:o.t,n:o.n,v:o.v,ch:o.ch,dur:2}); });
+    p=end;
+  }
+  return {notes:notes,bpm:bpm};
+}
+function mergeMidiA(P,fname){
+  pushHA();
+  var out=blankScore(), skipped=0;
+  P.notes.forEach(function(n){
+    var st=Math.round(n.t/(96/4));
+    if(st<0||st>=128){ skipped++; return; }
+    var b=Math.floor(st/16), s=st%16, v=(n.ch===9)?7:Math.min(7,n.ch);
+    out[b][v].push({s:s,n:n.n,d:Math.max(1,Math.min(16-s,n.dur||1)),
+      v:Math.max(1,Math.min(100,n.v||60))});
+  });
+  SCORE=out;
+  if(P.bpm&&P.bpm>=40&&P.bpm<=200) $('bpm').value=P.bpm;
+  SELA=null; renderArrBar(CURBAR); saveLocal();
+  log('导入 '+fname+'：'+P.notes.length+' 个音符'+(skipped?('，超出 8 小节砍掉 '+skipped+' 个'):''));
+}
+function importFileA(e){
+  var f=e.target.files[0]; if(!f) return;
+  var nm=f.name.toLowerCase(), rd=new FileReader();
+  if(/\.json$/.test(nm)){
+    rd.onload=function(){
+      try{
+        var w=JSON.parse(rd.result);
+        if(w.format&&w.format!=='fm1-eight-work') throw new Error('不是八声部作品的 .json');
+        if(!Array.isArray(w.score)) throw new Error('缺 score');
+        pushHA(); setWorkA(w);
+        if(Array.isArray(w.presets)){
+          w.presets.forEach(function(x,i){ if(i<8) voicePreset[i]=x; });
+          for(var i=0;i<8;i++){ var pe=document.querySelector('[data-v="p'+i+'"]'); if(pe) pe.value=voicePreset[i]; }
+          syncVoices();
+        }
+        renderArrBar(CURBAR); saveLocal();
+        log('导入作品 '+f.name+' → '+countNotesA()+' 个音');
+      }catch(err){ log('导入失败：'+err.message); }
+    };
+    rd.readAsText(f);
+  } else {
+    rd.onload=function(){
+      try{ mergeMidiA(parseMidiA(new Uint8Array(rd.result)),f.name); }
+      catch(err){ log('导入失败：'+err.message); }
+    };
+    rd.readAsArrayBuffer(f);
+  }
+  e.target.value='';
+}
+function humToGrid(){
+  if(!recPhrase.length){ setHum('还没录到东西','bad'); return; }
+  pushHA();
+  var v=clampA($('humVoice').value,0,7,3);
+  recPhrase.forEach(function(n){
+    var s=Math.max(0,Math.min(15,n.s));
+    SCORE[CURBAR][v].push({s:s,n:n.n,d:Math.max(1,Math.min(16-s,n.d||1)),v:80});
+  });
+  renderArrBar(CURBAR); saveLocal();
+  setHum('录的 '+recPhrase.length+' 个音已写进声部 '+(v+1)+' / 第 '+(CURBAR+1)+' 小节','ok');
+  log('哼唱旋律写进网格：声部 '+(v+1)+' / 第 '+(CURBAR+1)+' 小节。');
+}
+
+/* ---- 覆盖：播放只从网格读，不再跑写死的风格函数 ---- */
+function play(){
+  if(!midiOut){ setStatus('先点“连接 FM1”','bad'); return; }
+  syncVoices();
+  voicePreset.forEach(function(p,idx){ progChange(p,idx); });
+  recPlaying=false; playing=true; step=0; bar=0;
+  nextTime=performance.now()+60;
+  $('play').disabled=true; $('stop').disabled=false;
+  log('▶ PLAY  从网格读 '+countNotesA()+' 个音 / 8 个声部 / '+($('bpm').value)+' BPM / '+
+    '音色 '+voicePreset.join('/'));
+  if(timer) clearInterval(timer);
+  timer=setInterval(scheduler,25);
+}
+function scheduleStep(s, b, t, stepDur, barDur){
+  requestAnimationFrame(function(){
+    for(var i=0;i<16;i++){ var e=$('st'+i); if(e) e.classList.remove('on'); }
+    var cur=$('st'+s); if(cur) cur.classList.add('on');
+    document.querySelectorAll('.arrcell.nowA').forEach(function(c){ c.classList.remove('nowA'); });
+    for(var v=0;v<8;v++){ var c=$('av'+v+'_'+s); if(c) c.classList.add('nowA'); }
+  });
+  if(!SCORE) return;
+  var list=SCORE[b%8];
+  for(var v=0;v<8;v++){
+    if(!voiceOn[v]) continue;
+    (list[v]||[]).forEach(function(e){
+      if(e.s!==s) return;
+      vOn(e.n,t,e.v,v);
+      vOff(e.n,t+Math.max(1,e.d)*stepDur-20,v);
+    });
+  }
+}
+function applyStyle(){
+  var eh=$('eightHint');
+  if(eh) eh.style.display='block';
+  // 不再自动改 BPM / 自动覆盖网格；载入示例必须显式点按钮，避免误删自己写的音
+}
+
+function fillSelA(){
+  var h='';
+  for(var n=24;n<=108;n++) h+='<option value="'+n+'">'+n+' · '+noteName(n)+'</option>';
+  $('edNoteA').innerHTML=h; $('brushNoteA').innerHTML=h;
+  $('edNoteA').value='72'; $('brushNoteA').value='72';
+  var d=''; for(var k=1;k<=16;k++) d+='<option value="'+k+'"'+(k===2?' selected':'')+'>'+k+'</option>';
+  $('edDurA').innerHTML=d; $('brushDurA').innerHTML=d;
+  var v=''; for(var j=0;j<8;j++) v+='<option value="'+j+'"'+(j===3?' selected':'')+'>'+(j+1)+' · '+VOICE_ROLES[j].name+'</option>';
+  $('humVoice').innerHTML=v;
+}
+function bindWorkA(){
+  $('loadStyleA').onclick=loadStyleA;
+  $('undoA').onclick=undoA; $('redoA').onclick=redoA;
+  $('clearAllA').onclick=clearAllA; $('copyBar1').onclick=copyBar1;
+  $('expJsonA').onclick=exportJsonA; $('expMidsA').onclick=exportMidsA;
+  $('impBtnA').onclick=function(){ $('impFileA').click(); };
+  $('impFileA').onchange=importFileA;
+  $('humToGrid').onclick=humToGrid;
+  $('edNoteA').onchange=function(){ editSelA('n',+this.value); };
+  $('edDurA').onchange=function(){ editSelA('d',+this.value); };
+  $('edVelA').onchange=function(){ editSelA('v',+this.value); };
+  $('edOneA').onclick=delOneA; $('edDelA').onclick=delCellA;
+  $('brushModeA').onchange=function(){ $('brushNoteA').disabled=(this.value!=='fixed'); };
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Delete'&&e.key!=='Backspace') return;
+    if(/INPUT|SELECT|TEXTAREA/.test((document.activeElement||{}).tagName||'')) return;
+    if(!SELA) return; e.preventDefault(); delCellA();
+  });
+}
+
+$('connect').onclick = connect;
+$('play').onclick = play;
+$('stop').onclick = stop;
+$('humStart').onclick = startHum;
+$('humStop').onclick = stopHum;
+$('recToggle').onclick = toggleRec;
+$('recPlay').onclick = playRec;
+$('style').addEventListener('change', applyStyle);
+
+buildVoiceConsole();
+buildSteps();
+buildArrBarBtns();
+fillSelA();
+bindWorkA();
+$('storeSave').onclick = doSaveStore;
+renderStore();
+if(!loadLocal()){
+  SCORE=captureStyle('eight');       // 默认仍是原来那套「有感觉」的八声部，一个音没改
+  $('bpm').value = EIGHTVOICE.bpm;
+  saveLocal();
+}
+applyStyle();
+renderArrBar(0);
+log('就绪。八声部网格已就位：'+countNotesA()+' 个音，点格子就能自己写；先点「连接 FM1」。');
+log('原来的 7 套风格变成了「载入示例」按钮，音符全摊在网格里，不再是黑盒。');
+</script>
+</body>
+</html>

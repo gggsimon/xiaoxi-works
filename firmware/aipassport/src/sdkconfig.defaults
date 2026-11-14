@@ -1,0 +1,30 @@
+# --- 目标芯片 ---
+CONFIG_IDF_TARGET="esp32c3"
+# 注:ESP32-C3 无 PSRAM,故不设 CONFIG_SPIRAM。
+# --- Flash ---
+# FoloToy AI Passport 当前产品/固件基线使用 8MB Flash。
+CONFIG_ESPTOOLPY_FLASHSIZE_8MB=y
+# 固定 8MB 镜像头，关闭 detect，便于 idf.py merge-bin。
+CONFIG_ESPTOOLPY_HEADER_FLASHSIZE_UPDATE=n
+# 3 MB 应用上限与固定保护分区保持一致。分区表保留
+# cardid@0x356000，二创不得移动或覆盖。
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+CONFIG_PARTITION_TABLE_FILENAME="partitions.csv"
+# --- 控制台:USB-Serial-JTAG(C3 原生 USB,GPIO18/19)---
+# 不用 UART0:其默认 TX=GPIO21 与本板背光引脚冲突。
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+CONFIG_ESP_CONSOLE_SECONDARY_NONE=y
+# --- LVGL ---
+CONFIG_LV_COLOR_DEPTH_16=y
+CONFIG_LV_FONT_MONTSERRAT_14=y
+# 卦盘改 8 行窗口渲染、样式共享；详情页含长文 label，LVGL 池留 48KB 余量。
+CONFIG_LV_MEM_SIZE_KILOBYTES=48
+# 中文字体 yj_font_16 为 lv_font_conv 压缩位图(bitmap_format=1)，v9 必须显式
+# 开启压缩字体解码，否则文字静默全不渲染（仅一条 WARN、不崩溃）。
+CONFIG_LV_USE_FONT_COMPRESSED=y
+# --- 系统 ---
+CONFIG_FREERTOS_HZ=1000
+# --- 体积优化：按尺寸优化，剥离未用段 ---
+CONFIG_COMPILER_OPTIMIZATION_SIZE=y
+# feature/yijing-pocket 为离线应用，暂不启用 BLE/Wi-Fi（方向①合盘时再开 NimBLE）。

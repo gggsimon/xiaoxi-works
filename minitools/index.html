@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小红书玄学小工具 · 37 件套</title>
+<style>
+  :root { --bg:#faf8f5; --ink:#3d2e1e; --accent:#8b5e3c; --accent-soft:#a87856; --line:#e5d9c9; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--ink); font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; padding:28px 18px 50px; }
+  .wrap { max-width:1000px; margin:0 auto; }
+  h1 { font-size:24px; letter-spacing:1px; } h1 span { color:var(--accent); }
+  .sub { color:#8a7a66; font-size:13px; margin:6px 0 4px; }
+  .back { display:inline-block; font-size:13px; color:var(--accent-soft); text-decoration:none; margin-top:10px; }
+  section { margin-top:20px; }
+  h2 { font-size:15px; color:var(--accent); border-left:3px solid var(--accent); padding-left:8px; margin-bottom:10px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:9px; }
+  a.tool { display:flex; align-items:center; gap:10px; background:#fff; border:1px solid var(--line); border-radius:8px; padding:9px 11px; text-decoration:none; color:var(--ink); transition:all .15s; }
+  a.tool:hover { border-color:var(--accent); box-shadow:0 3px 10px rgba(139,94,60,.12); transform:translateY(-1px); }
+  a.tool img { width:38px; height:38px; border-radius:6px; object-fit:cover; flex:none; background:var(--bg); }
+  a.tool .nm { font-size:13.5px; font-weight:600; }
+  a.tool .en { font-size:11px; color:#b0a18c; margin-top:1px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>小红书玄学小工具 <span>·</span> 37 件套</h1>
+  <div class="sub">统一容器规范的纯本地 H5 套件：单入口 index.html、零网络、零权限，手机竖屏原生体验</div>
+  <a class="back" href="../index.html">← 返回作品集首页</a>
+  <div id="root"></div>
+</div>
+<script>
+const CATS = [
+  { name:"命理术数核心", items:[
+    ["bazi","四柱八字"],["ziwei","紫微斗数"],["liuyao","六爻纳甲"],["meihua","梅花易数"],
+    ["qimen","奇门遁甲"],["daliuren","大六壬"],["xiaoliuren","小六壬"],["taiyi","太乙神数"],
+    ["kaoshi","铁板考时"],["xuankong","玄空飞星"],["bazhai","八宅风水"],["taisui","太岁锦囊"],
+    ["wuyun","五运六气"],["hehun","八字合婚"],["hepan","双人合盘"],["mianxiang","面相手相"],
+    ["wuge","姓名五格"],["chengu","袁天罡称骨"],["lingming","生命灵数"],["zeri","择日助手"],
+    ["huangli","老黄历"],["jiemeng","周公解梦"],["yijing","周易原文"]
+  ]},
+  { name:"仪式与民俗", items:[
+    ["fulu","符箓图鉴"],["shengbei","掷筊问事"],["lingqian","观音灵签"],
+    ["dangan","解读档案"],["today","今日玄机"],["ninedim","九维解读"]
+  ]},
+  { name:"西方神秘学与天象", items:[
+    ["tarot","塔罗牌"],["rune","卢恩符文"],["xzhan","西洋占星"],["yinzhan","印度占星"],
+    ["xingzuo","星座运势"],["tianxiang","月相天象"],["cosmic","万象天盘"],["solar3d","太阳系仪"]
+  ]}
+];
+const root = document.getElementById("root");
+for (const cat of CATS) {
+  const sec = document.createElement("section");
+  sec.innerHTML = "<h2>" + cat.name + "（" + cat.items.length + "）</h2>";
+  const grid = document.createElement("div"); grid.className = "grid";
+  for (const [slug, cn] of cat.items) {
+    const a = document.createElement("a");
+    a.className = "tool"; a.href = slug + "/index.html";
+    a.innerHTML = '<img src="' + slug + '/icon.png" alt="" onerror="this.style.display=\'none\'">'
+      + '<div><div class="nm">' + cn + '</div><div class="en">' + slug + '</div></div>';
+    grid.appendChild(a);
+  }
+  sec.appendChild(grid); root.appendChild(sec);
+}
+</script>
+</body>
+</html>

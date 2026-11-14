@@ -1,0 +1,2224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FM1 · SLOOP 自由编曲器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#07070e; --panel:rgba(255,255,255,.045); --panel-border:rgba(255,255,255,.10);
+    --ink:#eaf2ff; --muted:#8b93b0; --cyan:#22e0ff; --magenta:#ff3d9a; --purple:#8a5cff;
+    --gold:#ffd23d; --orange:#ff8a3d; --ok:#37e0a0; --bad:#ff4d6d;
+    --font-display:'Orbitron','PingFang SC',sans-serif;
+    --font-body:'Rajdhani','PingFang SC','Microsoft YaHei',sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;min-height:100vh;overflow-x:hidden;color:var(--ink);font-family:var(--font-body);
+    background:radial-gradient(1200px 620px at 50% -12%, rgba(255,210,61,.13), transparent 60%),
+               radial-gradient(900px 500px at 100% 100%, rgba(138,92,255,.18), transparent 60%), var(--bg);}
+  .bg-grid{position:fixed;inset:0;z-index:-2;
+    background-image:linear-gradient(rgba(138,92,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(34,224,255,.05) 1px,transparent 1px);
+    background-size:42px 42px;animation:gridmove 18s linear infinite;}
+  @keyframes gridmove{from{background-position:0 0}to{background-position:0 42px}}
+  .bg-blob{position:fixed;border-radius:50%;filter:blur(90px);opacity:.30;z-index:-1;}
+  .bg-blob.b1{width:420px;height:420px;background:#ffd23d;top:-170px;left:-110px;}
+  .bg-blob.b2{width:480px;height:480px;background:#8a5cff;bottom:-200px;right:-130px;}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 16px 40px;position:relative;}
+  .hero{text-align:center;padding:18px 0 6px;}
+  .logo{font-family:var(--font-display);font-weight:900;font-size:34px;letter-spacing:.04em;line-height:1;
+    background:linear-gradient(120deg,#fff 8%,var(--gold) 44%,var(--magenta) 76%,var(--purple));
+    -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 22px rgba(255,210,61,.32));}
+  .tagline{letter-spacing:.24em;font-size:11px;color:var(--muted);margin-top:7px;}
+  .panel{background:var(--panel);border:1px solid var(--panel-border);border-radius:14px;padding:13px 16px;margin-top:11px;
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 6px 30px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.05);}
+  .panel.lead{border-color:rgba(255,210,61,.42);}
+  .panel-title{font-family:var(--font-display);font-size:11px;letter-spacing:.15em;color:var(--cyan);
+    text-transform:uppercase;margin-bottom:9px;display:flex;align-items:center;gap:8px;}
+  .panel-title::before{content:'';width:8px;height:8px;border-radius:2px;background:linear-gradient(135deg,var(--cyan),var(--magenta));box-shadow:0 0 9px var(--cyan);}
+  .panel-title.g::before{background:linear-gradient(135deg,var(--gold),var(--orange));box-shadow:0 0 9px var(--gold);}
+  .lead ol{margin:0;padding-left:19px;font-size:13px;line-height:1.65;}
+  .lead li{margin:1px 0;}
+  .lead b{color:var(--gold);}
+  .row{display:flex;flex-wrap:wrap;gap:9px;align-items:center;}
+  label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;}
+  .field{display:flex;flex-direction:column;gap:4px;}
+  input[type=number],input[type=text],select{background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.16);border-radius:8px;
+    color:var(--ink);font-family:var(--font-body);font-size:13px;padding:6px 8px;outline:none;}
+  input[type=number]{width:66px;} input[type=text]{width:170px;}
+  select{max-width:230px;}
+  input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 9px rgba(34,224,255,.25);}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:6px;border-radius:999px;
+    background:linear-gradient(90deg,var(--cyan),var(--magenta));outline:none;width:130px;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 0 10px var(--cyan);cursor:pointer;}
+  input[type=checkbox]{accent-color:var(--cyan);width:16px;height:16px;cursor:pointer;}
+  .btn{font-family:var(--font-body);font-weight:600;font-size:12px;color:var(--ink);background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.16);border-radius:8px;padding:7px 11px;cursor:pointer;transition:all .12s ease;}
+  .btn:hover{border-color:var(--cyan);box-shadow:0 0 11px rgba(34,224,255,.28);transform:translateY(-1px);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;}
+  .btn-connect{background:linear-gradient(135deg,var(--cyan),var(--purple));color:#04121a;border:none;font-weight:700;}
+  .btn-play{background:linear-gradient(135deg,var(--ok),#2bd0ff);color:#04121a;border:none;font-weight:700;font-size:14px;padding:9px 22px;}
+  .btn-stop{background:linear-gradient(135deg,var(--bad),#ff7aa0);color:#fff;border:none;font-weight:700;font-size:14px;padding:9px 22px;}
+  .btn-gold{background:linear-gradient(135deg,var(--gold),var(--orange));color:#201400;border:none;font-weight:700;}
+  .btn-sm{padding:5px 9px;font-size:11px;margin:2px 4px 2px 0;}
+  .status{font-size:12px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);display:inline-block;}
+  .status.ok{color:var(--ok);border-color:rgba(55,224,160,.6);}
+  .status.bad{color:var(--bad);border-color:rgba(255,77,109,.6);}
+  .hint{font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:7px;}
+  .hint b{color:var(--ink);}
+  code{background:rgba(34,224,255,.12);color:#bff3ff;padding:1px 5px;border-radius:4px;font-family:ui-monospace,monospace;font-size:11px;}
+  .steps{display:grid;grid-template-columns:repeat(12,1fr);gap:5px;margin:10px 0 3px;}
+  .step{height:12px;border-radius:4px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);transition:background .08s;}
+  .step.beat{background:rgba(138,92,255,.20);border-color:rgba(138,92,255,.42);}
+  .step.on{background:linear-gradient(90deg,var(--gold),var(--orange));box-shadow:0 0 12px var(--gold);}
+  .trow{display:grid;grid-template-columns:150px 200px 52px 1fr 40px 38px;gap:7px;align-items:center;padding:6px 3px;border-bottom:1px solid rgba(255,255,255,.06);}
+  .trow.head{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid rgba(255,255,255,.16);padding-bottom:7px;}
+  .tname{font-weight:700;font-size:13px;display:flex;align-items:center;gap:6px;}
+  .tdot{width:8px;height:8px;border-radius:50%;flex:none;}
+  .tsub{display:block;font-size:10px;color:var(--muted);font-weight:400;margin-top:2px;}
+  .trow .sel{width:100%;font-size:11.5px;padding:5px 5px;}
+  .trow .rng{width:100%;} .trow .chk{justify-self:center;}
+  .trow .dash{color:var(--muted);font-size:14px;text-align:center;}
+  .gtrack{margin-top:11px;}
+  .ghead{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;}
+  .ghead small{font-weight:400;color:var(--muted);font-size:11px;}
+  .ghead .btn{margin-left:auto;}
+  .maprow{display:grid;grid-template-columns:70px repeat(12,1fr);gap:3px;align-items:stretch;margin-bottom:3px;}
+  .maplabel{font-size:10px;color:var(--muted);display:flex;flex-direction:column;justify-content:center;line-height:1.3;}
+  .maplabel b{color:var(--ink);font-size:11px;}
+  .cell{min-height:32px;border-radius:5px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);
+    font-size:9.5px;line-height:1.15;color:#c9d6e8;padding:2px 1px;text-align:center;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;word-break:break-all;transition:all .08s;}
+  .cell:hover{background:rgba(255,210,61,.14);border-color:var(--gold);}
+  .cell.beat{background:rgba(138,92,255,.10);}
+  .cell.has{background:rgba(255,255,255,.11);color:#fff;}
+  .cell.sel{outline:2px solid var(--gold);outline-offset:-2px;background:rgba(255,210,61,.22);}
+  .cell.now{box-shadow:inset 0 0 0 1px var(--gold);}
+  .cell .chord3{display:block;line-height:1.2;font-size:9px;}
+  .edbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:rgba(255,210,61,.09);
+    border:1px solid rgba(255,210,61,.3);border-radius:9px;padding:7px 9px;margin-top:8px;}
+  .edbar .who{font-size:12px;color:var(--gold);font-weight:700;min-width:150px;}
+  .bankgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;margin:3px 0 7px;}
+  .bankgrid .bi{font-size:10px;padding:4px 5px;border-radius:4px;background:rgba(255,255,255,.045);
+    border:1px solid rgba(255,255,255,.10);color:#cfd8e8;cursor:pointer;text-align:left;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:all .1s;}
+  .bankgrid .bi:hover{border-color:var(--gold);color:#fff;background:rgba(255,210,61,.14);}
+  .bankgrid .bi.sel{outline:1px solid var(--gold);color:var(--gold);}
+  .bankhead{font-size:10px;letter-spacing:.09em;color:var(--cyan);margin:8px 0 3px;text-transform:uppercase;font-weight:700;}
+  .chain{font-size:12px;line-height:1.7;background:rgba(0,0,0,.26);border-radius:8px;padding:8px 11px;margin-top:7px;}
+  .chain span{color:var(--gold);font-weight:700;}
+  .log{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#9fb6c9;background:rgba(0,0,0,.38);
+    border:1px solid rgba(255,255,255,.10);border-radius:9px;padding:9px;white-space:pre-wrap;max-height:120px;overflow:auto;margin-top:8px;}
+  .foot{text-align:center;color:var(--muted);font-size:10px;letter-spacing:.12em;margin-top:20px;}
+  @media(max-width:760px){.trow{grid-template-columns:110px 1fr 38px 34px;}.trow .sel,.trow .dash.oct{display:none;}
+    .maprow{grid-template-columns:50px repeat(12,1fr);}.cell{font-size:8px;min-height:28px;}
+    .bankgrid{grid-template-columns:repeat(4,1fr);}.logo{font-size:25px;}}
+  @media(prefers-reduced-motion:reduce){.bg-grid{animation:none;}}
+
+  .cell.col{flex-direction:column;justify-content:center;gap:0;}
+  .grid16 .cell{font-size:8px;min-height:30px;padding:1px 0;}
+  .grid16 .cell .chord3{font-size:8px;}
+  .grid16 .maplabel{font-size:9px;}
+  /* 可变轨控制台：名字 / 音色 / 通道 / 类型 / 八度 / 音量 / 开 / 试 / 删 */
+  .trow{grid-template-columns:150px 190px 56px 62px 46px 1fr 34px 32px 32px;gap:6px;}
+  .trow.head{font-size:9.5px;}
+  .tnamein{width:100%;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.13);
+    border-radius:5px;color:var(--ink);font-weight:700;font-size:12px;padding:3px 5px;outline:none;}
+  .tnamein:hover,.tnamein:focus{border-color:var(--gold);}
+  .trow .chsel{width:100%;font-size:11px;padding:5px 3px;background:rgba(0,0,0,.35);
+    border:1px solid rgba(255,255,255,.16);border-radius:7px;color:var(--ink);}
+  .trow .typebtn{font-size:11px;padding:5px 2px;white-space:nowrap;}
+  .trow .btndel{border-color:rgba(255,109,138,.45);color:#ff9bb0;font-size:13px;padding:4px 2px;}
+  .trow .btndel:hover{background:rgba(255,109,138,.16);}
+  @media(max-width:760px){.trow{display:flex;flex-wrap:wrap;gap:6px;}.trow .rng{min-width:90px;flex:1;}}
+</style>
+</head>
+<body>
+<!-- FM1-NAV:START -->
+
+<style>
+.fm1nav{position:relative;z-index:60;display:flex;align-items:center;gap:5px;flex-wrap:wrap;
+  padding:7px 18px;margin:0 0 8px;border-bottom:1px solid rgba(255,255,255,.09);
+  background:rgba(9,9,20,.9);backdrop-filter:blur(8px);
+  font-family:var(--font-body,'Rajdhani','PingFang SC','Microsoft YaHei',sans-serif);
+  font-size:12px;line-height:1.2}
+.fm1nav a{text-decoration:none;color:#9aa4c0;border:1px solid rgba(255,255,255,.10);
+  border-radius:7px;padding:5px 10px;white-space:nowrap;transition:all .14s ease}
+.fm1nav a:hover{color:#eaf2ff;border-color:rgba(34,224,255,.55);background:rgba(34,224,255,.09)}
+.fm1nav a.home{color:#ffd23d;border-color:rgba(255,210,61,.35);font-weight:700;letter-spacing:.5px}
+.fm1nav a.on{color:#07070e;background:linear-gradient(120deg,#22e0ff,#7ce8ff);
+  border-color:#22e0ff;font-weight:700;box-shadow:0 0 14px rgba(34,224,255,.3)}
+.fm1nav a small{font-size:9.5px;opacity:.75;margin-left:5px}
+.fm1nav .sep{width:1px;height:16px;background:rgba(255,255,255,.14);margin:0 5px}
+.fm1nav .tip{margin-left:auto;color:#6f7796;font-size:10.5px;letter-spacing:.4px;white-space:nowrap}
+@media(max-width:760px){.fm1nav .tip{display:none}.fm1nav{padding:6px 10px}}
+</style>
+
+<nav class="fm1nav" aria-label="FM1 工作台导航">
+<a class="home" href="index.html">回工作台</a>
+<span class="sep"></span>
+<a href="fm1_arranger.html">01 · vibe music<small>波浪</small></a>
+<a href="fm1_monitor.html">02 · USB 监听</a>
+<a class="on" href="fm1_lalaland.html">03 · 自由编曲<small>按谱前奏</small></a>
+<span class="tip">独立 Chrome / Edge 标签页 · 允许 MIDI</span>
+</nav>
+<!-- FM1-NAV:END -->
+<div class="bg-grid"></div><div class="bg-blob b1"></div><div class="bg-blob b2"></div>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="logo">FM1 · 自由编曲</div>
+    <div class="tagline">自己写 · 载入作品 · 一键盖音色 · 直推 SLOOP</div>
+  </div>
+
+  <!-- 怎么用：只有四行 -->
+  <div class="panel lead">
+    <div class="panel-title g">怎么用</div>
+    <ol>
+      <li><b>连接</b>：点「连接设备」→「▶ 播放」。要在独立 Chrome / Edge 标签页打开本页并允许 MIDI。</li>
+      <li><b>编曲</b>：第 05 面板点空格子写音，点已有格子改音高／长短／力度。轨不够就第 02 面板「＋ 加一条轨」。</li>
+      <li><b>盖音色</b>：第 06 面板点一下音色，直接盖到轨上，不用在机器里翻英文。</li>
+      <li><b>推出去</b>：第 07 面板，下载 .mid 灌进机器，或开监听页走蓝牙。</li>
+    </ol>
+  </div>
+
+  <!-- 01 连接 & 走带 -->
+  <div class="panel">
+    <div class="panel-title">01 · 连接 &amp; 播放</div>
+    <div class="row">
+      <button class="btn btn-connect" id="connect">连接设备</button>
+      <span class="status" id="status">未连接</span>
+      <button class="btn btn-play" id="play" disabled>▶ 播放</button>
+      <button class="btn btn-stop" id="stop" disabled>■ 停止</button>
+      <button class="btn" id="panic">静音</button>
+      <button class="btn btn-gold" id="pushSounds">推音色</button>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <div class="field"><label>速度 BPM</label><input type="number" id="bpm" min="40" max="200" value="130"></div>
+      <div class="field"><label>总推力</label><input type="range" id="master" min="0" max="100" value="60" style="width:130px"></div>
+      <div class="field"><label>摇摆 %</label><input type="range" id="swing" min="0" max="40" value="0" style="width:110px"></div>
+      <div class="field"><label>循环</label><input type="checkbox" id="loop" checked></div>
+      <div class="field"><label>渐强</label><input type="checkbox" id="dyn"></div>
+      <div class="field"><label>推音色</label><input type="checkbox" id="sendPC" checked></div>
+    </div>
+    <div class="steps" id="steps"></div>
+    <div class="hint" id="posHint">当前作品加载中…</div>
+  </div>
+
+  <!-- 02 四轨 -->
+  <div class="panel">
+    <div class="panel-title g">02 · 音轨（想加几条加几条，最多 12 条）</div>
+    <div class="trow head">
+      <span>声部 / 名字</span><span>音色（点第 06 面板更快）</span><span>通道</span><span>类型</span><span>八度</span><span>音量</span><span>开</span><span>试</span><span>删</span>
+    </div>
+    <div id="trackRows"></div>
+    <div class="row" style="margin-top:9px;">
+      <button class="btn btn-gold" id="addTrackBtn">＋ 加一条轨</button>
+      <button class="btn" id="delTrackBtn">－ 删最后一条轨</button>
+      <span class="hint" style="margin:0">加进来的轨在网页里单独写、单独换音色；机器只有 4 条轨，第 07 面板有「导出给机器的 4 个 .mid」自动叠进去。</span>
+    </div>
+    <div class="row" style="margin-top:9px;">
+      <span class="hint" style="margin:0">鼓轨的鼓音符：</span>
+      <span class="field"><label>底鼓 K</label><input type="number" id="dKick" min="0" max="127" value="36"></span>
+      <span class="field"><label>军鼓 S</label><input type="number" id="dSnare" min="0" max="127" value="38"></span>
+      <span class="field"><label>踩镲 H</label><input type="number" id="dHat" min="0" max="127" value="42"></span>
+    </div>
+    <div class="hint">名字能改、通道能改、「乐器 / 鼓」点一下就切、不喜欢就删。<code>PC</code> 号 0 起，是 SLOOP 固件里的真实编号。网页里超过 4 条轨时，多出来的轨各走自己的通道（V16 八声部能分开响）；SLOOP 机器只有 4 条物理轨，用第 07 面板那个导出按钮折叠成一个不丢音的 4 文件包。</div>
+  </div>
+
+  <!-- 03 作品库：双向 -->
+  <div class="panel">
+    <div class="panel-title g">03 · 作品库（不会编就载入，会编就发给别人）</div>
+    <div class="row">
+      <select id="workSel" style="min-width:320px"></select>
+      <button class="btn btn-gold" id="loadWork">载入</button>
+      <button class="btn" id="delStore">删掉这个存档</button>
+    </div>
+    <div class="row" style="margin-top:8px;">
+      <button class="btn" id="importFile">导入文件 .mid / .json</button>
+      <input type="file" id="fileInput" accept=".mid,.midi,.json" style="display:none">
+      <button class="btn btn-gold" id="exportWork">导出我的作品 .json</button>
+    </div>
+    <div class="row" style="margin-top:8px;">
+      <input type="text" id="storeName" placeholder="给这套起个名" style="width:170px">
+      <button class="btn" id="saveStore">存到浏览器</button>
+      <span class="hint" id="storeList" style="margin:0"></span>
+    </div>
+    <div class="hint"><b>双向</b>：内置作品、别人给的 <code>.mid</code>／<code>.json</code> 都能导进来接着改；自己编完导出 <code>.json</code> 发别人，音色、速度、节拍、音符一起带过去。导 <code>.mid</code> 只覆盖文件里有音符的那几条轨。</div>
+  </div>
+
+  <!-- 04 画笔 & 工具 -->
+  <div class="panel">
+    <div class="panel-title g">04 · 画笔 &amp; 工具</div>
+    <div class="row">
+      <div class="field"><label>点空格子写什么</label>
+        <select id="brushMode">
+          <option value="auto">跟着和弦（单音，不会跑调）</option>
+          <option value="chord">跟着和弦（三音一起）</option>
+          <option value="fixed">固定音高</option>
+        </select>
+      </div>
+      <div class="field"><label>固定音高</label><select id="brushNote" disabled></select></div>
+      <div class="field"><label>轨 4 鼓声</label>
+        <select id="brushDrum"><option value="K">底鼓 K</option><option value="S">军鼓 S</option><option value="H">踩镲 H</option></select>
+      </div>
+      <div class="field"><label>长几格</label>
+        <select id="brushDur"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>6</option><option>8</option><option>12</option><option>16</option></select>
+      </div>
+      <div class="field"><label>力度</label><input type="range" id="brushVel" min="1" max="100" value="62" style="width:110px"></div>
+    </div>
+    <div class="row" style="margin-top:8px;">
+      <button class="btn btn-sm" id="undo">↶ 撤销</button>
+      <button class="btn btn-sm" id="redo">↷ 重做</button>
+      <button class="btn btn-sm" id="newBlank">□ 空白画布</button>
+      <button class="btn btn-sm" id="loadDemo">♪ 载入按谱前奏</button>
+      <button class="btn btn-sm" id="copyBar">⧉ 第1小节复制到 2/3/4</button>
+    </div>
+    <div class="edbar" id="edBar">
+      <span class="who" id="edWho">点网格里的格子开始写</span>
+      <span id="edControls" style="display:none" class="row">
+        <span class="field"><label>音高</label><select id="edNote"></select></span>
+        <span class="field"><label>长几格</label><select id="edDur"></select></span>
+        <span class="field"><label>力度</label><input type="range" id="edVel" min="1" max="100" style="width:100px"></span>
+        <button class="btn btn-sm" id="edOne">只删一个音</button>
+        <button class="btn btn-sm" id="edDel">删这一格</button>
+      </span>
+    </div>
+    <div class="hint">空格子＝按画笔写一个音；已有格子＝点一下选中，在上面改；按 <code>Delete</code> 删选中的整格。每条轨右上「清空本轨」可以整轨重来。</div>
+  </div>
+
+  <!-- 05 可编辑网格 -->
+  <div class="panel">
+    <div class="panel-title g">05 · 编曲网格（点格子就写）</div>
+    <div id="grid"></div>
+    <div class="hint" id="gridHint">左边是小节号＋和弦名，格子里是音名（K/S/H＝底鼓/军鼓/踩镲）。金色框＝选中格，播放时细金框＝当前步。载入不同作品，格子数会自动变成 12 或 16。</div>
+  </div>
+
+  <!-- 06 音色库 -->
+  <div class="panel">
+    <div class="panel-title g">06 · SLOOP 音色库（点一下直接盖到轨上）</div>
+    <div class="row">
+      <input type="text" id="bankSearch" placeholder="搜音色：harp / piano / 低音" style="width:210px">
+      <div class="field"><label>盖到哪条轨</label>
+        <select id="bankTarget"><option value="0">轨 1</option></select>
+      </div>
+      <button class="btn btn-sm" id="bankReset">显示全部</button>
+      <span class="hint" style="margin:0">157 个内置音色 + 46 个鼓组；点鼓组自动落到鼓轨，没有鼓轨就自动加一条。</span>
+    </div>
+    <div id="bankBox"></div>
+    <div class="hint">编号来自 SLOOP 固件 <code>ui.c</code> 的 <code>BANK[]</code>（0 起，PC 0 = 808 BOOM）。点中后若「推音色」开着，会立刻发 <code>CC0=0 + PC</code> 到设备。</div>
+  </div>
+
+  <!-- 07 推设备 / 导出 -->
+  <div class="panel">
+    <div class="panel-title">07 · 推到设备 / 蓝牙 / 导出</div>
+    <ol style="margin:0;padding-left:19px;font-size:12.5px;line-height:1.75;">
+      <li><b>马上听</b>：连接 → 播放。音符实时进 SLOOP，不写进机器音序器。</li>
+      <li><b>存进机器</b>：下载 4 个单轨 <code>.mid</code> → <a href="https://isod89.github.io/sloop-fm1/webapp/editor/" target="_blank" style="color:var(--cyan)">SLOOP 网页编辑器</a> → 逐轨 <code>Import MIDI</code> → <code>SAVE</code>。</li>
+      <li><b>只让蓝牙响</b>：开 <a href="fm1_monitor.html" target="_blank" style="color:var(--cyan)">fm1_monitor.html</a>（输入选 Felucca）→ FM1 上 <code>USB AUDIO = FULL</code> → <code>MASTER</code> 拧 0。顺序别反。</li>
+    </ol>
+    <div class="chain">本页 <span>→ USB → Felucca 发声</span> → USB 音频 → Mac → 监听页 → <span>蓝牙音箱</span></div>
+    <div class="row" style="margin-top:9px;">
+      <button class="btn btn-gold" id="expMachine">下载给机器的 4 个 .mid（多轨自动叠进去）</button>
+      <button class="btn" id="exp4">下载逐轨 .mid（有几条轨就几个文件）</button>
+      <button class="btn" id="exp1">下载合并 .mid（库乐队 / DAW）</button>
+    </div>
+    <div class="hint" style="margin-top:8px;"><b>机器上只有 4 条轨</b>：网页里加到 5 条以上时，
+      「给机器的 4 个 .mid」会把多出来的声部按通道叠进 1/2/3/10，一个音都不丢，直接逐轨 Import 就用。
+      「逐轨 .mid」是你在网页里看到的分层，给库乐队或者刷回 V16 八声部用。</div>
+    <div class="log" id="log">就绪。</div>
+  </div>
+
+  <div class="foot">SELF-WRITE · ADD / REMOVE TRACKS · IMPORT / EXPORT · SLOOP 157 SOUNDS · 1–12 TRACKS</div>
+</div>
+
+
+<!-- ===== SLOOP 2.8.5 真实音色表 ===== -->
+<script id="bank">
+/* SLOOP 2.8.5 固件 firmware/src/ui.c 的 BANK[] —— PRESETS 列表真实顺序，数组下标 = MIDI Program Change 值（0 起） */
+var SLOOP_BANK = [
+  ["Bass","808 BOOM"],
+  ["Bass","808 DIRTY"],
+  ["Bass","808 SLIDE"],
+  ["Bass","SUB BASS"],
+  ["Bass","PLUGG BASS"],
+  ["Bass","REESE"],
+  ["Bass","WOBBLE"],
+  ["Bass","ACID 303"],
+  ["Bass","FM BASS"],
+  ["Bass","CZ BASS"],
+  ["Bass","FAT BASS"],
+  ["Bass","FUNK BASS"],
+  ["Bass","WOW BASS"],
+  ["Bass","GB BASS"],
+  ["Bass","UP BASS"],
+  ["Bass","DEEP BASS"],
+  ["Bass","ROUND BASS"],
+  ["Bass","BASS GTR"],
+  ["Bass","MONO BASS"],
+  ["Bass","PLUCK BASS"],
+  ["Bass","NES BASS"],
+  ["Bass","SAW BASS"],
+  ["Keys","RHODES"],
+  ["Keys","DX RHODES"],
+  ["Keys","WURLI"],
+  ["Keys","M1 PIANO"],
+  ["Keys","AFRO KEYS"],
+  ["Keys","GRAND PNO"],
+  ["Keys","DUSTY PNO"],
+  ["Keys","LOFI KEYS"],
+  ["Keys","SOFT KEYS"],
+  ["Keys","CLAV"],
+  ["Keys","TINE EP"],
+  ["Keys","FM GRAND"],
+  ["Organ","SOUL ORGAN"],
+  ["Organ","GOSPEL"],
+  ["Organ","JAZZ ORGAN"],
+  ["Organ","DIRTY B3"],
+  ["Organ","HOUSE ORGN"],
+  ["Organ","DRAWBARS"],
+  ["Organ","ACCORDION"],
+  ["Organ","ROCK ORGAN"],
+  ["Organ","CHAPEL"],
+  ["Organ","REGGAE ORG"],
+  ["Pad","WARM PAD"],
+  ["Pad","SAW PAD"],
+  ["Pad","GLASS PAD"],
+  ["Pad","DARK STR"],
+  ["Pad","CZ STRING"],
+  ["Pad","ATMOS PAD"],
+  ["Pad","LOFI CLOUD"],
+  ["Pad","VIBE HAZE"],
+  ["Pad","CHOIR AAH"],
+  ["Pad","SOUL OOH"],
+  ["Pad","SOFT PAD"],
+  ["Pad","ENSEMBLE"],
+  ["Pad","STR CLOUD"],
+  ["Pad","SHIMMER"],
+  ["Pad","DRONE"],
+  ["Pad","BOWED MTL"],
+  ["Pad","WIND"],
+  ["Pad","CELLO BOW"],
+  ["Pad","GLASS BOWL"],
+  ["Pad","OCEAN"],
+  ["Pad","CZ PAD"],
+  ["Pad","VOX PAD"],
+  ["Pad","PNO FREEZE"],
+  ["Pad","HORN CLOUD"],
+  ["Pad","SINE PAD"],
+  ["Pad","PULSE PAD"],
+  ["Lead","SUPERSAW"],
+  ["Lead","G-FUNK LD"],
+  ["Lead","SYNC LEAD"],
+  ["Lead","HOOVER"],
+  ["Lead","TALKBOX"],
+  ["Lead","GAME LEAD"],
+  ["Lead","LOFI FLUTE"],
+  ["Lead","FLUTE DUST"],
+  ["Lead","FAT LEAD"],
+  ["Lead","PAN FLUTE"],
+  ["Lead","HARMONICA"],
+  ["Lead","NZ ARCADE"],
+  ["Lead","WAVE LEAD"],
+  ["Lead","CZ LEAD"],
+  ["Lead","ROBOT"],
+  ["Lead","PWM LEAD"],
+  ["Lead","SQR LEAD"],
+  ["Pluck & bell","TRAP PLUCK"],
+  ["Pluck & bell","RESO PLUCK"],
+  ["Pluck & bell","PLUGG BELL"],
+  ["Pluck & bell","TRAP BELL"],
+  ["Pluck & bell","MUSIC BOX"],
+  ["Pluck & bell","KALIMBA"],
+  ["Pluck & bell","MARIMBA"],
+  ["Pluck & bell","VIBES"],
+  ["Pluck & bell","8BIT ARP"],
+  ["Pluck & bell","GLASS BELL"],
+  ["Pluck & bell","WOOD BARS"],
+  ["Pluck & bell","NYLON PICK"],
+  ["Pluck & bell","HARP"],
+  ["Pluck & bell","STEEL DRUM"],
+  ["Pluck & bell","GLOCKEN"],
+  ["Pluck & bell","CELESTA"],
+  ["Pluck & bell","XYLOPHONE"],
+  ["Pluck & bell","STR PLUCK"],
+  ["Pluck & bell","SITAR"],
+  ["Pluck & bell","PHYS HARP"],
+  ["Pluck & bell","BELL TREE"],
+  ["Pluck & bell","MODAL BAR"],
+  ["Pluck & bell","THUMB PNO"],
+  ["Pluck & bell","NYLON GTR"],
+  ["Pluck & bell","STEEL GTR"],
+  ["Pluck & bell","MUTED GTR"],
+  ["Pluck & bell","KOTO"],
+  ["Pluck & bell","BANJO"],
+  ["Pluck & bell","TANPURA"],
+  ["Pluck & bell","CHIMES"],
+  ["Pluck & bell","BIG BELL"],
+  ["Pluck & bell","VIBRA BAR"],
+  ["Pluck & bell","STEEL PAN"],
+  ["Pluck & bell","WOOD BLOCK"],
+  ["Pluck & bell","1BIT BEEP"],
+  ["Pluck & bell","CZ RESO"],
+  ["Pluck & bell","TUBE BELL"],
+  ["Pluck & bell","FM PLUCK"],
+  ["Stab","MIN STAB"],
+  ["Stab","MIN7 STAB"],
+  ["Stab","RAVE STAB"],
+  ["Stab","DUB CHORD"],
+  ["Stab","SYN BRASS"],
+  ["Stab","CZ BRASS"],
+  ["Stab","HORN STAB"],
+  ["Stab","STRING STB"],
+  ["Stab","BRASS SECT"],
+  ["Stab","80S POLY"],
+  ["Stab","CHIP CHORD"],
+  ["Stab","POWER STAB"],
+  ["FX","SCRATCH"],
+  ["FX","GM KIT"],
+  ["FX","HAND DRUM"],
+  ["FX","MEMB TOMS"],
+  ["FX","RAIN"],
+  ["FX","NZ METAL"],
+  ["FX","TABLA"],
+  ["FX","CONGA"],
+  ["FX","TIMPANI"],
+  ["FX","VINYL"],
+  ["FX","HISS"],
+  ["FX","RISER"],
+  ["FX","NZ SNARE"],
+  ["FX","BITCRUSH"],
+  ["FX","RADIO"],
+  ["FX","CHIP NOISE"],
+  ["FX","BREAK 16"],
+  ["FX","CHOP 8"],
+  ["FX","REVERSE"],
+  ["FX","USR SLICE"]
+];
+/* firmware/src/drums.c DRUM_KIT_NAMES[] + web editor KIT[] —— 下标 = 鼓通道 PC 值（0 起） */
+var SLOOP_KITS = ["ACOUSTIC", "DEEP", "TIGHT", "BRIGHT", "DUST", "808", "909", "606", "80S", "VINTAGE", "TRAP", "DRILL", "BOOMBAP", "LO-FI", "PHONK", "HOUSE", "D.HOUSE", "TECHNO", "MINIMAL", "ELECTRO", "DISCO", "GARAGE", "JUNGLE", "DUBSTEP", "DEMBOW", "AMAPIANO", "AFRO", "LATIN", "TRIBAL", "SYNTHWV", "CHIP", "ARCADE", "GLITCH", "INDUSTR", "HYPER", "AMBIENT", "JAZZ", "USR1", "USR2", "USR3", "USR4", "USR3+4", "SYN1", "SYN2", "SYN3", "SYN4"];
+</script>
+
+<!-- ===== 纯逻辑 CORE（可独立 node 测） ===== -->
+<script id="core">
+/* CORE-START */
+var LALA = (function(){
+  var BARS  = 4;                  // 固定 4 小节（4/4 时 4×16 = 64 步，正好是 SLOOP 单轨上限）
+  var PPQ   = 96;
+  var STEP_TICKS = PPQ / 4;       // 十六分音符 = 24 tick
+  var STEPS = 12;                 // 默认 3/4：一小节 12 格
+  var BAR_TICKS  = STEPS * STEP_TICKS;
+
+  // 作品自带节拍：3/4 = 12 格，4/4 = 16 格
+  function stepsOf(o){ return (o && o.steps === 16) ? 16 : 12; }
+  function barTicks(o){ return stepsOf(o) * STEP_TICKS; }
+  function sigOf(o){ return stepsOf(o) === 16 ? 4 : 3; }
+
+  var TRACKS = [
+    {i:0,name:'Track1 Melody',cn:'轨1 · 旋律', ch:0, kit:false, color:'#ffd23d', role:'主旋律 / 想唱的那句'},
+    {i:1,name:'Track2 Chords',cn:'轨2 · 和弦', ch:1, kit:false, color:'#22e0ff', role:'铺底 / 一下一下的伴奏'},
+    {i:2,name:'Track3 Bass',  cn:'轨3 · 贝斯', ch:2, kit:false, color:'#ff8a3d', role:'根音 / 撑住低音'},
+    {i:3,name:'Track4 Drums', cn:'轨4 · 鼓',   ch:9, kit:true,  color:'#37e0a0', role:'底鼓 / 军鼓 / 踩镲'}
+  ];
+  var FILES = ['melody','chords','bass','drums'];
+
+  // ---- 内置作品 ①：3/4 夜色钢琴（原来写死的那份）----
+  var PROG = [
+    {name:'Am7',   voicing:[60,64,67], root:45, line:'开场：8 个一样的音，先不动，憋着'},
+    {name:'Dm7',   voicing:[57,60,65], root:50, line:'回答：第一次往上抬到 A5'},
+    {name:'G7',    voicing:[59,62,65], root:43, line:'往下走一串，攒着力气'},
+    {name:'Cmaj7', voicing:[59,64,67], root:48, line:'最亮的一小节，然后回到开头'}
+  ];
+  var MELODY = [
+    [ {s:0,n:76,d:1,v:56},{s:1,n:76,d:1,v:57},{s:2,n:76,d:1,v:58},{s:3,n:76,d:1,v:59},
+      {s:4,n:76,d:1,v:60},{s:5,n:76,d:1,v:61},{s:6,n:76,d:1,v:62},{s:7,n:76,d:1,v:63},
+      {s:8,n:77,d:2,v:66},{s:10,n:76,d:2,v:58} ],
+    [ {s:0,n:74,d:2,v:64},{s:2,n:77,d:2,v:66},{s:4,n:81,d:3,v:70},
+      {s:8,n:79,d:2,v:64},{s:10,n:77,d:2,v:60} ],
+    [ {s:0,n:79,d:2,v:68},{s:2,n:77,d:2,v:64},{s:4,n:76,d:2,v:62},{s:6,n:74,d:2,v:60},
+      {s:8,n:71,d:3,v:58},{s:11,n:74,d:1,v:56} ],
+    [ {s:0,n:76,d:3,v:66},{s:3,n:79,d:3,v:70},{s:6,n:81,d:3,v:74},
+      {s:9,n:79,d:2,v:66},{s:11,n:76,d:1,v:60} ]
+  ];
+
+  // ---- 【已弃用】旧版「按文字资料改编」的前奏，仅作代码留存，不再是默认作品 ----
+  // 这一版是我凭资料自己写的，不是谱子，用户明确指出方向错了。
+  // 真正的按谱复原见下面的 SIC_EXACT_*。以下保留只为不破坏旧存档引用。
+  // 依据（不逐音抄谱，按查到的段落特征做改编）：
+  //  ① 原声带豪华版里这段是独立纯器乐曲《Bathroom Mirror / You're Coming Right?》，
+  //     中文配乐赏析：「这段配乐恰好是下一首歌曲《人海中》的前奏旋律」，
+  //     「风铃、吉他和鼓等乐器先后出现」；Zanobard：playful drums / piano / strings，
+  //     是 an upbeat introduction to Someone In The Crowd。
+  //  ② 电影音乐论文：开头「吹管乐和弦乐弱起」「4/4 拍降 E 大调」「多为柱式和弦」
+  //     「八度分解和弦交替」「随着鼓点声的加重，音乐层次感更加丰富」。
+  //  ③ 和声取自公开 chord chart（capo3 的 C 调 = 实际 Eb 调）：
+  //     C–F/C–C | C–F/C–C | Dm–Em–Dm–C | C
+  //     → Eb–Ab/Eb–Eb | Eb–Ab/Eb–Eb | Fm–Gm–Fm–Eb | Eb
+  // 所以这版的重点不是旋律多花，而是「从第一个音开始，乐器一层一层加进来」：
+  //   小节1 只有钢琴 → 2 加弦乐柱式和弦 → 3 加走动贝斯+踩镲 → 4 鼓齐，推向人声。
+  var INTRO_PROG = [
+    {name:'Ebmaj7', voicing:[63,67,70], root:39, line:'两下 · 一下 · 四下 · 紧接两下（只有这 9 下）'},
+    {name:'Ab/Eb',  voicing:[56,60,63], root:39, line:'同样 9 下，底下加一层极轻和弦'},
+    {name:'Fm7',    voicing:[53,56,60], root:41, line:'同样 9 下，贝斯和踩镲进来'},
+    {name:'Gm7→Eb', voicing:[55,58,62], root:43, line:'同样 9 下，鼓齐，推向主歌'}
+  ];
+  var INTRO_CFG = {
+    bpm:118, master:56, swing:0.06, dyn:false, loop:true, sendPC:true, steps:16,
+    oct:[0,0,0,0], gain:[68,52,58,42], on:[true,true,true,true],
+    drum:{kick:36,snare:38,hat:42}, pc:[27,99,14,36]
+  };
+  function introEvents(o){
+    o=optsIn(o);
+    var D=o.drum, out=[];
+    // 轨1：一个 4 音分解和弦动机反复，每小节稍作变化，不炫技不连续蹦短音
+    var mel=[
+      [{s:0,n:63,d:2,v:52},{s:2,n:70,d:2,v:48},{s:4,n:67,d:2,v:50},{s:6,n:70,d:2,v:46},
+       {s:8,n:63,d:2,v:52},{s:10,n:70,d:2,v:48},{s:12,n:67,d:4,v:50}],
+      [{s:0,n:68,d:2,v:56},{s:2,n:63,d:2,v:50},{s:4,n:60,d:2,v:52},{s:6,n:63,d:2,v:48},
+       {s:8,n:68,d:2,v:56},{s:10,n:75,d:2,v:54},{s:12,n:70,d:4,v:52}],
+      [{s:0,n:65,d:2,v:58},{s:2,n:68,d:2,v:54},{s:4,n:72,d:2,v:60},{s:6,n:70,d:2,v:54},
+       {s:8,n:67,d:2,v:58},{s:10,n:70,d:2,v:56},{s:12,n:74,d:4,v:62}],
+      [{s:0,n:70,d:2,v:60},{s:2,n:67,d:2,v:56},{s:4,n:63,d:2,v:58},{s:6,n:67,d:2,v:54},
+       {s:8,n:70,d:2,v:62},{s:10,n:75,d:2,v:64},{s:12,n:74,d:4,v:60}]
+    ];
+    for(var b=0;b<BARS;b++){
+      var p=INTRO_PROG[b], ev=[[],[],[],[]];
+      mel[b].forEach(function(e){ ev[0].push({s:e.s,n:e.n,d:e.d,v:e.v}); });
+
+      // 轨2 柱式和弦：小节1 完全没有，之后每半小节一次，逐层变厚
+      if(b>=1){
+        [0,8].forEach(function(s){
+          p.voicing.forEach(function(n){ ev[1].push({s:s,n:n,d:4,v:28+b*6}); });
+        });
+      }
+      // 轨3 贝斯：小节1 只有一个长根音，之后走动起来（Eb 大调音阶上下）
+      if(b===0){
+        ev[2].push({s:0,n:p.root,d:8,v:38});
+      } else {
+        var walk=[p.root,p.root+4,p.root+7,p.root+4,p.root,p.root+7,p.root+12,p.root+7];
+        for(var k=0;k<8;k++){
+          ev[2].push({s:k*2,n:walk[k],d:2,v:(k===0?46:34+k*2)});
+        }
+      }
+      // 轨4 鼓：一件件进来 —— 1 空 / 2 两下轻踩镲 / 3 踩镲+一个底鼓 / 4 全套
+      if(b===1){ [0,8].forEach(function(s){ ev[3].push({s:s,n:D.hat,d:1,v:16}); }); }
+      if(b===2){
+        ev[3].push({s:0,n:D.kick,d:1,v:34});
+        [0,4,8,12].forEach(function(s){ ev[3].push({s:s,n:D.hat,d:1,v:20}); });
+      }
+      if(b===3){
+        [0,8].forEach(function(s,k){ ev[3].push({s:s,n:D.kick,d:1,v:k?36:48}); });
+        [4,12].forEach(function(s){ ev[3].push({s:s,n:D.snare,d:1,v:42}); });
+        [0,2,4,6,8,10,12,14].forEach(function(s){
+          ev[3].push({s:s,n:D.hat,d:1,v:(s%4===0?26:18)});
+        });
+      }
+      out.push(ev);
+    }
+    return out;
+  }
+
+  // ---- 内置作品 ⓪-真谱：Someone in the Crowd 最开头前奏（逐音按谱复原）----
+  // 谱源：虫虫钢琴《Someone in the crowd 钢琴谱完整版》制谱 dylanf（2026.6.29 版）
+  //       https://www.gangqinpu.com/cchtml/1208218.htm
+  // 谱面元数据：fifths = -3（降 E 大调）、4/4、tempo 461538us = 130 BPM、480 tick/四分。
+  // 下面 74 个音直接取自该谱 score.json / midi.json 的前 4 小节 note-on，
+  // 含原始音高、tick 落点、时值、力度、左右手；只做了 16 分格量化（本设备是步进音序器）。
+  // 分轨：轨1 = 右手最高音，轨2 = 右手其余和弦音，轨3 = 左手全部，轨4 = 空（原谱无鼓）。
+  // 敲击点 = 每小节 0/4/8/11/12/14 步，正好是「两下 · 一下 · 四下 · 紧接两下」。
+  var SIC_EXACT_PROG = [
+    {name:'Ab',  voicing:[56,63,68,72], root:56, line:'第1小节 Ab：谱面最开头，两下 · 一下 · 四下'},
+    {name:'Bb',  voicing:[58,65,70,74], root:58, line:'第2小节 Bb：紧接两下，旋律继续往上'},
+    {name:'Eb',  voicing:[51,58,70,79], root:51, line:'第3小节 Eb：右手加厚成三音'},
+    {name:'Cm',  voicing:[48,55,67,75], root:48, line:'第4小节 Cm：回到低处，接主歌'}
+  ];
+  var SIC_EXACT_CFG = {
+    bpm:130, master:60, swing:0, dyn:false, loop:true, sendPC:true, steps:16,
+    oct:[0,0,0,0], gain:[70,70,70,70], on:[true,true,true,true],
+    drum:{kick:36,snare:38,hat:42}, pc:[27,27,27,0]
+  };
+  function sicExactEvents(){
+    // [小节][轨][{s,n,d,v}] —— 由谱面 midi.json 逐音转换，未作任何旋律创作
+    return [
+      [[{s:0,n:72,d:2,v:57},{s:4,n:72,d:2,v:52},{s:8,n:72,d:3,v:53},{s:11,n:74,d:3,v:54},{s:14,n:75,d:2,v:51}],[{s:0,n:68,d:2,v:53},{s:4,n:68,d:2,v:48},{s:8,n:68,d:3,v:49},{s:11,n:70,d:3,v:50},{s:14,n:72,d:2,v:47}],[{s:0,n:63,d:2,v:58},{s:0,n:56,d:2,v:48},{s:4,n:63,d:2,v:53},{s:4,n:56,d:2,v:43},{s:8,n:63,d:4,v:54},{s:8,n:56,d:4,v:44},{s:12,n:63,d:4,v:50},{s:12,n:56,d:4,v:40}],[]],
+      [[{s:0,n:74,d:2,v:58},{s:4,n:74,d:2,v:53},{s:8,n:74,d:3,v:54},{s:11,n:75,d:3,v:55},{s:14,n:77,d:2,v:54}],[{s:0,n:70,d:2,v:54},{s:4,n:70,d:2,v:49},{s:8,n:70,d:3,v:50},{s:11,n:72,d:3,v:51},{s:14,n:74,d:2,v:50},{s:14,n:70,d:2,v:46}],[{s:0,n:65,d:2,v:59},{s:0,n:58,d:2,v:49},{s:4,n:65,d:2,v:54},{s:4,n:58,d:2,v:44},{s:8,n:65,d:4,v:55},{s:8,n:58,d:4,v:45},{s:12,n:65,d:4,v:51},{s:12,n:58,d:4,v:41}],[]],
+      [[{s:0,n:79,d:2,v:62},{s:4,n:79,d:2,v:57},{s:8,n:79,d:3,v:54},{s:11,n:82,d:3,v:54},{s:14,n:79,d:2,v:50}],[{s:0,n:75,d:2,v:58},{s:0,n:70,d:2,v:54},{s:4,n:75,d:2,v:53},{s:4,n:70,d:2,v:49},{s:8,n:70,d:3,v:50},{s:11,n:70,d:3,v:50},{s:14,n:70,d:2,v:46}],[{s:0,n:58,d:2,v:56},{s:0,n:51,d:2,v:46},{s:4,n:58,d:2,v:51},{s:4,n:51,d:2,v:41},{s:8,n:58,d:4,v:52},{s:8,n:51,d:4,v:42},{s:12,n:58,d:4,v:49},{s:12,n:50,d:4,v:39}],[]],
+      [[{s:0,n:75,d:2,v:56},{s:4,n:75,d:2,v:51},{s:8,n:75,d:3,v:52},{s:11,n:79,d:3,v:52},{s:14,n:75,d:2,v:48}],[{s:0,n:67,d:2,v:52},{s:4,n:67,d:2,v:47},{s:8,n:67,d:3,v:48},{s:11,n:67,d:3,v:48}],[{s:0,n:55,d:2,v:58},{s:0,n:48,d:2,v:48},{s:4,n:55,d:2,v:53},{s:4,n:48,d:2,v:43},{s:8,n:55,d:4,v:54},{s:8,n:48,d:4,v:44},{s:12,n:55,d:4,v:50},{s:12,n:48,d:4,v:40}],[]]
+    ];
+  }
+
+  // ---- 内置作品 ②：Someone in the Crowd 的「慢速钢琴独白」段落 ----
+  // 作曲 Justin Hurwitz 本人说明：副歌是 up-tempo 的百老汇大场面，但 Mia
+  // 独自在浴室那段「collapses into just piano with very, very light strings」，
+  // 同一条旋律「played slow and kind of rubato」就变得 very sad。
+  // 这里做的是后一段，不是派对大场面：C 小调（原调 Eb 大调的关系小调）、
+  // 68 BPM、3/4、长音留白、极轻弦乐铺底、完全不加鼓。
+  var SIC_PROG = [
+    {name:'Cm7',    voicing:[60,63,67], root:36, line:'一个人，先不出声'},
+    {name:'Abmaj7', voicing:[56,60,63], root:44, line:'轻轻抬一下，又收回去'},
+    {name:'Fm7',    voicing:[53,56,60], root:41, line:'最轻的一句，几乎听不见'},
+    {name:'G7',     voicing:[55,59,62], root:43, line:'悬着不解决，回到开头'}
+  ];
+  var SIC_CFG = {
+    bpm:68, master:48, swing:0, dyn:false, loop:true, sendPC:true, steps:12,
+    oct:[0,0,0,0], gain:[66,42,40,24], on:[true,true,true,true],
+    drum:{kick:36,snare:38,hat:42}, pc:[27,47,14,0]
+  };
+  function sicEvents(o){
+    o=optsIn(o);
+    var out=[];
+    // 旋律：每小节只有 3–4 个长音，有呼吸、先低后轻轻抬再落回，不切分不炫技
+    var mel=[
+      [{s:0,n:63,d:3,v:52},{s:4,n:67,d:2,v:48},{s:7,n:70,d:3,v:56},{s:10,n:67,d:2,v:44}],
+      [{s:0,n:68,d:3,v:54},{s:4,n:63,d:2,v:46},{s:6,n:60,d:3,v:50},{s:10,n:63,d:2,v:42}],
+      [{s:0,n:65,d:4,v:50},{s:5,n:60,d:3,v:44},{s:9,n:58,d:3,v:46}],
+      [{s:0,n:62,d:3,v:52},{s:4,n:67,d:3,v:58},{s:8,n:70,d:2,v:54},{s:10,n:67,d:2,v:40}]
+    ];
+    for(var b=0;b<BARS;b++){
+      var p=SIC_PROG[b], nx=SIC_PROG[(b+1)%BARS], ev=[[],[],[],[]];
+      mel[b].forEach(function(e){ ev[0].push({s:e.s,n:e.n,d:e.d,v:e.v}); });
+      // 和弦：一小节只落一次，长音铺底（对应 "very, very light strings"）
+      p.voicing.forEach(function(n){ ev[1].push({s:0,n:n,d:8,v:30}); });
+      // 贝斯：一个长根音 + 末尾半音靠近下一小节，不走路
+      ev[2].push({s:0,n:p.root,d:8,v:34});
+      var approach=(nx.root>p.root)?nx.root-1:nx.root+1;
+      ev[2].push({s:10,n:approach,d:2,v:22});
+      // 轨 4 故意全空：这段没有鼓，想要自己点格子加
+      out.push(ev);
+    }
+    return out;
+  }
+
+  var DEFAULTS = {
+    bpm:76, master:60, swing:0.08, dyn:true, steps:12,
+    oct:[0,0,0,0], gain:[70,55,60,45], on:[true,true,true,true],
+    drum:{kick:36,snare:38,hat:42}, pc:[27,99,14,36], sendPC:true
+  };
+
+  function optsIn(o){
+    var d = JSON.parse(JSON.stringify(DEFAULTS));
+    if(!o) return d;
+    Object.keys(o).forEach(function(k){
+      if(o[k] && typeof o[k]==='object' && !Array.isArray(o[k]) && d[k] && typeof d[k]==='object'){
+        Object.keys(o[k]).forEach(function(j){ d[k][j]=o[k][j]; });
+      } else if(o[k]!==undefined){ d[k]=o[k]; }
+    });
+    return d;
+  }
+
+  function noteName(m){
+    var names=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+    return names[((m%12)+12)%12] + (Math.floor(m/12)-1);
+  }
+
+function vel(v,o,t,b){
+  var dyn = o.dyn ? [0.82,0.92,1.00,0.94][b] : 1;
+  var g = (o.gain && o.gain[t] !== undefined) ? o.gain[t] : 70;
+  var x = v * dyn * (o.master/60) * (g/70);
+  return Math.max(1,Math.min(127,Math.round(x)));
+}
+
+  // 事件表 = [小节][轨][{s:步, n:基础音高, d:时值(步), v:力度意图(1..100)}]
+  // 这是「可编辑画布」，demoEvents 只是它的一个初始值。
+  function demoEvents(o){
+    o = optsIn(o);
+    var out=[];
+    for(var b=0;b<BARS;b++){
+      var p=PROG[b], nx=PROG[(b+1)%BARS];
+      var ev=[[],[],[],[]];
+      MELODY[b].forEach(function(e){ ev[0].push({s:e.s,n:e.n,d:e.d,v:e.v}); });
+      [4,8].forEach(function(s,k){
+        p.voicing.forEach(function(n){ ev[1].push({s:s,n:n,d:2,v:40+k*4}); });
+      });
+      ev[2].push({s:0,n:p.root,d:4,v:54});
+      ev[2].push({s:6,n:p.root+7,d:2,v:38});
+      var approach=(nx.root>p.root)?nx.root-1:nx.root+1;
+      ev[2].push({s:10,n:approach,d:2,v:34});
+      var D=o.drum;
+      [ {s:0,n:D.kick,v:46},{s:6,n:D.kick,v:18},
+        {s:2,n:D.hat,v:18},{s:4,n:D.hat,v:24},{s:6,n:D.hat,v:18},{s:8,n:D.hat,v:24},{s:10,n:D.hat,v:18},
+        {s:4,n:D.snare,v:20},{s:8,n:D.snare,v:16}
+      ].forEach(function(h){ ev[3].push({s:h.s,n:h.n,d:1,v:h.v}); });
+      out.push(ev);
+    }
+    return out;
+  }
+  function blankEvents(){
+    var out=[];
+    for(var b=0;b<BARS;b++){ out.push([[], [], [], []]); }
+    return out;
+  }
+
+  // 播放 / 网格 / 导出共用这一份数据，保证看到的和听到的一致
+function build(o,custom,prog,tracks){
+  o = optsIn(o);
+  var T = (tracks && tracks.length) ? tracks : TRACKS;
+  var src = custom || demoEvents(o);
+  var P = prog || PROG;
+  var bars=[];
+  for(var b=0;b<BARS;b++){
+    var p=P[b]||PROG[b], ev=[];
+    for(var q=0;q<T.length;q++) ev.push([]);
+    for(var t=0;t<T.length;t++){
+      var shift=T[t].kit?0:((o.oct[t]||0)*12);   // 鼓轨不做八度偏移
+      ((src[b]&&src[b][t])||[]).forEach(function(e){
+        ev[t].push({s:e.s,n:e.n+shift,d:e.d,v:vel(e.v,o,t,b)});
+      });
+    }
+    bars.push({name:p.name,voicing:p.voicing,root:p.root,line:p.line||'',ev:ev});
+  }
+  return {bars:bars,opts:o,src:src,prog:P,tracks:T};
+}
+
+function smfEvents(bars,ti,o,tracks){
+  var T=(tracks&&tracks.length)?tracks:TRACKS;
+  var tr=T[ti]||{ch:ti,kit:false}, list=[], bt=barTicks(o);
+  bars.forEach(function(bar,b){
+    (bar.ev[ti]||[]).forEach(function(e){
+      var n=Math.max(0,Math.min(127,e.n));
+      var t0=b*bt + e.s*STEP_TICKS;
+      var t1=t0 + Math.max(1,e.d)*STEP_TICKS - 3;
+      list.push({t:t0,order:4,bytes:[0x90|tr.ch,n,e.v]});
+      list.push({t:t1,order:3,bytes:[0x80|tr.ch,n,0]});
+    });
+  });
+  return list;
+}
+
+  function vlq(n){
+    var out=[n&0x7f]; n=Math.floor(n/128);
+    while(n>0){ out.unshift((n&0x7f)|0x80); n=Math.floor(n/128); }
+    return out;
+  }
+  function sb(s){ var a=[]; for(var i=0;i<s.length;i++) a.push(s.charCodeAt(i)&127); return a; }
+  function be32(n){ return [(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255]; }
+  function be16(n){ return [(n>>>8)&255,n&255]; }
+
+  function smfTrack(name,ch,events,bpm,pc,bank,o){
+    var us=Math.round(60000000/bpm);
+    var items=events.slice();
+    var nm=sb(name);
+    items.push({t:0,order:0,bytes:[0xFF,0x03].concat(vlq(nm.length),nm)});
+    items.push({t:0,order:0,bytes:[0xFF,0x51,0x03,(us>>>16)&255,(us>>>8)&255,us&255]});
+    items.push({t:0,order:0,bytes:[0xFF,0x58,0x04,sigOf(o),0x02,0x18,0x08]});
+    if(bank>=0) items.push({t:0,order:1,bytes:[0xB0|ch,0,bank&127]});
+    if(pc>=0) items.push({t:0,order:2,bytes:[0xC0|ch,pc&127]});
+    items.sort(function(a,b){ return (a.t-b.t) || ((a.order||0)-(b.order||0)); });
+    var body=[],last=0;
+    items.forEach(function(it){
+      vlq(it.t-last).forEach(function(x){ body.push(x); });
+      it.bytes.forEach(function(x){ body.push(x); });
+      last=it.t;
+    });
+    var end=BARS*barTicks(o);
+    vlq(Math.max(0,end-last)).forEach(function(x){ body.push(x); });
+    body.push(0xFF,0x2F,0x00);
+    return sb('MTrk').concat(be32(body.length),body);
+  }
+
+  function writeSMF(tracks,format,bpm,o){
+    o=optsIn(o);
+    var a=sb('MThd').concat(be32(6),be16(format),be16(tracks.length),be16(PPQ));
+    tracks.forEach(function(t){
+      a=a.concat(smfTrack(t.name,t.ch,t.events,bpm,(t.pc===undefined?-1:t.pc),(t.bank===undefined?-1:t.bank),o));
+    });
+    return new Uint8Array(a);
+  }
+
+  function fileOf(tr,i){ return FILES[i] || ('track'+(i+1)); }
+  function machineIndexOf(tr){ return tr.kit ? 3 : (tr.ch % 3); }
+function makeExports(o,custom,prog,tracks){
+  o=optsIn(o);
+  var T=(tracks&&tracks.length)?tracks:TRACKS;
+  var A=build(o,custom,prog,T), out=[];
+  T.forEach(function(tr,i){
+    var evs=smfEvents(A.bars,i,A.opts,T);
+    var pc=A.opts.sendPC ? A.opts.pc[i] : -1;
+    out.push({
+      name:'lalaland_tr'+(i+1)+'_'+fileOf(tr,i)+'.mid',
+      bytes:writeSMF([{name:tr.name||('Track'+(i+1)),ch:tr.ch,events:evs,pc:pc,bank:tr.kit?-1:0}],0,A.opts.bpm,A.opts)
+    });
+  });
+  var all=T.map(function(tr,i){
+    return {name:tr.name||('Track'+(i+1)),ch:tr.ch,events:smfEvents(A.bars,i,A.opts,T),
+            pc:A.opts.sendPC?A.opts.pc[i]:-1, bank:tr.kit?-1:0};
+  });
+  out.push({name:'lalaland_all'+T.length+'.mid',bytes:writeSMF(all,1,A.opts.bpm,A.opts)});
+  return out;
+}
+
+// 网页里可以随便加轨，但 SLOOP 机器只有 4 条物理轨（通道 1/2/3 = 合成、10 = 鼓）。
+// 这个导出把多出来的声部按通道折叠进那 4 条，一个音都不丢，直接逐轨 Import 就能全进去。
+function machineExports(o,custom,prog,tracks){
+  o=optsIn(o);
+  var T=(tracks&&tracks.length)?tracks:TRACKS;
+  var A=build(o,custom,prog,T), out=[];
+  var MCH=[0,1,2,9], MNAME=['Track1 Melody','Track2 Chords','Track3 Bass','Track4 Drums'];
+  var buckets=[[],[],[],[]], srcIdx=[-1,-1,-1,-1];
+  T.forEach(function(tr,i){
+    var m=machineIndexOf(tr);
+    if(srcIdx[m]<0) srcIdx[m]=i;
+    A.bars.forEach(function(bar,b){
+      (bar.ev[i]||[]).forEach(function(e){
+        buckets[m].push({t:b*barTicks(o)+e.s*STEP_TICKS,n:e.n,v:e.v,d:e.d});
+      });
+    });
+  });
+  buckets.forEach(function(list,m){
+    var evs=[];
+    list.forEach(function(x){
+      var n=Math.max(0,Math.min(127,x.n));
+      var t1=x.t+Math.max(1,x.d)*STEP_TICKS-3;
+      evs.push({t:x.t,order:4,bytes:[0x90|MCH[m],n,x.v]});
+      evs.push({t:t1,order:3,bytes:[0x80|MCH[m],n,0]});
+    });
+    var pc=(o.sendPC&&srcIdx[m]>=0)?o.pc[srcIdx[m]]:-1;
+    out.push({name:'lalaland_machine_tr'+(m+1)+'.mid',
+      bytes:writeSMF([{name:MNAME[m],ch:MCH[m],events:evs,pc:pc,bank:m<3?0:-1}],0,o.bpm,o)});
+  });
+  return out;
+}
+
+  return {
+    STEPS:STEPS,BARS:BARS,PPQ:PPQ,STEP_TICKS:STEP_TICKS,BAR_TICKS:BAR_TICKS,
+    TRACKS:TRACKS,PROG:PROG,MELODY:MELODY,DEFAULTS:DEFAULTS,FILES:FILES,
+    INTRO_PROG:INTRO_PROG,INTRO_CFG:INTRO_CFG,introEvents:introEvents,
+    SIC_PROG:SIC_PROG,SIC_CFG:SIC_CFG,sicEvents:sicEvents,
+    SIC_EXACT_PROG:SIC_EXACT_PROG,SIC_EXACT_CFG:SIC_EXACT_CFG,sicExactEvents:sicExactEvents,
+    noteName:noteName,optsIn:optsIn,build:build,demoEvents:demoEvents,blankEvents:blankEvents,
+    makeExports:makeExports,machineExports:machineExports,writeSMF:writeSMF,smfEvents:smfEvents,
+    MAX_TRACKS:12,machineIndexOf:machineIndexOf,
+    stepsOf:stepsOf,barTicks:barTicks,sigOf:sigOf
+  };
+})();
+if(typeof module!=='undefined' && module.exports) module.exports=LALA;
+/* CORE-END */
+</script>
+
+<!-- ===== 页面逻辑 ===== -->
+<script>
+/* ===== UI ===== */
+function $(id){ return document.getElementById(id); }
+function log(s){ var e=$('log'); if(!e) return; e.textContent += '\n'+s; e.scrollTop=e.scrollHeight; }
+function setStatus(t,c){ var s=$('status'); s.textContent=t; s.className='status'+(c?' '+c:''); }
+function clamp(v,a,b,d){ v=parseInt(v,10); return (isNaN(v)?d:Math.max(a,Math.min(b,v))); }
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+var midiOut=null, playing=false, timer=null, nextTime=0, stepAbs=0;
+var WORK=null, ARR=null, SEL=null, HIST=[], FUT=[], BUILTIN=null;
+var STORE='fm1_sloop_works_v2';
+
+/* ---------- 作品数据 ---------- */
+function uiCfg(c){
+  c=c||{};
+  var sw=(c.swing===undefined)?0.08:(c.swing>1?c.swing/100:c.swing);
+  return {
+    bpm:clamp(c.bpm||76,40,200,76), master:(c.master===undefined?60:c.master),
+    swing:Math.max(0,Math.min(0.4,sw)),
+    dyn:(c.dyn===undefined?true:!!c.dyn), loop:(c.loop===undefined?true:!!c.loop),
+    sendPC:(c.sendPC===undefined?true:!!c.sendPC),
+    oct:c.oct?c.oct.slice(0,4):[0,0,0,0],
+    gain:c.gain?c.gain.slice(0,4):[70,55,60,45],
+    on:c.on?c.on.slice(0,4):[true,true,true,true],
+    drum:Object.assign({kick:36,snare:38,hat:42},c.drum||{}),
+    pc:c.pc?c.pc.slice(0,4):[27,99,14,36]
+  };
+}
+function builtins(){
+  if(BUILTIN) return BUILTIN;
+  BUILTIN=[
+    {name:'Someone in the Crowd · 按谱复原前奏（130 BPM · 4/4 · 降E · 16 格）', steps:16,
+     cfg:uiCfg(LALA.SIC_EXACT_CFG), prog:clone(LALA.SIC_EXACT_PROG), events:LALA.sicExactEvents()},
+    {name:'练习示例 · 慢速钢琴独白（3/4 · 12 格）', steps:12,
+     cfg:uiCfg(LALA.SIC_CFG), prog:clone(LALA.SIC_PROG), events:LALA.sicEvents(LALA.SIC_CFG)},
+    {name:'练习示例 · 夜色共舞（3/4 · 12 格 · 华尔兹）', steps:12,
+     cfg:uiCfg(LALA.DEFAULTS), prog:clone(LALA.PROG), events:LALA.demoEvents(LALA.DEFAULTS)},
+    {name:'空白画布 · 自己从零写（4/4 · 16 格）', steps:16,
+     cfg:uiCfg(LALA.SIC_EXACT_CFG), prog:clone(LALA.SIC_EXACT_PROG), events:LALA.blankEvents()}
+  ];
+  return BUILTIN;
+}
+function normalizeWork(w){
+  if(!w || !Array.isArray(w.events)) throw new Error('作品格式不对：缺 events');
+  var steps=(w.steps===16)?16:12;
+  var fallback=clone(steps===16?LALA.SIC_EXACT_PROG:LALA.PROG);
+  var prog=(Array.isArray(w.prog)&&w.prog.length===LALA.BARS)?w.prog:fallback;
+  var ev=[];
+  for(var b=0;b<LALA.BARS;b++){
+    ev.push([]);
+    for(var t=0;t<4;t++){
+      var src=((w.events[b]||[])[t]||[]);
+      var list=src.filter(function(e){ return e && e.s>=0 && e.s<steps && e.n>=0 && e.n<=127; });
+      ev[b].push(list.map(function(e){
+        return {s:Math.floor(e.s), n:Math.floor(e.n),
+                d:Math.max(1,Math.min(steps,Math.floor(e.d||1))),
+                v:Math.max(1,Math.min(100,Math.floor(e.v||60)))};
+      }));
+    }
+  }
+  return {name:String(w.name||'导入的作品').slice(0,60), steps:steps,
+          cfg:uiCfg(w.cfg||{}), prog:prog, events:ev};
+}
+function workToJSON(w){
+  return {format:'fm1-sloop-work', version:1, name:w.name, steps:w.steps,
+          cfg:uiCfg(snapshotCfg()), prog:w.prog, events:w.events};
+}
+function snapshotCfg(){
+  return {
+    bpm:clamp($('bpm').value,40,200,76), master:+$('master').value,
+    swing:(+$('swing').value)/100, dyn:$('dyn').checked, loop:$('loop').checked,
+    sendPC:$('sendPC').checked,
+    oct:[0,1,2,3].map(function(i){ return clamp($('oct'+i).value,-2,2,0); }),
+    gain:[0,1,2,3].map(function(i){ return +$('gain'+i).value; }),
+    on:[0,1,2,3].map(function(i){ return $('on'+i).checked; }),
+    drum:drumNow(),
+    pc:[0,1,2,3].map(function(i){ return clamp($('pc'+i).value,0,(i===3?45:156),1); })
+  };
+}
+function applyCfgToUI(c){
+  $('bpm').value=c.bpm; $('master').value=c.master; $('swing').value=Math.round(c.swing*100);
+  $('dyn').checked=c.dyn; $('loop').checked=c.loop; $('sendPC').checked=c.sendPC;
+  c.oct.forEach(function(v,i){ $('oct'+i).value=v; });
+  c.gain.forEach(function(v,i){ $('gain'+i).value=v; });
+  c.on.forEach(function(v,i){ $('on'+i).checked=v; });
+  c.pc.forEach(function(v,i){ $('pc'+i).value=v; });
+  $('dKick').value=c.drum.kick; $('dSnare').value=c.drum.snare; $('dHat').value=c.drum.hat;
+}
+function setWork(w,quiet){
+  WORK=normalizeWork(w); HIST=[]; FUT=[]; SEL=null;
+  applyCfgToUI(WORK.cfg);
+  refresh();
+  if(!quiet) log('已载入「'+WORK.name+'」· '+(WORK.steps===16?'4/4 · 16 格':'3/4 · 12 格')+' · '+countNotes()+' 个音');
+}
+function countNotes(){
+  var n=0; WORK.events.forEach(function(b){ b.forEach(function(t){ n+=t.length; }); }); return n;
+}
+function drumNow(){
+  return {kick:clamp($('dKick').value,0,127,36),
+          snare:clamp($('dSnare').value,0,127,38),
+          hat:clamp($('dHat').value,0,127,42)};
+}
+function currentOpts(){
+  return {
+    bpm:clamp($('bpm').value,40,200,76),
+    master:+$('master').value, swing:(+$('swing').value)/100,
+    dyn:$('dyn').checked, steps:WORK.steps,
+    oct:[0,1,2,3].map(function(i){ return clamp($('oct'+i).value,-2,2,0); }),
+    gain:[0,1,2,3].map(function(i){ return +$('gain'+i).value; }),
+    on:[0,1,2,3].map(function(i){ return $('on'+i).checked; }),
+    drum:drumNow(),
+    pc:[0,1,2,3].map(function(i){ return clamp($('pc'+i).value,0,(i===3?45:156),1); }),
+    sendPC:$('sendPC').checked
+  };
+}
+
+/* ---------- 存档 ---------- */
+function loadStore(){ try{ var a=JSON.parse(localStorage.getItem(STORE)); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
+function saveStore(a){ try{ localStorage.setItem(STORE,JSON.stringify(a)); return true; }catch(e){ return false; } }
+function renderWorkSel(){
+  var sel=$('workSel'); sel.innerHTML='';
+  var g1=document.createElement('optgroup'); g1.label='内置（点载入就能用）';
+  builtins().forEach(function(w,i){
+    var o=document.createElement('option'); o.value='b'+i; o.textContent=w.name; g1.appendChild(o);
+  });
+  sel.appendChild(g1);
+  var st=loadStore();
+  if(st.length){
+    var g2=document.createElement('optgroup'); g2.label='我存的 / 导入的';
+    st.forEach(function(w,i){
+      var o=document.createElement('option'); o.value='s'+i; o.textContent='★ '+w.name; g2.appendChild(o);
+    });
+    sel.appendChild(g2);
+  }
+  $('storeList').textContent='浏览器里存了 '+st.length+' 套作品。';
+}
+function pickWork(){
+  var v=$('workSel').value||'b0';
+  if(v.charAt(0)==='b') return {w:builtins()[parseInt(v.slice(1),10)], stored:false, idx:-1};
+  var i=parseInt(v.slice(1),10), st=loadStore();
+  return {w:st[i], stored:true, idx:i};
+}
+
+/* ---------- 四轨控制台 / 音色库 ---------- */
+function buildPcSelect(i,val){
+  var kinds=[], by={};
+  SLOOP_BANK.forEach(function(e,n){ if(!by[e[0]]){by[e[0]]=[];kinds.push(e[0]);} by[e[0]].push(n); });
+  var h='<select class="sel" id="pc'+i+'">';
+  kinds.forEach(function(k){
+    h+='<optgroup label="'+esc(k)+'">';
+    by[k].forEach(function(n){
+      h+='<option value="'+n+'"'+(n===val?' selected':'')+'>'+n+' · '+esc(SLOOP_BANK[n][1])+'</option>';
+    });
+    h+='</optgroup>';
+  });
+  return h+'</select>';
+}
+function buildKitSelect(val){
+  return '<select class="sel" id="pc3">'+SLOOP_KITS.map(function(k,n){
+    return '<option value="'+n+'"'+(n===val?' selected':'')+'>'+n+' · '+esc(k)+'</option>';
+  }).join('')+'</select>';
+}
+function nameOfPc(i){
+  var v=clamp($('pc'+i).value,0,(i===3?45:156),0);
+  return i===3 ? (SLOOP_KITS[v]||String(v)) : (SLOOP_BANK[v]?SLOOP_BANK[v][1]:String(v));
+}
+function buildTrackRows(){
+  var box=$('trackRows'); box.innerHTML='';
+  LALA.TRACKS.forEach(function(tr){
+    var d=LALA.SIC_EXACT_CFG;
+    var pc=(tr.i===3)?buildKitSelect(d.pc[3]):buildPcSelect(tr.i,d.pc[tr.i]);
+    var oct=(tr.i===3)
+      ? '<span class="dash oct">—<input type="hidden" id="oct3" value="0"></span>'
+      : '<input class="num oct" type="number" min="-2" max="2" value="0" id="oct'+tr.i+'">';
+    var row=document.createElement('div'); row.className='trow';
+    row.innerHTML='<span class="tname"><i class="tdot" style="background:'+tr.color+'"></i><span>'+esc(tr.cn)+
+      '<span class="tsub">通道 '+(tr.ch+1)+' · '+esc(tr.role)+'</span></span></span>'+pc+oct+
+      '<input class="rng" type="range" min="0" max="100" value="'+d.gain[tr.i]+'" id="gain'+tr.i+'">'+
+      '<input class="chk" type="checkbox" checked id="on'+tr.i+'">'+
+      '<button class="btn btn-sm" data-solo="'+tr.i+'">试</button>';
+    box.appendChild(row);
+  });
+  box.addEventListener('input',refresh);
+  box.addEventListener('change',refresh);
+  box.querySelectorAll('[data-solo]').forEach(function(b){
+    b.addEventListener('click',function(){ testTrack(+b.dataset.solo); });
+  });
+}
+var KIND_CN={'Bass':'低音','Keys':'键盘钢琴','Organ':'风琴','Pad':'铺底氛围',
+  'Lead':'主音旋律','Pluck & bell':'拨弦铃铛','Stab':'短促和弦','FX':'效果打击'};
+function kindLabel(k){ return (KIND_CN[k]?KIND_CN[k]+' · ':'')+k; }
+function buildSoundBankPanel(){
+  var box=$('bankBox'); if(!box) return;
+  var kinds=[], by={};
+  SLOOP_BANK.forEach(function(e,n){ if(!by[e[0]]){by[e[0]]=[];kinds.push(e[0]);} by[e[0]].push(n); });
+  var h='';
+  kinds.forEach(function(k){
+    var dk=esc(k+' '+(KIND_CN[k]||''));
+    h+='<div class="bankhead" data-kind="'+dk+'">'+esc(kindLabel(k))+' · '+by[k].length+' 个</div><div class="bankgrid">';
+    by[k].forEach(function(n){
+      h+='<button class="bi" data-pc="'+n+'" data-kit="0" data-kind="'+dk+'" title="'+esc(kindLabel(k))+' · PC '+n+'">'+n+' · '+esc(SLOOP_BANK[n][1])+'</button>';
+    });
+    h+='</div>';
+  });
+  h+='<div class="bankhead" data-kind="DRUM KITS 鼓组">鼓组 · DRUM KITS · 46 组（通道 10，PC 0 起）</div><div class="bankgrid">';
+  SLOOP_KITS.forEach(function(k,n){
+    h+='<button class="bi" data-pc="'+n+'" data-kit="1" data-kind="DRUM KITS 鼓组" title="鼓组 · kit PC '+n+'">'+n+' · '+esc(k)+'</button>';
+  });
+  h+='</div>';
+  box.innerHTML=h;
+  box.querySelectorAll('.bi').forEach(function(b){
+    b.addEventListener('click',function(){
+      var pc=+b.dataset.pc, kit=+b.dataset.kit, t=+$('bankTarget').value;
+      if(kit && t!==3) t=3;
+      if(!kit && t===3) t=0;
+      $('bankTarget').value=t;
+      $('pc'+t).value=pc;
+      refresh();
+      log('轨 '+(t+1)+' → PC '+pc+' · '+nameOfPc(t)+(kit?'（鼓组）':''));
+      if(midiOut && $('sendPC').checked) pushPcs(currentOpts());
+    });
+  });
+}
+function highlightBank(){
+  var t=+$('bankTarget').value, cur=clamp($('pc'+t).value,0,156,0);
+  document.querySelectorAll('#bankBox .bi').forEach(function(b){
+    var same=(+b.dataset.pc===cur) && (((+b.dataset.kit)===1)===(t===3));
+    b.classList.toggle('sel',same);
+  });
+}
+function filterBank(){
+  var q=($('bankSearch').value||'').trim().toLowerCase();
+  document.querySelectorAll('#bankBox .bi').forEach(function(b){
+    var hay=(b.textContent+' '+b.dataset.kind).toLowerCase();
+    b.style.display=(!q||hay.indexOf(q)>=0)?'':'none';
+  });
+  document.querySelectorAll('#bankBox .bankgrid').forEach(function(g){
+    var any=[].slice.call(g.querySelectorAll('.bi')).some(function(b){ return b.style.display!=='none'; });
+    var head=g.previousElementSibling;
+    if(head && head.classList.contains('bankhead')) head.style.display=any?'':'none';
+  });
+}
+function pushPcs(o){
+  if(!midiOut){ setStatus('先点「连接设备」','bad'); return false; }
+  for(var i=0;i<3;i++){
+    send([0xB0|LALA.TRACKS[i].ch,0,0],0);
+    send([0xC0|LALA.TRACKS[i].ch,o.pc[i]&127],0);
+  }
+  send([0xC9,o.pc[3]&127],0);
+  var names=[0,1,2,3].map(function(i){ return nameOfPc(i); });
+  log('已推音色 → T1/T2/T3/T4 = '+o.pc.join('/')+'  ['+names.join(' | ')+']');
+  setStatus('音色已推：'+names.join(' / '),'ok');
+  return true;
+}
+
+/* ---------- 下拉框 ---------- */
+function fillNoteSelects(){
+  var h='';
+  for(var n=24;n<=108;n++) h+='<option value="'+n+'">'+n+' · '+LALA.noteName(n)+'</option>';
+  ['edNote','brushNote'].forEach(function(id){ $(id).innerHTML=h; });
+  $('edNote').value='60'; $('brushNote').value='60';
+}
+function fillDur(){
+  var steps=WORK.steps;
+  ['edDur','brushDur'].forEach(function(id){
+    var sel=$(id), old=sel.value;
+    var h='';
+    for(var d=1;d<=steps;d++) h+='<option value="'+d+'">'+d+'</option>';
+    sel.innerHTML=h;
+    sel.value=(old && +old<=steps)?old:String(Math.min(2,steps));
+  });
+}
+
+/* ---------- 网格 ---------- */
+function cellText(t,evs,D){
+  if(!evs.length) return '';
+  if(t===3) return evs.map(function(e){
+    return e.n===D.kick?'K':(e.n===D.snare?'S':(e.n===D.hat?'H':String(e.n)));
+  }).join('');
+  return evs.map(function(e){ return LALA.noteName(e.n); }).join('·');
+}
+function refresh(){
+  if(!WORK) return;
+  ARR=LALA.build(currentOpts(),WORK.events,WORK.prog);
+  buildSteps(); fillDur(); renderGrid(); renderSelBar(); highlightBank();
+  $('posHint').textContent='当前作品：'+WORK.name+'　|　'+
+    (WORK.steps===16?'4/4 · 每小节 16 格 · 共 64 步':'3/4 · 每小节 12 格 · 共 48 步')+
+    '　|　'+countNotes()+' 个音';
+}
+function buildSteps(){
+  var s=$('steps'), steps=WORK.steps;
+  s.style.gridTemplateColumns='repeat('+steps+',1fr)';
+  s.innerHTML='';
+  for(var i=0;i<steps;i++){
+    var d=document.createElement('div');
+    d.className='step'+(i%4===0?' beat':''); d.id='st'+i; s.appendChild(d);
+  }
+}
+function renderGrid(){
+  var box=$('grid'), A=ARR, steps=WORK.steps, D=A.opts.drum;
+  box.className='grid'+(steps===16?' grid16':'');
+  box.innerHTML='';
+  LALA.TRACKS.forEach(function(tr){
+    var wrap=document.createElement('div'); wrap.className='gtrack';
+    var head=document.createElement('div'); head.className='ghead';
+    head.innerHTML='<i class="tdot" style="background:'+tr.color+'"></i>'+esc(tr.cn)+
+      ' <small>通道 '+(tr.ch+1)+' · '+($('on'+tr.i).checked?'开':'关')+' · '+esc(nameOfPc(tr.i))+'</small>';
+    var clr=document.createElement('button'); clr.className='btn btn-sm'; clr.textContent='清空本轨';
+    clr.addEventListener('click',function(){ clearTrack(tr.i); });
+    head.appendChild(clr); wrap.appendChild(head);
+    for(var b=0;b<LALA.BARS;b++){
+      var row=document.createElement('div'); row.className='maprow';
+      row.style.gridTemplateColumns='70px repeat('+steps+',1fr)';
+      var lab=document.createElement('div'); lab.className='maplabel';
+      lab.innerHTML='<b>'+(b+1)+' · '+esc(A.bars[b].name)+'</b><span>根音 '+LALA.noteName(A.bars[b].root)+'</span>';
+      row.appendChild(lab);
+      for(var s=0;s<steps;s++){
+        var evs=A.bars[b].ev[tr.i].filter(function(e){ return e.s===s; });
+        var cell=document.createElement('div');
+        cell.className='cell'+((s%4===0)?' beat':'')+(evs.length?' has':'')+
+          ((tr.i===1&&evs.length>1)?' col':'')+
+          (SEL&&SEL.t===tr.i&&SEL.b===b&&SEL.s===s?' sel':'');
+        cell.id='c'+tr.i+'_'+b+'_'+s;
+        if(evs.length){
+          if(tr.i===1&&evs.length>1){
+            cell.innerHTML=evs.map(function(e){ return '<span class="chord3">'+LALA.noteName(e.n)+'</span>'; }).join('');
+          } else {
+            var txt=cellText(tr.i,evs,D);
+            cell.textContent=txt.length>9?txt.slice(0,8)+'…':txt;
+          }
+          cell.title=tr.cn+' / 第'+(b+1)+'小节 '+A.bars[b].name+' / 第'+(s+1)+'格\n'+
+            evs.map(function(e){ return (tr.i===3?('鼓音符 '+e.n):LALA.noteName(e.n))+'　力度 '+e.v+'　长 '+e.d+' 格'; }).join('\n');
+        } else {
+          cell.title=tr.cn+' / 第'+(b+1)+'小节 / 第'+(s+1)+'格：空（点一下写音）';
+        }
+        (function(t,bb,ss){ cell.addEventListener('click',function(){ onCell(t,bb,ss); }); })(tr.i,b,s);
+        row.appendChild(cell);
+      }
+      wrap.appendChild(row);
+    }
+    box.appendChild(wrap);
+  });
+}
+function srcList(){
+  if(!SEL) return [];
+  return WORK.events[SEL.b][SEL.t].filter(function(e){ return e.s===SEL.s; });
+}
+function onCell(t,b,s){
+  var list=WORK.events[b][t].filter(function(e){ return e.s===s; });
+  if(!list.length){ addBrush(t,b,s); return; }
+  SEL={t:t,b:b,s:s};
+  document.querySelectorAll('.cell.sel').forEach(function(c){ c.classList.remove('sel'); });
+  var c=$('c'+t+'_'+b+'_'+s); if(c) c.classList.add('sel');
+  renderSelBar();
+}
+function addBrush(t,b,s){
+  pushHistory();
+  var steps=WORK.steps;
+  var dur=clamp($('brushDur').value,1,steps,2);
+  var vel=clamp($('brushVel').value,1,100,62);
+  var shift=(t===3)?0:clamp($('oct'+t).value,-2,2,0)*12;
+  var made=[], arr=WORK.events[b][t];
+  if(t===3){
+    var D=drumNow(), map={K:D.kick,S:D.snare,H:D.hat};
+    made.push({s:s,n:map[$('brushDrum').value]||D.kick,d:1,v:vel});
+  } else {
+    var mode=$('brushMode').value, p=WORK.prog[b]||LALA.PROG[0];
+    if(mode==='chord'){
+      p.voicing.forEach(function(n){ made.push({s:s,n:Math.max(0,Math.min(127,n-shift)),d:dur,v:vel}); });
+    } else if(mode==='fixed'){
+      made.push({s:s,n:Math.max(0,Math.min(127,clamp($('brushNote').value,0,127,60)-shift)),d:dur,v:vel});
+    } else {
+      made.push({s:s,n:Math.max(0,Math.min(127,p.voicing[(s/4|0)%p.voicing.length]-shift)),d:dur,v:vel});
+    }
+  }
+  made.forEach(function(e){ arr.push(e); });
+  SEL={t:t,b:b,s:s};
+  refresh();
+  log('写 '+made.length+' 个音 → 轨'+(t+1)+' / 第'+(b+1)+'小节 / 第'+(s+1)+'格');
+}
+function renderSelBar(){
+  var who=$('edWho'), ctl=$('edControls');
+  var list=srcList();
+  if(!SEL || !list.length){
+    who.textContent='点网格里的格子开始写'; ctl.style.display='none'; return;
+  }
+  who.textContent='选中：轨'+(SEL.t+1)+' / 第'+(SEL.b+1)+'小节 / 第'+(SEL.s+1)+'格 · '+list.length+' 个音';
+  ctl.style.display='flex';
+  var shift=(SEL.t===3)?0:clamp($('oct'+SEL.t).value,-2,2,0)*12;
+  $('edNote').value=String(Math.max(0,Math.min(127,list[0].n+shift)));
+  $('edDur').value=String(Math.min(WORK.steps,list[0].d));
+  $('edVel').value=list[0].v;
+}
+function editSel(field,val){
+  var list=srcList(); if(!list.length) return;
+  pushHistory();
+  if(field==='n'){
+    var shift=(SEL.t===3)?0:clamp($('oct'+SEL.t).value,-2,2,0)*12;
+    list[0].n=Math.max(0,Math.min(127,Math.floor(val)-shift));
+  } else if(field==='d'){
+    list.forEach(function(e){ e.d=Math.max(1,Math.min(WORK.steps,Math.floor(val))); });
+  } else if(field==='v'){
+    list.forEach(function(e){ e.v=Math.max(1,Math.min(100,Math.floor(val))); });
+  }
+  refresh();
+}
+function delOne(){
+  var list=srcList(); if(!list.length) return;
+  pushHistory();
+  var arr=WORK.events[SEL.b][SEL.t], i=arr.indexOf(list[0]);
+  if(i>=0) arr.splice(i,1);
+  if(!srcList().length) SEL=null;
+  refresh();
+}
+function delCell(){
+  if(!SEL) return;
+  pushHistory();
+  var t=SEL.t,b=SEL.b,s=SEL.s;
+  WORK.events[b][t]=WORK.events[b][t].filter(function(e){ return e.s!==s; });
+  SEL=null; refresh();
+}
+function clearTrack(t){
+  pushHistory();
+  for(var b=0;b<LALA.BARS;b++) WORK.events[b][t]=[];
+  SEL=null; refresh(); log('已清空轨 '+(t+1)+'，可以整轨重写了。');
+}
+function pushHistory(){
+  HIST.push(clone(WORK.events));
+  if(HIST.length>60) HIST.shift();
+  FUT=[];
+}
+function undo(){
+  if(!HIST.length){ log('没有可撤销的了'); return; }
+  FUT.push(clone(WORK.events)); WORK.events=HIST.pop(); SEL=null; refresh(); log('↶ 撤销');
+}
+function redo(){
+  if(!FUT.length){ log('没有可重做的了'); return; }
+  HIST.push(clone(WORK.events)); WORK.events=FUT.pop(); SEL=null; refresh(); log('↷ 重做');
+}
+function copyBar(){
+  pushHistory();
+  for(var b=1;b<LALA.BARS;b++)
+    for(var t=0;t<4;t++) WORK.events[b][t]=clone(WORK.events[0][t]);
+  SEL=null; refresh(); log('第 1 小节已复制到 2/3/4 小节。');
+}
+
+/* ---------- 走带 ---------- */
+async function connect(){
+  try{
+    if(!navigator.requestMIDIAccess){
+      setStatus('这个环境不给 Web MIDI','bad');
+      log('navigator.requestMIDIAccess 不存在：多半是嵌在预览 iframe 里，或浏览器不支持。请用独立 Chrome/Edge 标签页打开本文件。');
+      return;
+    }
+    var access=await navigator.requestMIDIAccess();
+    // MIDIOutputMap.values() 是 iterator（没有 length），必须 Array.from / 展开，
+    // 不能用 [].slice.call(...) —— 那样永远得到空数组，会误报「没找到设备」。
+    var outs=Array.from(access.outputs.values());
+    if(!outs.length){
+      setStatus('没找到 MIDI 输出设备','bad');
+      log('Web MIDI 已授权但输出列表为空。检查：USB 是不是数据线、设备有没有掉线、浏览器站点权限里 MIDI 是否被关。');
+      return;
+    }
+    log('Web MIDI 输出：'+outs.map(function(o){ return o.name||'(无名)'; }).join(' / '));
+    midiOut=outs.find(function(o){ return /Felucca|SLOOP|Hügelton|FM.?1|M-?VAVE|Cuvave/i.test(o.name||''); })||outs[0];
+    setStatus('已连接：'+midiOut.name,'ok');
+    $('play').disabled=false;
+    log('连接成功 → '+midiOut.name+'（通道 1/2/3 = 合成轨，10 = 鼓轨）');
+  }catch(e){
+    if(/permissions policy|iframe/i.test(e.message||'')){
+      setStatus('被预览框禁了 MIDI，请独立标签页打开','bad');
+      log('本页被嵌在 iframe 里，Web MIDI 被权限策略禁用。请用独立 Chrome/Edge 打开本文件。');
+    } else if(/NotAllowed|Permission|denied|security/i.test(e.name+' '+(e.message||''))){
+      setStatus('MIDI 权限被拒，去地址栏左侧图标放行','bad');
+      log('浏览器拒绝 MIDI 权限（'+e.name+'）。点地址栏左侧的锁/图标 → 网站设置 → MIDI 设备改成「允许」，再刷新本页。');
+    } else { setStatus('连接失败：'+e.message,'bad'); log('错误：'+e.message); }
+  }
+}
+function send(arr,t){ if(midiOut) midiOut.send(arr,t); }
+function testTrack(i){
+  if(!midiOut){ setStatus('先连接设备','bad'); return; }
+  var tr=LALA.TRACKS[i], o=currentOpts();
+  var n=i===3?o.drum.kick:(i===2?48:72);
+  var first=LALA.build(o,WORK.events,WORK.prog).bars[0].ev[i][0];
+  var v=first?first.v:60;
+  send([0x90|tr.ch,n,v],0);
+  setTimeout(function(){ send([0x80|tr.ch,n,0],0); },260);
+  log('试音 '+tr.cn+' → 通道 '+(tr.ch+1)+' / '+LALA.noteName(n)+' / 力度 '+v);
+}
+function play(){
+  if(!midiOut){ setStatus('先点「连接设备」','bad'); return; }
+  var o=currentOpts(); ARR=LALA.build(o,WORK.events,WORK.prog);
+  if(o.sendPC) pushPcs(o);
+  else log('未发 Program Change，保持机器上 4 条轨当前的音色。');
+  playing=true; stepAbs=0; nextTime=performance.now()+80;
+  $('play').disabled=true; $('stop').disabled=false;
+  timer=setInterval(scheduler,25);
+  log('▶ PLAY  '+WORK.name+'  BPM='+o.bpm+'  '+WORK.steps+' 格/小节 · 共 '+(WORK.steps*4)+' 步'+
+    ($('loop').checked?' · 循环':' · 只放一遍'));
+}
+function scheduler(){
+  if(!playing) return;
+  var o=currentOpts(); ARR=LALA.build(o,WORK.events,WORK.prog);
+  var steps=WORK.steps, stepDur=(60/o.bpm)*1000/4;
+  while(nextTime < performance.now()+120){
+    var b=Math.floor(stepAbs/steps), s=stepAbs%steps;
+    if(b>=LALA.BARS){
+      if($('loop').checked){ stepAbs=0; b=0; s=0; nextTime=performance.now()+10; }
+      else { stop(); return; }
+    }
+    (function(bb,ss,tt){
+      var bar=ARR.bars[bb];
+      LALA.TRACKS.forEach(function(tr){
+        if(!o.on[tr.i]) return;
+        bar.ev[tr.i].forEach(function(e){
+          if(e.s!==ss) return;
+          var sw=(ss%2===1)?stepDur*o.swing*0.5:0;
+          var tOn=tt+sw, dur=Math.max(1,e.d)*stepDur;
+          send([0x90|tr.ch,e.n,e.v],tOn);
+          send([0x80|tr.ch,e.n,0],tOn+Math.max(35,dur-18));
+        });
+      });
+      var delay=Math.max(0,tt-performance.now());
+      setTimeout(function(){ if(playing) markStep(bb,ss); },delay);
+    })(b,s,nextTime);
+    stepAbs++; nextTime+=stepDur;
+  }
+}
+function markStep(b,s){
+  for(var i=0;i<WORK.steps;i++){ var e=$('st'+i); if(e) e.classList.remove('on'); }
+  var e2=$('st'+s); if(e2) e2.classList.add('on');
+  document.querySelectorAll('.cell.now').forEach(function(c){ c.classList.remove('now'); });
+  for(var t=0;t<4;t++){ var c=$('c'+t+'_'+b+'_'+s); if(c) c.classList.add('now'); }
+  $('posHint').textContent='第 '+(b+1)+' 小节 · 第 '+(s+1)+' 格　|　'+ARR.bars[b].name+
+    '，根音 '+LALA.noteName(ARR.bars[b].root)+'。';
+}
+function panic(){
+  if(!midiOut) return;
+  [0,1,2,9].forEach(function(ch){
+    send([0xB0|ch,123,0],0);
+    for(var n=0;n<128;n++) send([0x80|ch,n,0],0);
+  });
+  log('已全通道静音');
+}
+function stop(){
+  playing=false; clearInterval(timer);
+  if(midiOut && midiOut.clear) try{ midiOut.clear(); }catch(e){}
+  panic();
+  $('play').disabled=false; $('stop').disabled=true;
+  document.querySelectorAll('.cell.now,.step.on').forEach(function(c){ c.classList.remove('now','on'); });
+  refresh();
+  log('■ STOP');
+}
+
+/* ---------- .mid 读取（纯函数，可独立测） ---------- */
+function parseSMF(u,steps){
+  function u32(i){ return ((u[i]<<24)|(u[i+1]<<16)|(u[i+2]<<8)|u[i+3])>>>0; }
+  function u16(i){ return (u[i]<<8)|u[i+1]; }
+  function vlq(i){
+    var v=0,c=0;
+    do{ c=u[i++]; v=(v<<7)|(c&127); }while((c&128)&&i<u.length);
+    return [v,i];
+  }
+  if(String.fromCharCode(u[0],u[1],u[2],u[3])!=='MThd') throw new Error('不是标准 .mid 文件');
+  // MThd: 'MThd'(4) + len(4) + format(2) + ntracks(2) + division(2)
+  var hlen=u32(4), ntr=u16(10), div=u16(12), p=8+hlen;
+  if(!div || div>32767) throw new Error('MIDI 时间基准不认识');
+  var bpm=null, notes=[];
+  var q=div/4;
+  for(var ti=0;ti<ntr;ti++){
+    if(p+8>u.length) break;
+    if(String.fromCharCode(u[p],u[p+1],u[p+2],u[p+3])!=='MTrk') break;
+    var len=u32(p+4), s=p+8, end=Math.min(s+len,u.length), t=0, rs=0, on={};
+    while(s<end){
+      var r=vlq(s); t+=r[0]; s=r[1];
+      if(s>=end) break;
+      var st=u[s];
+      if(st<0x80){ st=rs; } else { s++; rs=st; }
+      if(st===0xFF){
+        var mt=u[s++]; var lr=vlq(s); var dl=lr[0]; s=lr[1];
+        if(mt===0x51 && dl>=3){ var us=(u[s]<<16)|(u[s+1]<<8)|u[s+2]; bpm=Math.round(60000000/us); }
+        s+=dl;
+      } else if(st===0xF0||st===0xF7){
+        var lr2=vlq(s); s=lr2[1]+lr2[0];
+      } else {
+        var hi=st&0xF0, ch=st&0x0F, d1=u[s++]||0;
+        var d2=(hi===0xC0||hi===0xD0)?0:(u[s++]||0);
+        if(hi===0x90 && d2>0){
+          on[ch+'_'+d1]={t:t,n:d1,v:d2,ch:ch};
+        } else if(hi===0x80 || (hi===0x90 && d2===0)){
+          var k=ch+'_'+d1, o=on[k];
+          if(o){ notes.push({t:o.t,n:o.n,v:o.v,ch:o.ch,dur:Math.max(1,Math.round((t-o.t)/q))}); delete on[k]; }
+        }
+      }
+    }
+    Object.keys(on).forEach(function(k){
+      var o=on[k]; notes.push({t:o.t,n:o.n,v:o.v,ch:o.ch,dur:2});
+    });
+    p=end;
+  }
+  return {notes:notes,bpm:bpm,division:div};
+}
+function mergeMidi(P,fname){
+  pushHistory();
+  var steps=WORK.steps, maxSteps=steps*LALA.BARS;
+  var buckets=[[],[],[],[]], counts=[0,0,0,0], skipped=0;
+  P.notes.forEach(function(n){
+    var st=Math.round(n.t/(P.division/4));
+    if(st<0||st>=maxSteps){ skipped++; return; }
+    var b=Math.floor(st/steps), s=st%steps;
+    var t=(n.ch===9)?3:Math.min(2,n.ch%3);
+    var d=Math.max(1,Math.min(steps-s,n.dur||1));
+    buckets[t].push({b:b,s:s,n:n.n,d:d,v:Math.max(1,Math.min(100,n.v||60))});
+    counts[t]++;
+  });
+  for(var t=0;t<4;t++){
+    if(!counts[t]) continue;
+    for(var b=0;b<LALA.BARS;b++) WORK.events[b][t]=[];
+    buckets[t].forEach(function(e){ WORK.events[e.b][t].push({s:e.s,n:e.n,d:e.d,v:e.v}); });
+  }
+  if(P.bpm && P.bpm>=40 && P.bpm<=200) $('bpm').value=P.bpm;
+  SEL=null; refresh();
+  var used=counts.map(function(c,i){ return c?('T'+(i+1)+':'+c):null; }).filter(Boolean).join(' / ');
+  log('导入 '+fname+'：'+P.notes.length+' 个音符 → '+used+
+    (skipped?('，超出 4 小节砍掉 '+skipped+' 个'):'')+(P.bpm?('，BPM '+P.bpm):''));
+  if(!counts.reduce(function(a,b){return a+b;},0)) log('这个文件里没读到音符，作品保持原样。');
+}
+
+/* ---------- 下载 ---------- */
+function safeName(s){ return String(s).replace(/[\\/:*?"<>|\s]+/g,'_').slice(0,40)||'work'; }
+function download(bytes,name){
+  var blob=new Blob([bytes],{type:'audio/midi'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500);
+}
+function downloadText(txt,name){
+  var blob=new Blob([txt],{type:'application/json;charset=utf-8'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500);
+}
+function doExport(n){
+  var list=LALA.makeExports(currentOpts(),WORK.events,WORK.prog);
+  var pre=safeName(WORK.name)+'_';
+  function rn(f){ return f.name.replace(/^lalaland_/,pre); }
+  if(n===4){
+    list.slice(0,4).forEach(function(f,i){ setTimeout(function(){ download(f.bytes,rn(f)); },i*350); });
+    log('导出 4 个单轨 .mid（'+WORK.name+'）：逐轨在 SLOOP 编辑器 Sequencer → Import MIDI 里导入。');
+  } else {
+    var f=list[4]; download(f.bytes,rn(f));
+    log('导出 '+rn(f)+'（Type 1 四轨合并，通道 1/2/3/10）。');
+  }
+}
+
+/* ---------- 启动 ---------- */
+document.addEventListener('DOMContentLoaded',function(){
+  fillNoteSelects(); buildSoundBankPanel();
+  renderWorkSel(); setWork(builtins()[0],true);
+  $('log').textContent='';
+
+  $('connect').addEventListener('click',connect);
+  $('play').addEventListener('click',play);
+  $('stop').addEventListener('click',stop);
+  $('panic').addEventListener('click',panic);
+  $('pushSounds').addEventListener('click',function(){ pushPcs(currentOpts()); });
+  $('exp4').addEventListener('click',function(){ doExport(4); });
+  $('exp1').addEventListener('click',function(){ doExport(1); });
+  $('expMachine').addEventListener('click',function(){ doExport('machine'); });
+  $('addTrackBtn').addEventListener('click',addTrack);
+  $('delTrackBtn').addEventListener('click',function(){ removeTrack(WORK.tracks.length-1); });
+
+  $('loadWork').addEventListener('click',function(){
+    var p=pickWork();
+    if(!p.w){ setStatus('这个作品找不到了','bad'); return; }
+    setWork(p.w);
+  });
+  $('delStore').addEventListener('click',function(){
+    var p=pickWork();
+    if(!p.stored){ log('内置作品删不掉，只能删自己存的。'); return; }
+    var a=loadStore(); a.splice(p.idx,1); saveStore(a); renderWorkSel();
+    log('已删掉存档「'+p.w.name+'」');
+  });
+  $('saveStore').addEventListener('click',function(){
+    var nm=($('storeName').value||'').trim();
+    var w=workToJSON(WORK);
+    if(nm) w.name=nm;
+    var a=loadStore(); a.push(w);
+    if(!saveStore(a)){ setStatus('浏览器不让存，改用「导出 .json」','bad'); return; }
+    $('storeName').value=''; renderWorkSel();
+    log('已存到浏览器：「'+w.name+'」（'+countNotes()+' 个音）');
+  });
+  $('exportWork').addEventListener('click',function(){
+    var w=workToJSON(WORK);
+    downloadText(JSON.stringify(w,null,1),safeName(w.name)+'.json');
+    log('导出作品：'+safeName(w.name)+'.json（发给别人，他点「导入文件」就能接着改）');
+  });
+  $('importFile').addEventListener('click',function(){ $('fileInput').click(); });
+  $('fileInput').addEventListener('change',function(e){
+    var f=e.target.files[0]; if(!f) return;
+    var nm=f.name.toLowerCase(), rd=new FileReader();
+    if(/\.json$/.test(nm)){
+      rd.onload=function(){
+        try{
+          var w=JSON.parse(rd.result);
+          if(w.format && w.format!=='fm1-sloop-work') throw new Error('不是本页的作品 .json');
+          if(!w.name) w.name=f.name.replace(/\.json$/i,'');
+          setWork(w); renderWorkSel();
+          log('导入作品 '+f.name+' → 「'+WORK.name+'」');
+        }catch(err){ setStatus('导入失败：'+err.message,'bad'); log('导入失败：'+err.message); }
+      };
+      rd.readAsText(f);
+    } else {
+      rd.onload=function(){
+        try{ mergeMidi(parseSMF(new Uint8Array(rd.result),WORK.steps),f.name); }
+        catch(err){ setStatus('导入失败：'+err.message,'bad'); log('导入失败：'+err.message); }
+      };
+      rd.readAsArrayBuffer(f);
+    }
+    e.target.value='';
+  });
+
+  $('newBlank').addEventListener('click',function(){ setWork(builtins()[3]); });
+  $('loadDemo').addEventListener('click',function(){ setWork(builtins()[0]); });
+  $('undo').addEventListener('click',undo);
+  $('redo').addEventListener('click',redo);
+  $('copyBar').addEventListener('click',copyBar);
+  $('brushMode').addEventListener('change',function(){ $('brushNote').disabled=(this.value!=='fixed'); });
+  $('edNote').addEventListener('change',function(){ editSel('n',+this.value); });
+  $('edDur').addEventListener('change',function(){ editSel('d',+this.value); });
+  $('edVel').addEventListener('change',function(){ editSel('v',+this.value); });
+  $('edOne').addEventListener('click',delOne);
+  $('edDel').addEventListener('click',delCell);
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Delete'&&e.key!=='Backspace') return;
+    if(/INPUT|SELECT|TEXTAREA/.test((document.activeElement||{}).tagName||'')) return;
+    if(!SEL) return;
+    e.preventDefault(); delCell();
+  });
+  $('bankSearch').addEventListener('input',filterBank);
+  $('bankReset').addEventListener('click',function(){ $('bankSearch').value=''; filterBank(); });
+  $('bankTarget').addEventListener('change',highlightBank);
+  ['bpm','master','swing','dyn','loop','sendPC','dKick','dSnare','dHat'].forEach(function(id){
+    $(id).addEventListener('input',refresh); $(id).addEventListener('change',refresh);
+  });
+
+  log('默认作品：Someone in the Crowd 最开头前奏，逐音按谱复原（130 BPM · 4/4 · 降 E 大调 · 16 格）。');
+  log('谱源：虫虫钢琴 dylanf 编配《Someone in the crowd 钢琴谱完整版》1208218；前 4 小节 74 个音，来自该谱原始 MIDI 事件，未自行创作。');
+  log('节奏：每小节 0 / 4 / 8 / 11 / 12 / 14 步敲击 —— 两下 · 一下 · 四下 · 紧接两下。');
+  log('轨 1/2/3 都用 GRAND PNO(27)，还原钢琴独奏；轨 4 空（原谱前奏没有鼓）。');
+  log('第 03 面板另有两份「练习示例」；自己写点第 05 面板格子，导出 .json 就能发给别人。');
+  log('轨不够？第 02 面板「+ 加一条轨」，最多 12 条；机器只有 4 条物理轨，第 07 面板有「导出给机器的 4 个 .mid」自动叠进去。');
+});
+
+
+/* ============================================================
+   可变轨数覆盖层（同名函数后定义生效）
+   网页里 1–12 条轨随便加；SLOOP 机器只有 4 条物理轨，导出时
+   「给机器的 4 个 .mid」会按通道把多的声部叠进去，一个音不丢。
+   ============================================================ */
+var TRACK_COLORS=['#ffd23d','#22e0ff','#ff8a3d','#37e0a0','#ff6b6b','#f783ac',
+  '#8a5cff','#e8e8ff','#7ce8ff','#ffb347','#a0e8af','#d0a0ff'];
+function rangeN(n){ var a=[]; for(var i=0;i<n;i++) a.push(i); return a; }
+function trackCount(){ return (WORK&&WORK.tracks)?WORK.tracks.length:4; }
+function isKit(t){ return !!(WORK&&WORK.tracks[t]&&WORK.tracks[t].kit); }
+function defaultTracks(){
+  return clone(LALA.TRACKS).map(function(tr,i){
+    return {i:i,name:tr.name,cn:tr.cn,ch:tr.ch,kit:!!tr.kit,color:tr.color,role:tr.role};
+  });
+}
+function freeChannel(except){
+  var used=WORK.tracks.map(function(tr,i){ return i===except?-1:tr.ch; });
+  var c=0;
+  while(used.indexOf(c)>=0 || c===9) c++;
+  return Math.min(15,c);
+}
+
+function uiCfg(c){
+  c=c||{};
+  var n=Math.max(1,Math.min(LALA.MAX_TRACKS,(c.n||(c.tracks&&c.tracks.length)||4)));
+  var sw=(c.swing===undefined)?0.08:(c.swing>1?c.swing/100:c.swing);
+  function arr(src,def){
+    var a=[];
+    for(var i=0;i<n;i++) a.push((src&&src[i]!==undefined)?src[i]:(typeof def==='function'?def(i):def));
+    return a;
+  }
+  return {
+    bpm:clamp(c.bpm||76,40,200,76), master:(c.master===undefined?60:c.master),
+    swing:Math.max(0,Math.min(0.4,sw)),
+    dyn:(c.dyn===undefined?true:!!c.dyn), loop:(c.loop===undefined?true:!!c.loop),
+    sendPC:(c.sendPC===undefined?true:!!c.sendPC),
+    oct:arr(c.oct,0), gain:arr(c.gain,70), on:arr(c.on,true),
+    drum:Object.assign({kick:36,snare:38,hat:42},c.drum||{}),
+    pc:arr(c.pc,function(i){ return i===3?0:27; }), n:n
+  };
+}
+function builtins(){
+  if(BUILTIN) return BUILTIN;
+  BUILTIN=[
+    {name:'Someone in the Crowd · 按谱复原前奏（130 BPM · 4/4 · 降E · 16 格）', steps:16,
+     cfg:uiCfg(LALA.SIC_EXACT_CFG), prog:clone(LALA.SIC_EXACT_PROG), tracks:defaultTracks(), events:LALA.sicExactEvents()},
+    {name:'练习示例 · 慢速钢琴独白（3/4 · 12 格）', steps:12,
+     cfg:uiCfg(LALA.SIC_CFG), prog:clone(LALA.SIC_PROG), tracks:defaultTracks(), events:LALA.sicEvents(LALA.SIC_CFG)},
+    {name:'练习示例 · 夜色共舞（3/4 · 12 格 · 华尔兹）', steps:12,
+     cfg:uiCfg(LALA.DEFAULTS), prog:clone(LALA.PROG), tracks:defaultTracks(), events:LALA.demoEvents(LALA.DEFAULTS)},
+    {name:'空白画布 · 自己从零写（4/4 · 16 格）', steps:16,
+     cfg:uiCfg(LALA.SIC_EXACT_CFG), prog:clone(LALA.SIC_EXACT_PROG), tracks:defaultTracks(), events:LALA.blankEvents()}
+  ];
+  return BUILTIN;
+}
+function normalizeWork(w){
+  if(!w || !Array.isArray(w.events)) throw new Error('作品格式不对：缺 events');
+  var steps=(w.steps===16)?16:12, T;
+  if(Array.isArray(w.tracks)&&w.tracks.length){
+    T=w.tracks.slice(0,LALA.MAX_TRACKS).map(function(tr,i){
+      var ch=parseInt(tr.ch,10); if(isNaN(ch)) ch=i;
+      return {i:i,name:String(tr.name||('Track'+(i+1))).slice(0,40),
+              cn:String(tr.cn||tr.name||('轨'+(i+1))).slice(0,30),
+              ch:Math.max(0,Math.min(15,ch)), kit:!!tr.kit,
+              color:tr.color||TRACK_COLORS[i%TRACK_COLORS.length],
+              role:String(tr.role||'自己加的声部').slice(0,40)};
+    });
+  } else T=defaultTracks();
+  var fallback=clone(steps===16?LALA.SIC_EXACT_PROG:LALA.PROG);
+  var prog=(Array.isArray(w.prog)&&w.prog.length===LALA.BARS)?w.prog:fallback;
+  var ev=[];
+  for(var b=0;b<LALA.BARS;b++){
+    ev.push([]);
+    for(var t=0;t<T.length;t++){
+      var src=((w.events[b]||[])[t]||[]);
+      var list=src.filter(function(e){ return e && e.s>=0 && e.s<steps && e.n>=0 && e.n<=127; });
+      ev[b].push(list.map(function(e){
+        return {s:Math.floor(e.s), n:Math.floor(e.n),
+                d:Math.max(1,Math.min(steps,Math.floor(e.d||1))),
+                v:Math.max(1,Math.min(100,Math.floor(e.v||60)))};
+      }));
+    }
+  }
+  var cfgIn=Object.assign({},w.cfg||{},{n:T.length});
+  return {name:String(w.name||'导入的作品').slice(0,60), steps:steps,
+          cfg:uiCfg(cfgIn), tracks:T, prog:prog, events:ev};
+}
+function workToJSON(w){
+  return {format:'fm1-sloop-work', version:2, name:w.name, steps:w.steps,
+          cfg:uiCfg(snapshotCfg()), prog:w.prog, tracks:w.tracks, events:w.events};
+}
+function snapshotCfg(){
+  var n=trackCount();
+  return {
+    bpm:clamp($('bpm').value,40,200,76), master:+$('master').value,
+    swing:(+$('swing').value)/100, dyn:$('dyn').checked, loop:$('loop').checked,
+    sendPC:$('sendPC').checked, n:n,
+    oct:rangeN(n).map(function(i){ return clamp($('oct'+i).value,-2,2,0); }),
+    gain:rangeN(n).map(function(i){ return +$('gain'+i).value; }),
+    on:rangeN(n).map(function(i){ return $('on'+i).checked; }),
+    drum:drumNow(),
+    pc:rangeN(n).map(function(i){ return clamp($('pc'+i).value,0,(isKit(i)?45:156),1); })
+  };
+}
+function applyCfgToUI(c){
+  $('bpm').value=c.bpm; $('master').value=c.master; $('swing').value=Math.round(c.swing*100);
+  $('dyn').checked=c.dyn; $('loop').checked=c.loop; $('sendPC').checked=c.sendPC;
+  c.oct.forEach(function(v,i){ var e=$('oct'+i); if(e) e.value=v; });
+  c.gain.forEach(function(v,i){ var e=$('gain'+i); if(e) e.value=v; });
+  c.on.forEach(function(v,i){ var e=$('on'+i); if(e) e.checked=v; });
+  c.pc.forEach(function(v,i){ var e=$('pc'+i); if(e) e.value=v; });
+  $('dKick').value=c.drum.kick; $('dSnare').value=c.drum.snare; $('dHat').value=c.drum.hat;
+}
+function setWork(w,quiet){
+  WORK=normalizeWork(w); HIST=[]; FUT=[]; SEL=null;
+  buildTrackRows();
+  applyCfgToUI(WORK.cfg);
+  refresh();
+  if(!quiet) log('已载入「'+WORK.name+'」· '+(WORK.steps===16?'4/4 · 16 格':'3/4 · 12 格')+
+    ' · '+WORK.tracks.length+' 条轨 · '+countNotes()+' 个音');
+}
+function currentOpts(){
+  var n=trackCount();
+  return {
+    bpm:clamp($('bpm').value,40,200,76),
+    master:+$('master').value, swing:(+$('swing').value)/100,
+    dyn:$('dyn').checked, steps:WORK.steps,
+    oct:rangeN(n).map(function(i){ return clamp($('oct'+i).value,-2,2,0); }),
+    gain:rangeN(n).map(function(i){ return +$('gain'+i).value; }),
+    on:rangeN(n).map(function(i){ return $('on'+i).checked; }),
+    drum:drumNow(),
+    pc:rangeN(n).map(function(i){ return clamp($('pc'+i).value,0,(isKit(i)?45:156),1); }),
+    sendPC:$('sendPC').checked
+  };
+}
+
+/* ---------- 动态音轨控制台 ---------- */
+function buildKitSelect(i,val){
+  return '<select class="sel" id="pc'+i+'">'+SLOOP_KITS.map(function(k,n){
+    return '<option value="'+n+'"'+(n===val?' selected':'')+'>'+n+' · '+esc(k)+'</option>';
+  }).join('')+'</select>';
+}
+function nameOfPc(i){
+  var v=clamp($('pc'+i).value,0,(isKit(i)?45:156),0);
+  return isKit(i) ? (SLOOP_KITS[v]||String(v)) : (SLOOP_BANK[v]?SLOOP_BANK[v][1]:String(v));
+}
+function buildTrackRows(){
+  var box=$('trackRows'); box.innerHTML='';
+  WORK.tracks.forEach(function(tr,i){
+    var c=WORK.cfg;
+    var pc=tr.kit?buildKitSelect(i,c.pc[i]):buildPcSelect(i,c.pc[i]);
+    var oct=tr.kit
+      ? '<span class="dash oct">—<input type="hidden" id="oct'+i+'" value="0"></span>'
+      : '<input class="num oct" type="number" min="-2" max="2" value="'+c.oct[i]+'" id="oct'+i+'">';
+    var chs='<select class="chsel" id="ch'+i+'" title="MIDI 通道">';
+    for(var k=1;k<=16;k++) chs+='<option value="'+(k-1)+'"'+((k-1)===tr.ch?' selected':'')+'>'+k+'</option>';
+    chs+='</select>';
+    var row=document.createElement('div'); row.className='trow';
+    row.innerHTML='<span class="tname"><i class="tdot" style="background:'+tr.color+'"></i><span>'+
+      '<input class="tnamein" data-t="'+i+'" value="'+esc(tr.cn)+'" maxlength="18" title="改这条轨的名字">'+
+      '<span class="tsub">通道 '+(tr.ch+1)+' · '+esc(tr.role||'自己加的声部')+'</span></span></span>'+
+      pc+chs+
+      '<button class="btn btn-sm typebtn" data-type="'+i+'" title="切成鼓轨 / 乐器轨">'+(tr.kit?'鼓':'乐器')+'</button>'+
+      oct+
+      '<input class="rng" type="range" min="0" max="100" value="'+c.gain[i]+'" id="gain'+i+'">'+
+      '<input class="chk" type="checkbox" '+(c.on[i]?'checked':'')+' id="on'+i+'">'+
+      '<button class="btn btn-sm" data-solo="'+i+'">试</button>'+
+      '<button class="btn btn-sm btndel" data-del="'+i+'" title="删掉这条轨">×</button>';
+    box.appendChild(row);
+  });
+  box.oninput=function(e){
+    if(e.target.classList && e.target.classList.contains('tnamein')) return;
+    refresh();
+  };
+  box.onchange=function(e){
+    if(e.target.classList && e.target.classList.contains('tnamein')){
+      var i=+e.target.dataset.t;
+      WORK.tracks[i].cn=e.target.value||('轨'+(i+1));
+      WORK.tracks[i].name=WORK.tracks[i].cn;
+      refresh(); return;
+    }
+    if(e.target.classList && e.target.classList.contains('chsel')){
+      var j=+e.target.id.replace('ch','');
+      WORK.tracks[j].ch=clamp(e.target.value,0,15,0);
+      refresh(); return;
+    }
+    refresh();
+  };
+  box.onclick=function(e){
+    var b=e.target.closest?e.target.closest('button'):e.target;
+    if(!b) return;
+    if(b.dataset.solo!==undefined){ testTrack(+b.dataset.solo); return; }
+    if(b.dataset.del!==undefined){ removeTrack(+b.dataset.del); return; }
+    if(b.dataset.type!==undefined){ setTrackType(+b.dataset.type); return; }
+  };
+}
+function renderBankTargets(){
+  var sel=$('bankTarget'); if(!sel||!WORK) return;
+  var old=sel.value;
+  sel.innerHTML=WORK.tracks.map(function(tr,i){
+    return '<option value="'+i+'">轨 '+(i+1)+' · '+esc(tr.cn)+(tr.kit?'（鼓）':'')+'</option>';
+  }).join('');
+  sel.value=(old!=='' && +old<WORK.tracks.length)?old:'0';
+}
+function addTrack(){
+  if(WORK.tracks.length>=LALA.MAX_TRACKS){ log('最多 '+LALA.MAX_TRACKS+' 条轨'); return; }
+  pushHistory();
+  WORK.cfg=uiCfg(snapshotCfg());
+  var i=WORK.tracks.length, ch=freeChannel(-1);
+  WORK.tracks.push({i:i,name:'Track'+(i+1),cn:'轨'+(i+1)+' · 自己写',ch:ch,kit:false,
+    color:TRACK_COLORS[i%TRACK_COLORS.length],role:'自己加的声部'});
+  WORK.cfg.oct.push(0); WORK.cfg.gain.push(70); WORK.cfg.on.push(true); WORK.cfg.pc.push(27);
+  WORK.cfg.n=WORK.tracks.length;
+  WORK.events.forEach(function(bar){ bar.push([]); });
+  buildTrackRows(); applyCfgToUI(WORK.cfg); SEL=null; refresh();
+  log('加了一条轨 → 现在 '+WORK.tracks.length+' 条（通道 '+(ch+1)+'）。');
+}
+function removeTrack(i){
+  if(WORK.tracks.length<=1){ log('至少留一条轨'); return; }
+  pushHistory();
+  WORK.cfg=uiCfg(snapshotCfg());
+  WORK.tracks.splice(i,1);
+  ['oct','gain','on','pc'].forEach(function(k){ WORK.cfg[k].splice(i,1); });
+  WORK.cfg.n=WORK.tracks.length;
+  WORK.events.forEach(function(bar){ bar.splice(i,1); });
+  WORK.tracks.forEach(function(tr,j){ tr.i=j; });
+  buildTrackRows(); applyCfgToUI(WORK.cfg); SEL=null; refresh();
+  log('删掉轨 '+(i+1)+'，现在 '+WORK.tracks.length+' 条轨。');
+}
+function setTrackType(i,force){
+  pushHistory();
+  WORK.cfg=uiCfg(snapshotCfg());
+  var tr=WORK.tracks[i], kit=(force===undefined)?!tr.kit:!!force;
+  if(tr.kit===kit) return;
+  tr.kit=kit; tr.ch=kit?9:freeChannel(i);
+  WORK.cfg.pc[i]=kit?0:27;
+  buildTrackRows(); applyCfgToUI(WORK.cfg); SEL=null; refresh();
+  log('轨 '+(i+1)+' → 「'+(kit?'鼓':'乐器')+'」，通道 '+(tr.ch+1)+'。');
+}
+
+/* ---------- 音色库 / 推音色 ---------- */
+function buildSoundBankPanel(){
+  var box=$('bankBox'); if(!box) return;
+  var kinds=[], by={};
+  SLOOP_BANK.forEach(function(e,n){ if(!by[e[0]]){by[e[0]]=[];kinds.push(e[0]);} by[e[0]].push(n); });
+  var h='';
+  kinds.forEach(function(k){
+    var dk=esc(k+' '+(KIND_CN[k]||''));
+    h+='<div class="bankhead" data-kind="'+dk+'">'+esc(kindLabel(k))+' · '+by[k].length+' 个</div><div class="bankgrid">';
+    by[k].forEach(function(n){
+      h+='<button class="bi" data-pc="'+n+'" data-kit="0" data-kind="'+dk+'" title="'+esc(kindLabel(k))+' · PC '+n+'">'+n+' · '+esc(SLOOP_BANK[n][1])+'</button>';
+    });
+    h+='</div>';
+  });
+  h+='<div class="bankhead" data-kind="DRUM KITS 鼓组">鼓组 · DRUM KITS · 46 组（通道 10，PC 0 起）</div><div class="bankgrid">';
+  SLOOP_KITS.forEach(function(k,n){
+    h+='<button class="bi" data-pc="'+n+'" data-kit="1" data-kind="DRUM KITS 鼓组" title="鼓组 · kit PC '+n+'">'+n+' · '+esc(k)+'</button>';
+  });
+  h+='</div>';
+  box.innerHTML=h;
+  box.onclick=function(e){
+    var b=e.target.closest?e.target.closest('.bi'):null; if(!b) return;
+    var pc=+b.dataset.pc, kit=+b.dataset.kit, t=+$('bankTarget').value;
+    if(kit){
+      var k=-1; WORK.tracks.forEach(function(tr,i){ if(k<0&&tr.kit) k=i; });
+      if(k<0){ addTrack(); k=WORK.tracks.length-1; setTrackType(k,true); }
+      t=k;
+    } else if(isKit(t)){
+      var s=-1; WORK.tracks.forEach(function(tr,i){ if(s<0&&!tr.kit) s=i; });
+      if(s<0){ addTrack(); s=WORK.tracks.length-1; }
+      t=s;
+    }
+    $('bankTarget').value=t;
+    $('pc'+t).value=pc;
+    WORK.cfg=uiCfg(snapshotCfg());
+    refresh();
+    log('轨 '+(t+1)+' → PC '+pc+' · '+nameOfPc(t)+(kit?'（鼓组）':''));
+    if(midiOut && $('sendPC').checked) pushPcs(currentOpts());
+  };
+}
+function highlightBank(){
+  var t=+$('bankTarget').value;
+  if(!(t<WORK.tracks.length)) return;
+  var cur=clamp($('pc'+t).value,0,156,0), kit=isKit(t);
+  document.querySelectorAll('#bankBox .bi').forEach(function(b){
+    var same=(+b.dataset.pc===cur) && (((+b.dataset.kit)===1)===kit);
+    b.classList.toggle('sel',same);
+  });
+}
+function pushPcs(o){
+  if(!midiOut){ setStatus('先点「连接设备」','bad'); return false; }
+  WORK.tracks.forEach(function(tr,i){
+    if(tr.kit){ send([0xC9,o.pc[i]&127],0); }
+    else { send([0xB0|tr.ch,0,0],0); send([0xC0|tr.ch,o.pc[i]&127],0); }
+  });
+  var names=rangeN(WORK.tracks.length).map(function(i){ return nameOfPc(i); });
+  log('已推音色 → '+WORK.tracks.length+' 条轨：'+o.pc.join('/')+'  ['+names.join(' | ')+']');
+  setStatus('音色已推：'+names.join(' / '),'ok');
+  return true;
+}
+
+/* ---------- 网格 / 编辑 ---------- */
+function cellText(t,evs,D){
+  if(!evs.length) return '';
+  if(isKit(t)) return evs.map(function(e){
+    return e.n===D.kick?'K':(e.n===D.snare?'S':(e.n===D.hat?'H':String(e.n)));
+  }).join('');
+  return evs.map(function(e){ return LALA.noteName(e.n); }).join('·');
+}
+function refresh(){
+  if(!WORK) return;
+  ARR=LALA.build(currentOpts(),WORK.events,WORK.prog,WORK.tracks);
+  buildSteps(); fillDur(); renderGrid(); renderSelBar(); highlightBank(); renderBankTargets();
+  $('posHint').textContent='当前作品：'+WORK.name+'　|　'+
+    (WORK.steps===16?'4/4 · 每小节 16 格 · 共 64 步':'3/4 · 每小节 12 格 · 共 48 步')+
+    '　|　'+WORK.tracks.length+' 条轨　|　'+countNotes()+' 个音';
+}
+function renderGrid(){
+  var box=$('grid'), A=ARR, steps=WORK.steps, D=A.opts.drum;
+  box.className='grid'+(steps===16?' grid16':'');
+  box.innerHTML='';
+  WORK.tracks.forEach(function(tr,i){
+    var wrap=document.createElement('div'); wrap.className='gtrack';
+    var head=document.createElement('div'); head.className='ghead';
+    head.innerHTML='<i class="tdot" style="background:'+tr.color+'"></i>'+esc(tr.cn)+
+      ' <small>通道 '+(tr.ch+1)+' · '+(tr.kit?'鼓':'乐器')+' · '+($('on'+i).checked?'开':'关')+' · '+esc(nameOfPc(i))+'</small>';
+    var clr=document.createElement('button'); clr.className='btn btn-sm'; clr.textContent='清空本轨';
+    clr.addEventListener('click',function(){ clearTrack(i); });
+    head.appendChild(clr); wrap.appendChild(head);
+    for(var b=0;b<LALA.BARS;b++){
+      var row=document.createElement('div'); row.className='maprow';
+      row.style.gridTemplateColumns='70px repeat('+steps+',1fr)';
+      var lab=document.createElement('div'); lab.className='maplabel';
+      lab.innerHTML='<b>'+(b+1)+' · '+esc(A.bars[b].name)+'</b><span>根音 '+LALA.noteName(A.bars[b].root)+'</span>';
+      row.appendChild(lab);
+      for(var s=0;s<steps;s++){
+        var evs=(A.bars[b].ev[i]||[]).filter(function(e){ return e.s===s; });
+        var cell=document.createElement('div');
+        cell.className='cell'+((s%4===0)?' beat':'')+(evs.length?' has':'')+
+          ((evs.length>1)?' col':'')+
+          (SEL&&SEL.t===i&&SEL.b===b&&SEL.s===s?' sel':'');
+        cell.id='c'+i+'_'+b+'_'+s;
+        if(evs.length){
+          if(evs.length>1){
+            cell.innerHTML=evs.map(function(e){ return '<span class="chord3">'+LALA.noteName(e.n)+'</span>'; }).join('');
+          } else {
+            var txt=cellText(i,evs,D);
+            cell.textContent=txt.length>9?txt.slice(0,8)+'…':txt;
+          }
+          cell.title=tr.cn+' / 第'+(b+1)+'小节 '+A.bars[b].name+' / 第'+(s+1)+'格\n'+
+            evs.map(function(e){ return (isKit(i)?('鼓音符 '+e.n):LALA.noteName(e.n))+'　力度 '+e.v+'　长 '+e.d+' 格'; }).join('\n');
+        } else {
+          cell.title=tr.cn+' / 第'+(b+1)+'小节 / 第'+(s+1)+'格：空（点一下写音）';
+        }
+        (function(tt,bb,ss){ cell.addEventListener('click',function(){ onCell(tt,bb,ss); }); })(i,b,s);
+        row.appendChild(cell);
+      }
+      wrap.appendChild(row);
+    }
+    box.appendChild(wrap);
+  });
+}
+function addBrush(t,b,s){
+  pushHistory();
+  var steps=WORK.steps;
+  var dur=clamp($('brushDur').value,1,steps,2);
+  var vel=clamp($('brushVel').value,1,100,62);
+  var shift=isKit(t)?0:clamp($('oct'+t).value,-2,2,0)*12;
+  var made=[], arr=WORK.events[b][t];
+  if(isKit(t)){
+    var D=drumNow(), map={K:D.kick,S:D.snare,H:D.hat};
+    made.push({s:s,n:map[$('brushDrum').value]||D.kick,d:1,v:vel});
+  } else {
+    var mode=$('brushMode').value, p=WORK.prog[b]||LALA.PROG[0];
+    if(mode==='chord'){
+      p.voicing.forEach(function(n){ made.push({s:s,n:Math.max(0,Math.min(127,n-shift)),d:dur,v:vel}); });
+    } else if(mode==='fixed'){
+      made.push({s:s,n:Math.max(0,Math.min(127,clamp($('brushNote').value,0,127,60)-shift)),d:dur,v:vel});
+    } else {
+      made.push({s:s,n:Math.max(0,Math.min(127,p.voicing[(s/4|0)%p.voicing.length]-shift)),d:dur,v:vel});
+    }
+  }
+  made.forEach(function(e){ arr.push(e); });
+  SEL={t:t,b:b,s:s};
+  refresh();
+  log('写 '+made.length+' 个音 → 轨'+(t+1)+' / 第'+(b+1)+'小节 / 第'+(s+1)+'格');
+}
+function renderSelBar(){
+  var who=$('edWho'), ctl=$('edControls');
+  var list=srcList();
+  if(!SEL || !list.length){
+    who.textContent='点网格里的格子开始写'; ctl.style.display='none'; return;
+  }
+  who.textContent='选中：轨'+(SEL.t+1)+' / 第'+(SEL.b+1)+'小节 / 第'+(SEL.s+1)+'格 · '+list.length+' 个音';
+  ctl.style.display='flex';
+  var shift=isKit(SEL.t)?0:clamp($('oct'+SEL.t).value,-2,2,0)*12;
+  $('edNote').value=String(Math.max(0,Math.min(127,list[0].n+shift)));
+  $('edDur').value=String(Math.min(WORK.steps,list[0].d));
+  $('edVel').value=list[0].v;
+}
+function editSel(field,val){
+  var list=srcList(); if(!list.length) return;
+  pushHistory();
+  if(field==='n'){
+    var shift=isKit(SEL.t)?0:clamp($('oct'+SEL.t).value,-2,2,0)*12;
+    list[0].n=Math.max(0,Math.min(127,Math.floor(val)-shift));
+  } else if(field==='d'){
+    list.forEach(function(e){ e.d=Math.max(1,Math.min(WORK.steps,Math.floor(val))); });
+  } else if(field==='v'){
+    list.forEach(function(e){ e.v=Math.max(1,Math.min(100,Math.floor(val))); });
+  }
+  refresh();
+}
+function pushHistory(){
+  HIST.push(clone({events:WORK.events,tracks:WORK.tracks,cfg:uiCfg(snapshotCfg())}));
+  if(HIST.length>60) HIST.shift();
+  FUT=[];
+}
+function undo(){
+  if(!HIST.length){ log('没有可撤销的了'); return; }
+  FUT.push(clone({events:WORK.events,tracks:WORK.tracks,cfg:uiCfg(snapshotCfg())}));
+  var st=HIST.pop();
+  WORK.events=st.events; WORK.tracks=st.tracks; WORK.cfg=uiCfg(st.cfg);
+  buildTrackRows(); applyCfgToUI(WORK.cfg); SEL=null; refresh(); log('↶ 撤销');
+}
+function redo(){
+  if(!FUT.length){ log('没有可重做的了'); return; }
+  HIST.push(clone({events:WORK.events,tracks:WORK.tracks,cfg:uiCfg(snapshotCfg())}));
+  var st=FUT.pop();
+  WORK.events=st.events; WORK.tracks=st.tracks; WORK.cfg=uiCfg(st.cfg);
+  buildTrackRows(); applyCfgToUI(WORK.cfg); SEL=null; refresh(); log('↷ 重做');
+}
+function copyBar(){
+  pushHistory();
+  for(var b=1;b<LALA.BARS;b++)
+    for(var t=0;t<WORK.tracks.length;t++) WORK.events[b][t]=clone(WORK.events[0][t]);
+  SEL=null; refresh(); log('第 1 小节已复制到 2/3/4 小节（'+WORK.tracks.length+' 条轨一起）。');
+}
+
+/* ---------- 走带 ---------- */
+function testTrack(i){
+  if(!midiOut){ setStatus('先连接设备','bad'); return; }
+  var tr=WORK.tracks[i], o=currentOpts();
+  var n=tr.kit?o.drum.kick:(i===2?48:72);
+  var first=(LALA.build(o,WORK.events,WORK.prog,WORK.tracks).bars[0].ev[i]||[])[0];
+  var v=first?first.v:60;
+  send([0x90|tr.ch,n,v],0);
+  setTimeout(function(){ send([0x80|tr.ch,n,0],0); },260);
+  log('试音 '+tr.cn+' → 通道 '+(tr.ch+1)+' / '+LALA.noteName(n)+' / 力度 '+v);
+}
+function play(){
+  if(!midiOut){ setStatus('先点「连接设备」','bad'); return; }
+  var o=currentOpts(); ARR=LALA.build(o,WORK.events,WORK.prog,WORK.tracks);
+  if(o.sendPC) pushPcs(o);
+  else log('未发 Program Change，保持机器上各轨当前的音色。');
+  playing=true; stepAbs=0; nextTime=performance.now()+80;
+  $('play').disabled=true; $('stop').disabled=false;
+  timer=setInterval(scheduler,25);
+  log('▶ PLAY  '+WORK.name+'  BPM='+o.bpm+'  '+WORK.tracks.length+' 条轨 · '+WORK.steps+' 格/小节'+
+    ($('loop').checked?' · 循环':' · 只放一遍'));
+}
+function scheduler(){
+  if(!playing) return;
+  var o=currentOpts(); ARR=LALA.build(o,WORK.events,WORK.prog,WORK.tracks);
+  var steps=WORK.steps, stepDur=(60/o.bpm)*1000/4;
+  while(nextTime < performance.now()+120){
+    var b=Math.floor(stepAbs/steps), s=stepAbs%steps;
+    if(b>=LALA.BARS){
+      if($('loop').checked){ stepAbs=0; b=0; s=0; nextTime=performance.now()+10; }
+      else { stop(); return; }
+    }
+    (function(bb,ss,tt){
+      var bar=ARR.bars[bb];
+      WORK.tracks.forEach(function(tr,i){
+        if(!o.on[i]) return;
+        (bar.ev[i]||[]).forEach(function(e){
+          if(e.s!==ss) return;
+          var sw=(ss%2===1)?stepDur*o.swing*0.5:0;
+          var tOn=tt+sw, dur=Math.max(1,e.d)*stepDur;
+          send([0x90|tr.ch,e.n,e.v],tOn);
+          send([0x80|tr.ch,e.n,0],tOn+Math.max(35,dur-18));
+        });
+      });
+      var delay=Math.max(0,tt-performance.now());
+      setTimeout(function(){ if(playing) markStep(bb,ss); },delay);
+    })(b,s,nextTime);
+    stepAbs++; nextTime+=stepDur;
+  }
+}
+function markStep(b,s){
+  for(var i=0;i<WORK.steps;i++){ var e=$('st'+i); if(e) e.classList.remove('on'); }
+  var e2=$('st'+s); if(e2) e2.classList.add('on');
+  document.querySelectorAll('.cell.now').forEach(function(c){ c.classList.remove('now'); });
+  for(var t=0;t<WORK.tracks.length;t++){ var c=$('c'+t+'_'+b+'_'+s); if(c) c.classList.add('now'); }
+  $('posHint').textContent='第 '+(b+1)+' 小节 · 第 '+(s+1)+' 格　|　'+ARR.bars[b].name+
+    '，根音 '+LALA.noteName(ARR.bars[b].root)+'。';
+}
+function panic(){
+  if(!midiOut) return;
+  var seen={};
+  WORK.tracks.forEach(function(tr){ seen[tr.ch]=1; });
+  Object.keys(seen).forEach(function(k){
+    var ch=+k;
+    send([0xB0|ch,123,0],0);
+    for(var n=0;n<128;n++) send([0x80|ch,n,0],0);
+  });
+  log('已静音 '+Object.keys(seen).length+' 个通道');
+}
+
+/* ---------- .mid 导入 ---------- */
+function mergeMidi(P,fname){
+  pushHistory();
+  var steps=WORK.steps, maxSteps=steps*LALA.BARS, T=WORK.tracks;
+  var buckets=T.map(function(){ return []; }), counts=T.map(function(){ return 0; }), skipped=0;
+  var synth=[], drum=[];
+  T.forEach(function(tr,i){ (tr.kit?drum:synth).push(i); });
+  P.notes.forEach(function(n){
+    var st=Math.round(n.t/(P.division/4));
+    if(st<0||st>=maxSteps){ skipped++; return; }
+    var b=Math.floor(st/steps), s=st%steps, t;
+    if(n.ch===9 && drum.length) t=drum[0];
+    else if(synth.length) t=synth[n.ch % synth.length];
+    else if(drum.length) t=drum[0];
+    else t=0;
+    var d=Math.max(1,Math.min(steps-s,n.dur||1));
+    buckets[t].push({b:b,s:s,n:n.n,d:d,v:Math.max(1,Math.min(100,n.v||60))});
+    counts[t]++;
+  });
+  for(var t=0;t<T.length;t++){
+    if(!counts[t]) continue;
+    for(var b=0;b<LALA.BARS;b++) WORK.events[b][t]=[];
+    buckets[t].forEach(function(e){ WORK.events[e.b][t].push({s:e.s,n:e.n,d:e.d,v:e.v}); });
+  }
+  if(P.bpm && P.bpm>=40 && P.bpm<=200) $('bpm').value=P.bpm;
+  SEL=null; refresh();
+  var used=counts.map(function(c,i){ return c?('T'+(i+1)+':'+c):null; }).filter(Boolean).join(' / ');
+  log('导入 '+fname+'：'+P.notes.length+' 个音符 → '+used+
+    (skipped?('，超出 4 小节砍掉 '+skipped+' 个'):'')+(P.bpm?('，BPM '+P.bpm):''));
+  if(!counts.reduce(function(a,b){return a+b;},0)) log('这个文件里没读到音符，作品保持原样。');
+}
+
+/* ---------- 导出 ---------- */
+function doExport(n){
+  var o=currentOpts();
+  if(n==='machine'){
+    var m=LALA.machineExports(o,WORK.events,WORK.prog,WORK.tracks);
+    var preM=safeName(WORK.name)+'_';
+    m.forEach(function(f,i){ setTimeout(function(){ download(f.bytes,preM+f.name.replace(/^lalaland_/,'')); },i*350); });
+    log('导出给机器的 4 个 .mid：网页里 '+WORK.tracks.length+' 条轨已按通道叠进机器 4 轨，一个音没丢。');
+    return;
+  }
+  var list=LALA.makeExports(o,WORK.events,WORK.prog,WORK.tracks);
+  var pre=safeName(WORK.name)+'_';
+  function rn(f){ return f.name.replace(/^lalaland_/,pre); }
+  if(n===4){
+    list.slice(0,-1).forEach(function(f,i){ setTimeout(function(){ download(f.bytes,rn(f)); },i*350); });
+    log('导出 '+(list.length-1)+' 个单轨 .mid（'+WORK.name+'）：逐轨在 SLOOP 编辑器 Sequencer → Import MIDI 里导入。');
+  } else {
+    var f=list[list.length-1]; download(f.bytes,rn(f));
+    log('导出 '+rn(f)+'（Type 1 · '+WORK.tracks.length+' 轨合并）。');
+  }
+}
+
+</script>
+</body>
+</html>

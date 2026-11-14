@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>s02 贪吃蛇 · 转向前行 | AI Passport · 240×320 · 三键</title>
+<style>
+/* ============================================================
+   s02 贪吃蛇 · 高级网页版
+   忠实复刻固件 fw/dev_s02/main/app_s02.c 的布局 / 配色 / 文案 / 状态机
+   - 画布 120×160（与固件共享的 fx_canvas 一致），CSS 2× 放大到 240×320
+   - 分数 / 最高分 / 按键提示用原生 240×320 分辨率的文字层画（固件里是 lv_label）
+   - 单一 setInterval(50) 主循环，与固件 50ms tick 对齐
+   ============================================================ */
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html, body { min-height:100%; }
+
+body {
+  font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:#05060B;
+  color:#E6E8F0;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- 页面背景：深色 + 径向渐变 + 极淡噪点 ---------- */
+.bg {
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(900px 620px at 18% 8%,  rgba(76,201,240,.13), transparent 62%),
+    radial-gradient(760px 560px at 86% 82%, rgba(88,255,170,.09), transparent 60%),
+    radial-gradient(520px 420px at 50% 50%, rgba(120,140,255,.05), transparent 70%),
+    linear-gradient(180deg,#080A12 0%,#05060B 55%,#04050A 100%);
+}
+.bg::after {
+  content:""; position:absolute; inset:0; opacity:.05;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='120' height='120' filter='url(%23n)'/></svg>");
+}
+
+/* ---------- 顶部徽标 ---------- */
+.badge {
+  position:relative; z-index:2;
+  display:inline-flex; align-items:center; gap:9px;
+  margin:26px 0 0 34px; padding:7px 15px;
+  border:1px solid rgba(76,201,240,.32); border-radius:999px;
+  background:rgba(12,18,30,.66); backdrop-filter:blur(6px);
+  font-size:12px; letter-spacing:.09em; color:#9FE6FA;
+}
+.badge b { color:#4CC9F0; font-weight:600; }
+.badge .dot { width:6px; height:6px; border-radius:50%; background:#4CC9F0; box-shadow:0 0 10px #4CC9F0; }
+
+/* ---------- 舞台布局 ---------- */
+.stage {
+  position:relative; z-index:2;
+  display:flex; align-items:flex-start; justify-content:center;
+  gap:44px; padding:30px 34px 60px; flex-wrap:wrap;
+}
+
+.device-col { display:flex; flex-direction:column; align-items:center; gap:22px; }
+
+/* ---------- 机身 ---------- */
+.device {
+  position:relative; padding:16px 16px 20px; border-radius:34px;
+  background:linear-gradient(160deg,#1A1F2E 0%,#0C0E16 46%,#151926 100%);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.07),
+    0 26px 60px -18px rgba(0,0,0,.92),
+    0 0 90px -30px rgba(76,201,240,.30);
+}
+/* 顶部一道细高光 */
+.device::before {
+  content:""; position:absolute; left:34px; right:34px; top:6px; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.42),transparent);
+  border-radius:1px;
+}
+.device::after {
+  content:""; position:absolute; left:50%; transform:translateX(-50%); bottom:8px;
+  width:44px; height:4px; border-radius:2px; background:rgba(255,255,255,.10);
+}
+.brand {
+  position:absolute; top:24px; left:0; right:0; text-align:center;
+  font-size:9px; letter-spacing:.28em; color:rgba(255,255,255,.22);
+}
+
+/* ---------- 屏幕 240×320 ---------- */
+.screen {
+  position:relative; width:240px; height:320px; overflow:hidden;
+  border-radius:12px; background:#06070F;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.9), inset 0 0 26px rgba(0,0,0,.75);
+}
+.screen canvas {
+  position:absolute; left:0; top:0; width:120px; height:160px;
+  transform:scale(2); transform-origin:0 0; image-rendering:pixelated;
+}
+/* 状态栏 / 提示条：固件里是 lv_label，画在 240×320 原生分辨率 */
+.hud-top, .hud-bot {
+  position:absolute; left:0; right:0; padding:0 10px;
+  display:flex; align-items:center; justify-content:space-between;
+  font-size:11px; line-height:14px; pointer-events:none;
+}
+.hud-top { top:6px; height:16px; }
+.hud-bot { top:280px; height:40px; flex-direction:column; align-items:flex-start; justify-content:center; gap:3px; }
+.hud-score { color:#4CC9F0; font-weight:600; letter-spacing:.03em; }
+.hud-best  { color:#7E7E96; }
+.hud-line  { color:#7E7E96; letter-spacing:.06em; }
+
+/* 结束面板（固件里是 lv_obj 容器 + 3 个 label） */
+.panel {
+  position:absolute; left:40px; top:110px; width:160px; height:96px;
+  border-radius:10px; background:#0D1526; border:2px solid #4CC9F0;
+  padding:10px 16px; opacity:0; transform:scale(.94);
+  transition:opacity .16s ease, transform .16s ease;
+  pointer-events:none;
+}
+.panel.show { opacity:1; transform:scale(1); }
+.panel .p-title { font-size:15px; font-weight:600; color:#FFB763; letter-spacing:.05em; }
+.panel .p-row   { font-size:11px; margin-top:6px; color:#EDEDF5; }
+.panel .p-row.dim { color:#7E7E96; }
+/* 闪屏（死亡瞬间整块棋盘翻白/翻红） */
+.flash { position:absolute; inset:0; pointer-events:none; opacity:0; }
+.flash.on { opacity:1; }
+
+/* ---------- 实体按键 ---------- */
+.keys { display:flex; gap:16px; }
+.key {
+  position:relative; width:66px; height:66px; border-radius:50%;
+  border:1px solid rgba(255,255,255,.10);
+  background:linear-gradient(165deg,#232A3D,#12161F);
+  color:#A9B4CC; font-size:13px; cursor:pointer; user-select:none;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 6px 14px -6px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.08);
+  transition:transform .07s ease, box-shadow .07s ease, color .12s ease, border-color .12s ease;
+  overflow:hidden; -webkit-tap-highlight-color:transparent;
+}
+.key small { display:block; font-size:9px; color:#5D6884; margin-top:2px; letter-spacing:.05em; }
+.key:hover { color:#D6E2F5; border-color:rgba(76,201,240,.30); }
+.key.active {
+  transform:translateY(3px) scale(.97);
+  color:#0A0F18; border-color:transparent;
+  background:linear-gradient(165deg,#7FD8F5,#3FB2DA);
+  box-shadow:0 0 22px -4px rgba(76,201,240,.65), inset 0 1px 0 rgba(255,255,255,.35);
+}
+.key.active small { color:rgba(10,15,24,.72); }
+/* 涟漪 */
+.ripple {
+  position:absolute; border-radius:50%; pointer-events:none;
+  background:rgba(255,255,255,.42); transform:translate(-50%,-50%) scale(0);
+  animation:rip .45s ease-out forwards;
+}
+@keyframes rip { to { transform:translate(-50%,-50%) scale(1); opacity:0; } }
+
+.keyhint { font-size:11px; color:#5D6884; letter-spacing:.08em; }
+
+/* ---------- 右侧说明面板 ---------- */
+.panel-info {
+  width:392px; max-width:100%;
+  border:1px solid rgba(255,255,255,.08); border-radius:20px;
+  background:linear-gradient(170deg,rgba(16,21,34,.92),rgba(8,10,18,.92));
+  backdrop-filter:blur(8px);
+  box-shadow:0 24px 60px -26px rgba(0,0,0,.9);
+  overflow:hidden;
+}
+.pi-head { padding:20px 22px 16px; border-bottom:1px solid rgba(255,255,255,.07); }
+.pi-head .kicker { font-size:10px; letter-spacing:.24em; color:#4CC9F0; }
+.pi-head h1 { font-size:23px; margin-top:7px; letter-spacing:.02em; }
+.pi-head .sub { font-size:12.5px; color:#8A93AC; margin-top:7px; }
+.pi-head .repo { margin-top:12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.pi-head .repo a {
+  font-size:11.5px; color:#9FE6FA; text-decoration:none;
+  border:1px solid rgba(76,201,240,.3); border-radius:999px; padding:4px 11px;
+  background:rgba(76,201,240,.08); transition:.15s;
+}
+.pi-head .repo a:hover { background:rgba(76,201,240,.18); color:#D6F4FF; }
+.pi-head .repo .src { font-size:11px; color:#5D6884; }
+
+.pi-sec { padding:16px 22px; border-bottom:1px solid rgba(255,255,255,.06); }
+.pi-sec:last-child { border-bottom:none; }
+.pi-sec h2 {
+  font-size:11px; letter-spacing:.2em; color:#6F7C99; font-weight:600;
+  margin-bottom:11px; text-transform:uppercase;
+}
+
+/* 三键图例 */
+.legend { display:flex; flex-direction:column; gap:8px; }
+.legend .row {
+  display:flex; align-items:center; gap:11px;
+  font-size:12.5px; padding:7px 10px; border-radius:10px;
+  background:rgba(255,255,255,.03); border:1px solid transparent;
+  transition:background .15s, border-color .15s;
+}
+.legend .row.hl { background:rgba(76,201,240,.10); border-color:rgba(76,201,240,.30); }
+.legend .cap {
+  min-width:44px; text-align:center; font-size:11px; padding:4px 8px; border-radius:7px;
+  background:#1B2233; color:#A9B4CC; border:1px solid rgba(255,255,255,.09);
+}
+.legend .row b { color:#E6E8F0; font-weight:600; }
+.legend .row span { color:#8A93AC; }
+
+/* 相对转向重点说明 */
+.rel {
+  border:1px solid rgba(255,183,99,.30); border-radius:12px;
+  background:linear-gradient(150deg,rgba(255,183,99,.10),rgba(255,183,99,.03));
+  padding:13px 14px;
+}
+.rel .t { font-size:12.5px; color:#FFB763; font-weight:600; letter-spacing:.04em; }
+.rel p { font-size:12px; color:#B9C1D6; line-height:1.72; margin-top:8px; }
+.rel .demo {
+  margin-top:10px; display:flex; align-items:center; gap:10px;
+  font-size:11.5px; color:#8A93AC;
+}
+.rel .demo .arrow { color:#4CC9F0; font-size:15px; }
+.rel .demo b { color:#E6E8F0; }
+
+/* 移植取舍 */
+.tradeoffs { display:flex; flex-direction:column; gap:9px; }
+.tradeoffs li {
+  list-style:none; font-size:12px; color:#A9B4CC; line-height:1.7;
+  padding-left:20px; position:relative;
+}
+.tradeoffs li::before {
+  content:"◆"; position:absolute; left:0; top:0; color:#4CC9F0; font-size:9px; line-height:2.1;
+}
+.tradeoffs li b { color:#E6E8F0; font-weight:600; }
+
+/* 状态条 */
+.statusbar { display:flex; gap:8px; flex-wrap:wrap; }
+.chip {
+  font-size:10.5px; padding:4px 10px; border-radius:999px;
+  border:1px solid rgba(255,255,255,.10); color:#8A93AC; background:rgba(255,255,255,.03);
+  transition:.2s;
+}
+.chip.on { color:#0A0F18; background:#4CC9F0; border-color:transparent; font-weight:600; }
+
+.foot {
+  position:relative; z-index:2; text-align:center; padding:0 24px 40px;
+  font-size:11px; color:#4A5468; letter-spacing:.06em;
+}
+@media (max-width:900px){ .stage { gap:26px; padding:24px 16px 48px; } .panel-info { width:100%; } }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+
+<div class="badge"><span class="dot"></span><b>AI Passport</b> · 240×320 · 三键 · s02 贪吃蛇</div>
+
+<main class="stage">
+  <!-- ======================= 机身 ======================= -->
+  <section class="device-col">
+    <div class="device">
+      <div class="brand">FOLOTOY · AI PASSPORT</div>
+      <div class="screen" id="screen">
+        <!-- 120×160 画布，2× 放大（与固件 fx_canvas 完全一致） -->
+        <canvas id="cv" width="120" height="160"></canvas>
+
+        <!-- 顶栏：当前分 / 最高分 -->
+        <div class="hud-top">
+          <div class="hud-score" id="hudScore">分 0</div>
+          <div class="hud-best"  id="hudBest">最高 0</div>
+        </div>
+
+        <!-- 结束面板 -->
+        <div class="panel" id="panel">
+          <div class="p-title" id="ovTitle">结束</div>
+          <div class="p-row"    id="ovMine">本局 0</div>
+          <div class="p-row dim" id="ovBest">最高 0</div>
+        </div>
+
+        <!-- 死亡闪屏 -->
+        <div class="flash" id="flash"></div>
+
+        <!-- 底部按键提示（把「相对转向」写在明面上） -->
+        <div class="hud-bot">
+          <div class="hud-line" id="hint1">上 左转   下 右转</div>
+          <div class="hud-line" id="hint2">确认 加速   长按 掉头</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 实体按键 -->
+    <div class="keys">
+      <button class="key" id="kUp">上<small>左转</small></button>
+      <button class="key" id="kDown">下<small>右转</small></button>
+      <button class="key" id="kOk">确认<small>加速 / 新局</small></button>
+    </div>
+    <div class="keyhint">键盘 ↑ ↓ 转向 · Enter 加速 / 新局 · Esc 返回 · R 重置</div>
+  </section>
+
+  <!-- ======================= 说明面板 ======================= -->
+  <aside class="panel-info">
+    <div class="pi-head">
+      <div class="kicker">GITHUB 顶流开源项目 · 掌机化 02</div>
+      <h1>贪吃蛇 · 转向前行</h1>
+      <div class="sub">4 向网格游戏在 3 个按键上的唯一优雅解 —— 上下键不再代表方向，而代表「转」。</div>
+      <div class="repo">
+        <a href="https://github.com/abakh/nbsdgames" target="_blank" rel="noopener">abakh/nbsdgames</a>
+        <a href="https://github.com/wa1hazi/TinySnake-game" target="_blank" rel="noopener">TinySnake-game</a>
+        <span class="src">参考实现：Snakeduel / greed</span>
+      </div>
+    </div>
+
+    <div class="pi-sec">
+      <h2>三键图例</h2>
+      <div class="legend">
+        <div class="row" id="lgUp"><span class="cap">上 短按</span><b>相对左转 90°</b><span>蛇朝右时按 → 朝上</span></div>
+        <div class="row" id="lgDown"><span class="cap">下 短按</span><b>相对右转 90°</b><span>蛇朝右时按 → 朝下</span></div>
+        <div class="row" id="lgOk"><span class="cap">确认 短按</span><b>加速冲刺</b><span>速度翻倍，持续 0.6 秒</span></div>
+        <div class="row" id="lgOk2"><span class="cap">确认 双击</span><b>新局</b><span>结束后也可短按确认直接重开</span></div>
+        <div class="row" id="lgL"><span class="cap">上/下 长按</span><b>同向连转</b><span>即掉头，用于紧急脱困</span></div>
+        <div class="row" id="lgL2"><span class="cap">确认 长按</span><b>返回启动器</b><span>全局保留，APP 收不到</span></div>
+      </div>
+    </div>
+
+    <div class="pi-sec">
+      <h2>核心手感</h2>
+      <div class="rel">
+        <div class="t">⚠ 上下键不是绝对方向，是「转」</div>
+        <p>蛇头此刻朝<b>右</b>：按「上」不是让蛇向上走，而是让它<b>左转 90°</b>变成朝上；再按一次「上」，继续左转成朝左。按「下」则右转 90°。</p>
+        <div class="demo">
+          <span class="arrow">→</span><span>蛇朝右</span>
+          <span class="arrow">↑</span><b>按「上」→ 朝上</b>
+          <span class="arrow">←</span><b>再按「上」→ 朝左</b>
+        </div>
+        <p>这样 4 个方向只用 2 个键就能表达，剩下的键位可以全部让给「加速」「新局」这类操作；转向还带 1 步排队缓冲，同一 tick 内连按两次也不会原地折返自杀。</p>
+      </div>
+    </div>
+
+    <div class="pi-sec">
+      <h2>移植取舍</h2>
+      <ul class="tradeoffs">
+        <li><b>20×26 → 20×21 网格</b>：HUD 与按键提示条占掉共享画布 34 行，26 行会溢出屏幕，21 行刚好铺满 240×320。</li>
+        <li><b>冲刺做成长按不可测</b>：驱动层过滤掉了 PRESS 事件，固件拿不到"按住"状态，改为短按触发 0.6 秒定长冲刺。</li>
+        <li><b>蛇身渐变用 32 段纯色插值</b>，不用 LVGL 渐变样式（实测会拖慢 taskLVGL 触发 task_wdt）。</li>
+        <li><b>速度按分数 7 档整数分档</b>，不用连续浮点 —— ESP32-C3 无 FPU，软浮点乘加要 15–40 周期。</li>
+        <li><b>转向排队缓冲 2 槽</b>：同一 tick 内的连续输入先进队列，每个 tick 只消费一次，避免反向自杀。</li>
+      </ul>
+    </div>
+
+    <div class="pi-sec">
+      <h2>运行状态</h2>
+      <div class="statusbar">
+        <span class="chip on" id="stPlay">游玩中</span>
+        <span class="chip" id="stDying">撞毁闪屏</span>
+        <span class="chip" id="stOver">结束面板</span>
+        <span class="chip" id="stDash">冲刺</span>
+        <span class="chip" id="stRec">新纪录</span>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<div class="foot">s02 贪吃蛇 · 与固件 fw/dev_s02/main/app_s02.c 同源 · 画布 120×160 → 2× 放大 · 单一 50ms 主循环</div>
+
+<script>
+/* ============================================================
+   状态机（与固件 app_s02.c 一一对应）
+   ST_PLAY → ST_DYING（闪屏 4 tick）→ ST_OVER → 双击/短按确认 → ST_PLAY
+   ============================================================ */
+const ST_PLAY = 0, ST_DYING = 1, ST_OVER = 2;
+
+const GW = 20, GH = 21, CELL = 6;      // 网格（canvas 坐标，与固件一致）
+const BY0 = 14;                         // 棋盘顶边（canvas 行）
+const BH  = GH * CELL;                  // 126
+const MAXLEN = GW * GH;
+
+/* 配色：从 RGB565 常量换算，和固件完全一致 */
+const C = {
+  page : '#06070F', hdr:'#12121C', line:'#24243A',
+  board: '#0D1526', grid:'#18233C', edge:'#33456F',
+  glow : '#731810', bean:'#F76921', beanHi:'#FFCCC5',
+  dead : '#E45858', eye:'#0A1428'
+};
+
+/* 蛇身渐变带端点（RGB565 分量）→ 32 段纯色 */
+const S0 = [24,62,30], S1 = [2,14,30];
+const PAL = [];
+for (let k = 0; k < 32; k++) {
+  const r = Math.round(S0[0] + (S1[0]-S0[0]) * k / 31);
+  const g = Math.round(S0[1] + (S1[1]-S0[1]) * k / 31);
+  const b = Math.round(S0[2] + (S1[2]-S0[2]) * k / 31);
+  PAL.push(`rgb(${r*8.22|0},${g*4.05|0},${b*8.22|0})`);
+}
+
+const DIR = [[0,-1],[1,0],[0,1],[-1,0]];   // 0上 1右 2下 3左
+
+const cv  = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+
+const el = {
+  score: document.getElementById('hudScore'),
+  best : document.getElementById('hudBest'),
+  hint1: document.getElementById('hint1'),
+  hint2: document.getElementById('hint2'),
+  panel: document.getElementById('panel'),
+  ovT  : document.getElementById('ovTitle'),
+  ovM  : document.getElementById('ovMine'),
+  ovB  : document.getElementById('ovBest'),
+  flash: document.getElementById('flash'),
+  stPlay:document.getElementById('stPlay'), stDying:document.getElementById('stDying'),
+  stOver:document.getElementById('stOver'), stDash :document.getElementById('stDash'),
+  stRec :document.getElementById('stRec'),
+  kUp:document.getElementById('kUp'), kDown:document.getElementById('kDown'), kOk:document.getElementById('kOk'),
+  lgUp:document.getElementById('lgUp'), lgDown:document.getElementById('lgDown'),
+  lgOk:document.getElementById('lgOk'), lgOk2:document.getElementById('lgOk2'),
+  lgL:document.getElementById('lgL'), lgL2:document.getElementById('lgL2')
+};
+
+/* ------------------------- 游戏状态 ------------------------- */
+let g = {
+  state: ST_PLAY, dir:1, hx:0, hy:0,
+  body:[], bean:{x:0,y:0}, score:0, best:0,
+  acc:0, dash:0, q:[], die:0, tickn:0
+};
+
+function loadBest(){
+  try { g.best = parseInt(localStorage.getItem('s02_best') || '0', 10) || 0; } catch(e){ g.best = 0; }
+}
+function saveBest(){
+  try { localStorage.setItem('s02_best', String(g.best)); } catch(e){}
+}
+
+function stepMs(){
+  const s = g.score;
+  if (s < 5)  return 220;
+  if (s < 12) return 190;
+  if (s < 22) return 160;
+  if (s < 34) return 140;
+  if (s < 48) return 120;
+  if (s < 64) return 105;
+  return 92;
+}
+
+function spawnBean(){
+  const used = new Set(g.body.map(p => p.x + ',' + p.y));
+  for (let t = 0; t < 60; t++){
+    const x = Math.floor(Math.random()*GW), y = Math.floor(Math.random()*GH);
+    if (!used.has(x+','+y)) { g.bean = {x,y}; return; }
+  }
+  for (let c = 0; c < GW*GH; c++){
+    const x = c % GW, y = (c / GW) | 0;
+    if (!used.has(x+','+y)) { g.bean = {x,y}; return; }
+  }
+  g.bean = {x:-1,y:-1};
+}
+
+function newGame(){
+  g.state = ST_PLAY; g.score = 0; g.die = 0; g.acc = 0; g.dash = 0;
+  g.q = []; g.tickn = 0; g.dir = 1;
+  const cy = (GH / 2) | 0;
+  g.body = [{x:4,y:cy},{x:5,y:cy},{x:6,y:cy}];
+  g.hx = 6; g.hy = cy;
+  spawnBean();
+  refreshHud();
+  el.panel.classList.remove('show');
+}
+
+function refreshHud(){
+  el.score.textContent = '分 ' + g.score;
+  el.best.textContent  = '最高 ' + g.best;
+  el.hint1.textContent = '上 左转   下 右转';
+  el.hint2.textContent = (g.state === ST_OVER) ? '确认 新局' : '确认 加速   长按 掉头';
+}
+
+function die(){
+  if (g.state !== ST_PLAY) return;
+  g.state = ST_DYING; g.die = 0;
+  el.stDying.classList.add('on'); el.stPlay.classList.remove('on');
+}
+
+function gameOver(){
+  g.state = ST_OVER;
+  const rec = g.score > g.best;
+  if (rec){ g.best = g.score; saveBest(); }
+  el.ovT.textContent = rec ? '新纪录' : '结束';
+  el.ovM.textContent = '本局 ' + g.score;
+  el.ovB.textContent = '最高 ' + g.best;
+  el.panel.classList.add('show');
+  el.stOver.classList.add('on'); el.stDying.classList.remove('on');
+  el.stRec.classList.toggle('on', rec);
+  refreshHud();
+}
+
+function step(){
+  if (g.q.length > 0){                       // 排队缓冲：每个 tick 只消费一次
+    const t = g.q.shift();
+    g.dir = (g.dir + (t < 0 ? 3 : 1)) & 3;
+  }
+  const [dx,dy] = DIR[g.dir];
+  const nx = g.hx + dx, ny = g.hy + dy;
+
+  if (nx < 0 || nx >= GW || ny < 0 || ny >= GH){ die(); return; }
+
+  const grow = (nx === g.bean.x && ny === g.bean.y) && g.body.length < MAXLEN;
+  const lim  = grow ? g.body.length : g.body.length - 1;
+  for (let i = 0; i < lim; i++){
+    if (g.body[i].x === nx && g.body[i].y === ny){ die(); return; }
+  }
+  g.body.unshift({x:nx, y:ny});
+  g.hx = nx; g.hy = ny;
+  if (!grow) g.body.pop();
+  else {
+    g.score++;
+    spawnBean();
+    if (g.score % 5 === 0) refreshHud();
+  }
+  if (g.state === ST_PLAY && g.score !== 0) refreshHud();
+}
+
+/* ------------------------- 渲染 ------------------------- */
+function disc(cx, cy, r, col){
+  const rr = r*r;
+  for (let y = -r; y <= r; y++){
+    const yy = cy + y, y2 = y*y;
+    for (let x = -r; x <= r; x++){
+      if (x*x + y2 <= rr){ ctx.fillStyle = col; ctx.fillRect(cx+x, yy, 1, 1); }
+    }
+  }
+}
+
+function render(){
+  /* 顶栏 / 提示区底色 */
+  ctx.fillStyle = C.hdr;  ctx.fillRect(0, 0, 120, BY0);
+  ctx.fillStyle = C.line; ctx.fillRect(0, BY0-1, 120, 1);
+  ctx.fillStyle = C.hdr;  ctx.fillRect(0, BY0+BH, 120, 160-BY0-BH);
+  ctx.fillStyle = C.line; ctx.fillRect(0, BY0+BH, 120, 1);
+
+  /* 棋盘底（死亡闪屏时整块翻白/翻红） */
+  ctx.fillStyle = C.board;
+  if (g.state === ST_DYING) ctx.fillStyle = (g.die < 3) ? '#FFFFFF' : C.dead;
+  ctx.fillRect(0, BY0, 120, BH);
+
+  /* 深色细网格线 */
+  ctx.fillStyle = C.grid;
+  for (let i = 0; i <= GW; i++)  ctx.fillRect(i*CELL, BY0, 1, BH);
+  for (let j = 0; j <= GH; j++)  ctx.fillRect(0, BY0 + j*CELL, 120, 1);
+
+  /* 棋盘边框 */
+  ctx.fillStyle = C.edge;
+  ctx.fillRect(0, BY0, 1, BH); ctx.fillRect(119, BY0, 1, BH);
+  ctx.fillRect(0, BY0, 120, 1); ctx.fillRect(0, BY0+BH, 120, 1);
+
+  /* 豆子：带暗外环的发光小圆（呼吸闪） */
+  if (g.bean.x >= 0 && g.state === ST_PLAY){
+    const cx = g.bean.x*CELL + CELL/2, cy = BY0 + g.bean.y*CELL + CELL/2;
+    disc(cx, cy, 3, C.glow);
+    disc(cx, cy, 2, C.bean);
+    disc(cx, cy, 1, (g.tickn & 2) ? C.beanHi : C.bean);
+  }
+
+  /* 蛇：尾 → 头，头最后画 */
+  const n = g.body.length;
+  for (let i = n - 1; i >= 0; i--){
+    const b = g.body[i];
+    const x0 = b.x*CELL, y0 = BY0 + b.y*CELL;
+    let t = (i * 31) / (n > 1 ? n - 1 : 1);
+    if (g.dash > 0) t = t * 2 / 3;
+    const c = PAL[Math.max(0, Math.min(31, Math.round(t)))];
+
+    /* 6×6 块去掉四个角，形成链节感 */
+    ctx.fillStyle = c;
+    ctx.fillRect(x0+1, y0, CELL-2, CELL);
+    ctx.fillRect(x0, y0+1, 1, CELL-2);
+    ctx.fillRect(x0+CELL-1, y0+1, 1, CELL-2);
+
+    if (i === 0 && g.state !== ST_DYING){      // 蛇头眼睛，随朝向变化
+      let ex = x0, ey = y0;
+      if (DIR[g.dir][0] > 0) ex = x0 + 3;
+      if (DIR[g.dir][0] < 0) ex = x0 + 2;
+      if (DIR[g.dir][1] > 0) ey = y0 + 3;
+      if (DIR[g.dir][1] < 0) ey = y0 + 2;
+      let p1, p2;
+      if (DIR[g.dir][0] !== 0){ p1 = [ex, y0+1]; p2 = [ex, y0+4]; }
+      else                    { p1 = [x0+1, ey]; p2 = [x0+4, ey]; }
+      ctx.fillStyle = C.eye;
+      ctx.fillRect(p1[0], p1[1], 1, 1);
+      ctx.fillRect(p2[0], p2[1], 1, 1);
+    }
+  }
+
+  /* 结束态：撞毁处红叉 */
+  if (g.state === ST_OVER && g.hx >= 0 && g.hx < GW && g.hy >= 0 && g.hy < GH){
+    const x0 = g.hx*CELL, y0 = BY0 + g.hy*CELL;
+    ctx.fillStyle = C.dead;
+    for (let i = 0; i < CELL; i++){
+      ctx.fillRect(x0+i, y0+i, 1, 1);
+      ctx.fillRect(x0+i, y0+CELL-1-i, 1, 1);
+    }
+  }
+}
+
+/* ------------------------- 主循环：50ms 一 tick ------------------------- */
+function tick(){
+  g.tickn++;
+  if (g.dash > 0){
+    g.dash -= 50;
+    el.stDash.classList.toggle('on', g.dash > 0);
+  }
+
+  if (g.state === ST_PLAY){
+    let period = stepMs();
+    if (g.dash > 0) period = Math.max(55, period >> 1);
+    g.acc += 50;
+    while (g.acc >= period){
+      g.acc -= period;
+      step();
+      if (g.state !== ST_PLAY) break;
+      period = stepMs();
+      if (g.dash > 0) period = Math.max(55, period >> 1);
+    }
+  } else if (g.state === ST_DYING){
+    g.die++;
+    el.flash.style.background = (g.die < 3) ? '#FFFFFF' : C.dead;
+    el.flash.classList.add('on');
+    if (g.die >= 4){
+      el.flash.classList.remove('on');
+      gameOver();
+    }
+  }
+  render();
+}
+
+/* ------------------------- 输入 ------------------------- */
+function pushTurn(t){
+  if (g.state !== ST_PLAY) return;
+  if (g.q.length < 2) g.q.push(t);
+}
+
+function ripple(node, ev){
+  const r = node.getBoundingClientRect();
+  const d = document.createElement('span');
+  d.className = 'ripple';
+  const size = Math.max(r.width, r.height) * 2;
+  d.style.width = d.style.height = size + 'px';
+  d.style.left = ((ev && ev.clientX ? ev.clientX - r.left : r.width/2)) + 'px';
+  d.style.top  = ((ev && ev.clientY ? ev.clientY - r.top  : r.height/2)) + 'px';
+  node.appendChild(d);
+  setTimeout(() => d.remove(), 460);
+}
+
+function flashKey(node, legend){
+  node.classList.add('active');
+  if (legend) legend.classList.add('hl');
+  setTimeout(() => { node.classList.remove('active'); if (legend) legend.classList.remove('hl'); }, 110);
+}
+
+function onUp(){
+  flashKey(el.kUp, el.lgUp);
+  if (g.state === ST_OVER) return;
+  pushTurn(-1);                                  // 相对左转 90°
+}
+function onDown(){
+  flashKey(el.kDown, el.lgDown);
+  if (g.state === ST_OVER) return;
+  pushTurn(+1);                                  // 相对右转 90°
+}
+function onOk(){
+  flashKey(el.kOk, el.lgOk);
+  if (g.state === ST_OVER){ newGame(); el.stOver.classList.remove('on'); el.stPlay.classList.add('on'); el.stRec.classList.remove('on'); }
+  else if (g.state === ST_PLAY){ g.dash = 600; }  // 冲刺 0.6s
+}
+
+/* 实体按键（鼠标 + 触屏） */
+el.kUp.addEventListener('pointerdown', e => { e.preventDefault(); ripple(el.kUp, e); onUp(); });
+el.kDown.addEventListener('pointerdown', e => { e.preventDefault(); ripple(el.kDown, e); onDown(); });
+el.kOk.addEventListener('pointerdown', e => { e.preventDefault(); ripple(el.kOk, e); onOk(); });
+
+/* 键盘：ArrowUp / ArrowDown / Enter 对应三键；Escape = 长按确认；R = 重置 */
+document.addEventListener('keydown', e => {
+  if (e.repeat) return;
+  switch (e.key){
+    case 'ArrowUp':   e.preventDefault(); onUp();   break;
+    case 'ArrowDown': e.preventDefault(); onDown(); break;
+    case 'Enter':     e.preventDefault(); onOk();   break;
+    case 'Escape':    flashKey(el.kOk, el.lgL2);    break;   // 长按确认 = 返回启动器
+    case 'r': case 'R': newGame();                  break;
+  }
+});
+
+/* ------------------------- 启动 ------------------------- */
+loadBest();
+newGame();
+render();
+setInterval(tick, 50);          // 与固件 50ms tick 对齐
+</script>
+</body>
+</html>
